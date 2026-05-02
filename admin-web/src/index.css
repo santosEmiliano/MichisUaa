@@ -169,3 +169,24 @@ body {
   background-color: var(--sidebar-nav-item-activ-fondo);
   color: var(--sidebar-nav-item-activ-texto);
 }
+
+/*Login*/
+.input-field {
+  background-color: var(--fondo-gris-oscuro);
+  border: 1px solid var(--border-color);
+  color: var(--text-main);
+  border-radius: 0.75rem;
+  padding: 0.75rem 1rem;
+  width: 100%;
+  outline: none;
+  transition:
+    border-color 0.15s,
+    box-shadow 0.15s;
+}
+.input-field::placeholder {
+  color: var(--text-secondary);
+}
+.input-field:focus {
+  border-color: var(--accent-orange);
+  box-shadow: 0 0 0 2px rgba(232, 137, 60, 0.15);
+}
