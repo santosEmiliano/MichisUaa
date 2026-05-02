@@ -1,5 +1,18 @@
 const express = require("express");
 const router = express.Router();
+const token = require("../middleware/verifyToken");
+const userFunctions = require("../controllers/user.controller");
+
+router.post(
+  "/login",
+  userFunctions.login
+);
+
+router.post(
+  "/logout",
+  token.verifyToken,
+  userFunctions.logout
+);
 
 // -------------------------------------------- DE PRUEBA --------------------------------------------
 // ENDPOINT QUE RETORNA LA INFORMACION DEL USUARIO SEGUN SU ID
