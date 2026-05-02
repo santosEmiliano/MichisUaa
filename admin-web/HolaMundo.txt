@@ -1,1 +1,0 @@
-Proyecto de frontend del administrador web
