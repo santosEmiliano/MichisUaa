@@ -21,9 +21,9 @@ const createUser = async (req, res) => {
     const saltos = await bcrypt.genSalt(10); 
     const hash = await bcrypt.hash(password, saltos); 
 
-    const userId = await userModel.addUser(nombre, email, hash);
+    const userId = await userModel.addUser(nombre, email, hash, false);
 
-    const token = tokenfunctions.generateToken(userId);
+    const token = tokenfunctions.generateToken(userId, false);
 
     return res
       .status(200)
@@ -54,7 +54,7 @@ const login = async (req, res) => {
       return res.status(400).json({mensaje: `Constraseña incorrecta.`});
     }
 
-    const token = tokenfunctions.generateToken(user.idUsuario);
+    const token = tokenfunctions.generateToken(user.idUsuario, user.admin);
     const datos = await userModel.searchId(user.idUsuario);
 
     return res.status(200).json({ mensaje: "Login realizado correctamente", token, datos });

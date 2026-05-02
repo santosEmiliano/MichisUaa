@@ -2,9 +2,9 @@ const jwt = require("jsonwebtoken");
 
 const JWT_SECRET = process.env.JWT_SECRET;
 
-const { searchId } = require("../../model/user/user.model");
+const { searchId } = require("../model/user.model");
 
-const redis = require("../../utils/redisClient");
+const redis = require("../utils/redisClient");
 
 //creacion de tokens
 function generateToken(userId, isAdmin) {

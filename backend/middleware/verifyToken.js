@@ -1,5 +1,4 @@
 const jwt = require("jsonwebtoken");
-const { searchId } = require("../model/user/user.model");
 
 const redis = require("../utils/redisClient");
 
@@ -31,7 +30,6 @@ const verifyToken = async (req, res, next) => {
 
     const decoded = jwt.verify(token, JWT_SECRET);
 
-    // Guardamos los datos en la request para usarlos en el controlador o en verifyAdmin
     req.userId = decoded.id;
     req.isAdmin = decoded.admin; 
     req.token = token;
