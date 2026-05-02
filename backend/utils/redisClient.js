@@ -8,17 +8,5 @@ const redis = new Redis({
   token: TOKEN,
 });
 
-/*
-async function probar() {
-  try {
-    await redis.set("test", "ok");
-    const v = await redis.get("test");
-    console.log("Redis OK:", v);
-  } catch (error) {
-    console.log("ERROR REDIS:", error);
-  }
-}
-probar();
-*/
 
 module.exports = redis;

@@ -3,11 +3,13 @@ const router = express.Router();
 const token = require("../middleware/verifyToken");
 const userFunctions = require("../controllers/user.controller");
 
+//Ruta POST de Login
 router.post(
   "/login",
   userFunctions.login
 );
 
+//Ruta POST de Logout
 router.post(
   "/logout",
   token.verifyToken,
