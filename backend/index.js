@@ -1,21 +1,24 @@
 const express = require('express');
+const cors = require('cors'); 
 const app = express();
 const port = 3000;
 
-// Importaciones de rutas
+// IMPORT DE RUTAS
 const userRoutes = require('./routes/user.routes');
 
-// Middleware para procesar JSON
-app.use(express.json());
+// Middlewares globales
+app.use(cors()); //De momento asi sin na
+app.use(express.json()); 
 
-// Definición de una ruta básica
+// RUTA DE CHECK
 app.get('/', (req, res) => {
   res.send('¡Servidor Express funcionando correctamente!');
 });
 
-app.use('/user', userRoutes)
+// USE DE RUTAS DE API
+app.use('/user', userRoutes);
 
-// Ejemplo de una ruta adicional
+// RUTA DE CHECK 2
 app.get('/api/status', (req, res) => {
   res.json({
     status: 'online',
