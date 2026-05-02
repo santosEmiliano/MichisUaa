@@ -1,0 +1,36 @@
+import { useState } from "react";
+import { Routes, Route, Navigate } from "react-router-dom";
+import AuthPage from "./pages/AuthPage";
+import MainLayout from "./layouts/MainLayout";
+import Dashboard from "./pages/Dashboard";
+
+function App() {
+  const [isAuthenticated, setIsAuthenticated] = useState(false);
+
+  return (
+    <Routes>
+      {/*Ruta pública */}
+      <Route
+        path="/login"
+        element={
+          !isAuthenticated ? (
+            <AuthPage onLogin={() => setIsAuthenticated(true)} />
+          ) : (
+            <Navigate to="/" />
+          )
+        }
+      />
+      <Route
+        path="/"
+        element={isAuthenticated ? <MainLayout /> : <Navigate to="/login" />}
+      >
+        {/* lo manda al dashboard*/}
+        <Route index element={<Dashboard />} />
+        {/* rutas del panel, FALTAN AGREGAR LAS PÁGINAS, aqui agregamos las rutas */}
+        <Route path="*" element={<Navigate to="/" />} />
+      </Route>
+    </Routes>
+  );
+}
+
+export default App;
