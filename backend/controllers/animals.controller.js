@@ -1,0 +1,104 @@
+const animalModel = require("../model/animals.model");
+
+// GET ALL
+const getAnimals = async (req, res) => {
+  try {
+    const animals = await animalModel.getAllAnimals();
+    return res.status(200).json(animals);
+  } catch (error) {
+    console.error("Error al obtener animales:", error);
+    return res.status(500).json({ mensaje: "Error al obtener los animales" });
+  }
+};
+
+// GET BY ID
+const getAnimalById = async (req, res) => {
+  try {
+    const { id } = req.params;
+    const animal = await animalModel.getAnimalById(id);
+    
+    if (!animal) {
+      return res.status(404).json({ mensaje: "Animal no encontrado" });
+    }
+    
+    return res.status(200).json(animal);
+  } catch (error) {
+    console.error("Error al obtener animal:", error);
+    return res.status(500).json({ mensaje: "Error al obtener el animal" });
+  }
+};
+
+// CREATE
+const createAnimal = async (req, res) => {
+  try {
+    const { Colonia_idColonia, nombre } = req.body;
+    
+    // Validación mínima requerida por la base de datos
+    if (!Colonia_idColonia || !nombre) {
+      return res.status(400).json({ 
+        mensaje: "Los campos Colonia_idColonia y nombre son obligatorios" 
+      });
+    }
+
+    const newAnimal = await animalModel.createAnimal(req.body);
+    
+    return res.status(201).json({ 
+      mensaje: "Animal registrado correctamente", 
+      animal: newAnimal 
+    });
+  } catch (error) {
+    console.error("Error al crear animal:", error);
+    return res.status(500).json({ mensaje: "Error al registrar el animal" });
+  }
+};
+
+// UPDATE
+const updateAnimal = async (req, res) => {
+  try {
+    const { id } = req.params;
+    
+    // Verificamos si existe antes de intentar actualizar
+    const existingAnimal = await animalModel.getAnimalById(id);
+    if (!existingAnimal) {
+      return res.status(404).json({ mensaje: "Animal no encontrado para actualizar" });
+    }
+
+    const updatedAnimal = await animalModel.updateAnimal(id, req.body);
+    
+    return res.status(200).json({ 
+      mensaje: "Animal actualizado correctamente", 
+      animal: updatedAnimal 
+    });
+  } catch (error) {
+    console.error("Error al actualizar animal:", error);
+    return res.status(500).json({ mensaje: "Error al actualizar el animal" });
+  }
+};
+
+// DELETE
+const deleteAnimal = async (req, res) => {
+  try {
+    const { id } = req.params;
+    
+    // Verificamos si existe antes de intentar eliminar
+    const existingAnimal = await animalModel.getAnimalById(id);
+    if (!existingAnimal) {
+      return res.status(404).json({ mensaje: "Animal no encontrado para eliminar" });
+    }
+
+    await animalModel.deleteAnimal(id);
+    
+    return res.status(200).json({ mensaje: "Animal eliminado correctamente" });
+  } catch (error) {
+    console.error("Error al eliminar animal:", error);
+    return res.status(500).json({ mensaje: "Error al eliminar el animal" });
+  }
+};
+
+module.exports = {
+  getAnimals,
+  getAnimalById,
+  createAnimal,
+  updateAnimal,
+  deleteAnimal
+};

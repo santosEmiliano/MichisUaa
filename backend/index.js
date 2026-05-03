@@ -5,6 +5,7 @@ const port = 3000;
 
 // IMPORT DE RUTAS
 const userRoutes = require('./routes/user.routes');
+const animalRoutes = require('./routes/animals.routes');
 
 // Middlewares globales
 app.use(cors()); //De momento asi sin na
@@ -17,6 +18,7 @@ app.get('/', (req, res) => {
 
 // USE DE RUTAS DE API
 app.use('/user', userRoutes);
+app.use('/animal', animalRoutes);
 
 // RUTA DE CHECK 2
 app.get('/api/status', (req, res) => {
