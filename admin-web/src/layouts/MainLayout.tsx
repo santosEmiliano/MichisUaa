@@ -14,7 +14,7 @@ const MainLayout = () => {
 
       <div className="flex-1 flex flex-col md:ml-72 min-w-0 transition-all duration-300">
         <Header />
-        <main className="flex-1 p-6 md:p-10 overflow-y-auto">
+        <main className="flex-1 p-6 md:p-10 overflow-hidden flex flex-col">
           <Outlet />
         </main>
       </div>
