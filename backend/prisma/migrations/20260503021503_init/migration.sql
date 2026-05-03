@@ -4,6 +4,7 @@ CREATE TABLE `Colonia` (
     `nombre` VARCHAR(100) NOT NULL,
     `descripcion` VARCHAR(400) NOT NULL,
     `zona` VARCHAR(150) NOT NULL,
+    `created_at` DATETIME(3) NOT NULL DEFAULT CURRENT_TIMESTAMP(3),
 
     PRIMARY KEY (`idColonia`)
 ) DEFAULT CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci;
@@ -19,6 +20,8 @@ CREATE TABLE `Animal` (
     `fecha_nac` DATETIME(3) NULL,
     `fecha_esterilizacion` DATETIME(3) NULL,
     `descripcion` VARCHAR(400) NULL,
+    `created_at` DATETIME(3) NOT NULL DEFAULT CURRENT_TIMESTAMP(3),
+    `updated_at` DATETIME(3) NOT NULL,
 
     PRIMARY KEY (`idAnimal`)
 ) DEFAULT CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci;
@@ -30,6 +33,7 @@ CREATE TABLE `Usuario` (
     `email` VARCHAR(80) NOT NULL,
     `password` VARCHAR(150) NOT NULL,
     `admin` BOOLEAN NOT NULL DEFAULT false,
+    `created_at` DATETIME(3) NOT NULL DEFAULT CURRENT_TIMESTAMP(3),
 
     UNIQUE INDEX `Usuario_email_key`(`email`),
     PRIMARY KEY (`idUsuario`)
@@ -54,6 +58,7 @@ CREATE TABLE `Avistamiento` (
     `verificado` BOOLEAN NOT NULL DEFAULT false,
     `longitud` DECIMAL(9, 1) NOT NULL,
     `latitud` DECIMAL(9, 1) NOT NULL,
+    `created_at` DATETIME(3) NOT NULL DEFAULT CURRENT_TIMESTAMP(3),
 
     PRIMARY KEY (`idAvistamiento`)
 ) DEFAULT CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci;

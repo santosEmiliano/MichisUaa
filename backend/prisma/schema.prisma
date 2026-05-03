@@ -14,10 +14,11 @@ enum EstadoAnimal {
 }
 
 model Colonia {
-  idColonia   Int    @id @default(autoincrement())
-  nombre      String @db.VarChar(100)
-  descripcion String @db.VarChar(400)
-  zona        String @db.VarChar(150)
+  idColonia   Int      @id @default(autoincrement())
+  nombre      String   @db.VarChar(100)
+  descripcion String   @db.VarChar(400)
+  zona        String   @db.VarChar(150)
+  createdAt   DateTime @default(now()) @map("created_at")
 
   animales     Animal[]
   usuariosCols UsuarioCol[]
@@ -26,15 +27,17 @@ model Colonia {
 }
 
 model Animal {
-  idAnimal            Int          @id @default(autoincrement())
-  Colonia_idColonia   Int
-  nombre              String       @db.VarChar(80)
-  esterilizado        Boolean      @default(false) @db.TinyInt
-  foto                String?      @db.VarChar(120)
-  estado              EstadoAnimal @default(Registrado)
-  fecha_nac           DateTime?
+  idAnimal             Int          @id @default(autoincrement())
+  Colonia_idColonia    Int
+  nombre               String       @db.VarChar(80)
+  esterilizado         Boolean      @default(false) @db.TinyInt
+  foto                 String?      @db.VarChar(120)
+  estado               EstadoAnimal @default(Registrado)
+  fecha_nac            DateTime?
   fecha_esterilizacion DateTime?
-  descripcion         String?      @db.VarChar(400)
+  descripcion          String?      @db.VarChar(400)
+  createdAt            DateTime     @default(now()) @map("created_at")
+  updatedAt            DateTime     @updatedAt @map("updated_at")
 
   colonia       Colonia        @relation(fields: [Colonia_idColonia], references: [idColonia])
   avistamientos Avistamiento[]
@@ -43,22 +46,23 @@ model Animal {
 }
 
 model Usuario {
-  idUsuario Int    @id @default(autoincrement())
-  nombre    String @db.VarChar(90)
-  email     String @unique @db.VarChar(80)
-  password  String @db.VarChar(150)
-  admin     Boolean @default(false) @db.TinyInt
+  idUsuario Int      @id @default(autoincrement())
+  nombre    String   @db.VarChar(90)
+  email     String   @unique @db.VarChar(80)
+  password  String   @db.VarChar(150)
+  admin     Boolean  @default(false) @db.TinyInt
+  createdAt DateTime @default(now()) @map("created_at")
 
-  avistamientosRegistrados  Avistamiento[] @relation("RegistradoPor")
-  avistamientosVerificados  Avistamiento[] @relation("VerificadoPor")
-  usuariosCols              UsuarioCol[]
+  avistamientosRegistrados Avistamiento[] @relation("RegistradoPor")
+  avistamientosVerificados Avistamiento[] @relation("VerificadoPor")
+  usuariosCols             UsuarioCol[]
 
   @@map("Usuario")
 }
 
 model UsuarioCol {
-  Colonia_idColonia  Int
-  Usuario_idUsuario  Int
+  Colonia_idColonia Int
+  Usuario_idUsuario Int
 
   colonia Colonia @relation(fields: [Colonia_idColonia], references: [idColonia], onDelete: Cascade)
   usuario Usuario @relation(fields: [Usuario_idUsuario], references: [idUsuario], onDelete: Cascade)
@@ -68,18 +72,19 @@ model UsuarioCol {
 }
 
 model Avistamiento {
-  idAvistamiento Int     @id @default(autoincrement())
+  idAvistamiento Int      @id @default(autoincrement())
   usuarioId      Int
   animalId       Int?
   verificadoPor  Int?
-  foto           String? @db.VarChar(150)
-  descripcion    String? @db.VarChar(400)
-  verificado     Boolean @default(false)
-  longitud       Decimal @db.Decimal(9, 1)
-  latitud        Decimal @db.Decimal(9, 1)
+  foto           String?  @db.VarChar(150)
+  descripcion    String?  @db.VarChar(400)
+  verificado     Boolean  @default(false)
+  longitud       Decimal  @db.Decimal(9, 1)
+  latitud        Decimal  @db.Decimal(9, 1)
+  createdAt      DateTime @default(now()) @map("created_at")
 
-  usuario    Usuario  @relation("RegistradoPor", fields: [usuarioId], references: [idUsuario])
-  animal     Animal?  @relation(fields: [animalId], references: [idAnimal])
+  usuario     Usuario  @relation("RegistradoPor", fields: [usuarioId], references: [idUsuario])
+  animal      Animal?  @relation(fields: [animalId], references: [idAnimal])
   verificador Usuario? @relation("VerificadoPor", fields: [verificadoPor], references: [idUsuario])
 
   @@map("Avistamiento")
