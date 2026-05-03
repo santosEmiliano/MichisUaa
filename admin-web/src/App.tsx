@@ -5,6 +5,7 @@ import MainLayout from "./layouts/MainLayout";
 import Dashboard from "./pages/Dashboard";
 import Gatos from "./pages/Gatos";
 import Usuarios from "./pages/Usuarios";
+import Colonias from "./pages/Colonias";
 
 function App() {
   const [isAuthenticated, setIsAuthenticated] = useState(false);
@@ -31,6 +32,7 @@ function App() {
         {/* rutas del panel, FALTAN AGREGAR LAS PÁGINAS, aqui agregamos las rutas */}
         <Route path="gatos" element={<Gatos />} />
         <Route path="usuarios" element={<Usuarios />} />
+        <Route path="colonias" element={<Colonias />} />
         <Route path="*" element={<Navigate to="/" />} />
       </Route>
     </Routes>

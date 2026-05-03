@@ -21,6 +21,19 @@ export interface User {
   creadoEn: string;
 }
 
+export interface Colonia {
+  id: number;
+  name: string;
+  location: string;
+  description: string;
+  alerta?: boolean;
+  responsableId: string;
+  responsableName: string;
+  responsableInitials: string;
+  animalCount: number;
+  esterilizadoPercent: number;
+}
+
 export interface FilterDef {
   label: string;
   options: string[];
