@@ -18,13 +18,13 @@ export const UsuarioModal = ({ isOpen, onClose }: UserModalProps) => {
       <button
         type="button"
         onClick={onClose}
-        className="px-6 py-2.5 rounded-xl border border-sidebar-separador text-main font-bold bg-gris hover:bg-gris-oscuro transition-all duration-200"
+        className="px-6 py-2.5 rounded-xl border border-sidebar-separador text-main font-bold bg-gris hover:bg-gris-oscuro hover:border-acento-naranja focus:border-acento-naranja focus:bg-[var(--bg-active-item)] transition-all duration-200"
       >
         Cancelar
       </button>
       <button
         type="submit"
-        className="px-6 py-2.5 rounded-xl border border-[#e8893c] bg-[rgba(232,137,60,0.18)] text-main font-bold hover:bg-[#e8893c] hover:text-white transition-all duration-200"
+        className="px-6 py-2.5 rounded-xl border border-[#e8893c] bg-[var(--bg-active-item)] text-[#e8893c] font-bold hover:bg-[rgba(232,137,60,0.30)] hover:border-acento-naranja transition-all duration-200"
       >
         Crear usuario
       </button>
@@ -46,7 +46,7 @@ export const UsuarioModal = ({ isOpen, onClose }: UserModalProps) => {
           <input
             type="text"
             placeholder="Ej. Julián Emmanuel"
-            className="w-full bg-gris border border-sidebar-separador rounded-xl px-4 py-3.5 text-main focus:outline-none focus:border-acento-naranja transition-colors placeholder-secondary"
+            className="w-full bg-gris border border-sidebar-separador rounded-xl px-4 py-3.5 text-main focus:outline-none focus:border-acento-naranja focus:bg-[rgba(232,137,60,0.05)] hover:border-acento-naranja transition-all duration-200 placeholder-secondary"
           />
         </div>
 
@@ -57,7 +57,7 @@ export const UsuarioModal = ({ isOpen, onClose }: UserModalProps) => {
           <input
             type="email"
             placeholder="usuario@edu.uaa.mx"
-            className="w-full bg-gris border border-sidebar-separador rounded-xl px-4 py-3.5 text-main focus:outline-none focus:border-acento-naranja transition-colors placeholder-secondary"
+            className="w-full bg-gris border border-sidebar-separador rounded-xl px-4 py-3.5 text-main focus:outline-none focus:border-acento-naranja focus:bg-[rgba(232,137,60,0.05)] hover:border-acento-naranja transition-all duration-200 placeholder-secondary"
           />
         </div>
 
@@ -69,7 +69,7 @@ export const UsuarioModal = ({ isOpen, onClose }: UserModalProps) => {
             <input
               type={showPassword ? "text" : "password"}
               placeholder="*****************"
-              className="w-full bg-gris border border-sidebar-separador rounded-xl px-4 py-3.5 pr-12 text-main focus:outline-none focus:border-acento-naranja transition-colors placeholder-secondary"
+              className="w-full bg-gris border border-sidebar-separador rounded-xl px-4 py-3.5 pr-12 text-main focus:outline-none focus:border-acento-naranja focus:bg-[rgba(232,137,60,0.05)] hover:border-acento-naranja transition-all duration-200 placeholder-secondary"
             />
             <button
               type="button"
@@ -114,7 +114,10 @@ export const UsuarioModal = ({ isOpen, onClose }: UserModalProps) => {
             Colonias Asignadas
           </label>
           <div className="relative w-56">
-            <select className="appearance-none w-full bg-gris border border-sidebar-separador text-secondary rounded-xl px-4 py-3 pr-10 focus:outline-none focus:border-acento-naranja cursor-pointer">
+            <select
+              className="appearance-none w-full bg-gris border border-sidebar-separador text-secondary rounded-xl px-4 py-3 pr-10 focus:outline-none focus:border-acento-naranja focus:bg-[rgba(232,137,60,0.05)] hover:border-acento-naranja transition-all duration-200 cursor-pointer [&>option]:bg-[#30302e] [&>option]:text-white"
+              style={{ colorScheme: "dark" }}
+            >
               <option>Seleccionar colonias</option>
               <option>Colonia Central</option>
               <option>Ed. 108</option>

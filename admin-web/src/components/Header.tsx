@@ -48,21 +48,23 @@ const Header = () => {
     <header className="sticky top-0 z-20 px-6 py-6 md:px-10 flex items-center justify-between border-b border-panel bg-main">
       <div className="flex items-center gap-4">
         <h1 className="text-4xl font-extrabold text-main">{currentTitle}</h1>
-
-        {location.pathname === "/" && (
-          <span
-            className="text-lg px-6 py-2 rounded-full font-semibold border"
-            style={{
-              borderColor: "var(--accent-gold)",
-              color: "var(--accent-gold)",
-              backgroundColor: "rgba(216, 170, 113, 0.1)",
-            }}
-          >
-            Colonia Central
-          </span>
-        )}
+        <div id="header-actions" className="flex items-center gap-4">
+          {location.pathname === "/" && (
+            <span
+              className="text-lg px-6 py-2 rounded-full font-semibold border"
+              style={{
+                borderColor: "var(--accent-gold)",
+                color: "var(--accent-gold)",
+                backgroundColor: "rgba(216, 170, 113, 0.1)",
+              }}
+            >
+              Colonia Central
+            </span>
+          )}
+        </div>
       </div>
 
+      {/*notificaciones */}
       <div className="flex items-center gap-3 relative">
         <button
           onClick={() => setIsNotifOpen(!isNotifOpen)}
