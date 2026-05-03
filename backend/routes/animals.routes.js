@@ -3,30 +3,39 @@ const router = express.Router();
 const token = require("../middleware/verifyToken");
 const animalsFunctions = require("../controllers/animals.controller");
 
-// Ruta GET de animales
+// Obtener todos los animales
 router.get(
-  "/get",
+  "/",
   token.verifyToken,
   animalsFunctions.getAnimals
 );
 
-// Ruta POST de animales
+// Obtener un animal por su ID
+router.get(
+  "/:id",
+  token.verifyToken,
+  animalsFunctions.getAnimalById
+);
+
+// Crear un nuevo animal
 router.post(
-  "/post",
+  "/",
   token.verifyToken,
   animalsFunctions.createAnimal
 );
 
-// Ruta PUT de animales
+// Actualizar un animal por su ID
 router.put(
-  "/put",
+  "/:id",
   token.verifyToken,
   animalsFunctions.updateAnimal
 );
 
-// Ruta DELETE de animales
+// Eliminar un animal por su ID
 router.delete(
-  "/delete",
+  "/:id",
   token.verifyToken,
   animalsFunctions.deleteAnimal
 );
+
+module.exports = router;
