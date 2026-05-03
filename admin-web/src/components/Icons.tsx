@@ -12,6 +12,11 @@ import {
   Menu,
   X,
   UserCircle,
+  Search,
+  ChevronDown,
+  Edit,
+  Trash2,
+  Plus,
 } from "lucide-react";
 
 const Icons = {
@@ -29,6 +34,11 @@ const Icons = {
   Menu: Menu,
   Close: X,
   UserCircle: UserCircle,
+  Search: Search,
+  ChevronDown: ChevronDown,
+  Edit: Edit,
+  Trash2: Trash2,
+  Plus: Plus,
 };
 
 export default Icons;

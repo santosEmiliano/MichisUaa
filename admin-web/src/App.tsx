@@ -3,6 +3,8 @@ import { Routes, Route, Navigate } from "react-router-dom";
 import AuthPage from "./pages/AuthPage";
 import MainLayout from "./layouts/MainLayout";
 import Dashboard from "./pages/Dashboard";
+import Gatos from "./pages/Gatos";
+import Usuarios from "./pages/Usuarios";
 
 function App() {
   const [isAuthenticated, setIsAuthenticated] = useState(false);
@@ -27,6 +29,8 @@ function App() {
         {/* lo manda al dashboard*/}
         <Route index element={<Dashboard />} />
         {/* rutas del panel, FALTAN AGREGAR LAS PÁGINAS, aqui agregamos las rutas */}
+        <Route path="gatos" element={<Gatos />} />
+        <Route path="usuarios" element={<Usuarios />} />
         <Route path="*" element={<Navigate to="/" />} />
       </Route>
     </Routes>
