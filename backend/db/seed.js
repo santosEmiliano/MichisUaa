@@ -1,4 +1,5 @@
 const prisma = require('./prisma')
+const bcrypt = require('bcryptjs');
 
 async function main() {
   const colonia1 = await prisma.colonia.create({
@@ -9,11 +10,14 @@ async function main() {
     }
   })
 
+  const saltos = await bcrypt.genSalt(10);
+  const hashPassword = await bcrypt.hash('1234', saltos);
+
   const admin = await prisma.usuario.create({
     data: {
       nombre: 'Admin MichisUAA',
       email: 'admin@michis.uaa.mx',
-      password: '1234', // después de conectar bcrypt aquí va el hash
+      password: hashPassword,
       admin: true,
       usuariosCols: {
         create: { Colonia_idColonia: colonia1.idColonia }
