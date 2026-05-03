@@ -6,13 +6,13 @@ import Icons from "../components/Icons";
 
 const MainLayout = () => {
   const [isSidebarOpen, setIsSidebarOpen] = useState(false);
-  const toggleSidebar = () => setIsSidebarOpen(!isSidebarOpen);
+  const toggleSidebar = () => setIsSidebarOpen((prev) => !prev);
 
   return (
-    <div className="min-h-screen flex overflow-hidden bg-main text-main">
+    <div className="h-screen flex overflow-hidden bg-main text-main">
       <Sidebar isOpen={isSidebarOpen} toggleSidebar={toggleSidebar} />
 
-      <div className="flex-1 flex flex-col md:ml-72 transition-all duration-300">
+      <div className="flex-1 flex flex-col md:ml-72 min-w-0 transition-all duration-300">
         <Header />
         <main className="flex-1 p-6 md:p-10 overflow-y-auto">
           <Outlet />
