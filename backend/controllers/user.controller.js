@@ -59,7 +59,8 @@ const login = async (req, res) => {
 
     return res.status(200).json({ mensaje: "Login realizado correctamente", token, datos });
   } catch (error) {
-    return res.status(500).json({ mensaje: "Error al realizar login", error: error });
+    console.error("Error en login:", error);
+    return res.status(500).json({ mensaje: "Error al realizar login", error: error.message || String(error) });
   }
 };
 
