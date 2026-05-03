@@ -17,6 +17,8 @@ import {
   Edit,
   Trash2,
   Plus,
+  Eye,
+  EyeOff,
 } from "lucide-react";
 
 const Icons = {
@@ -39,6 +41,8 @@ const Icons = {
   Edit: Edit,
   Trash2: Trash2,
   Plus: Plus,
+  Eye: Eye,
+  EyeOff: EyeOff,
 };
 
 export default Icons;

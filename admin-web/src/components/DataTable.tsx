@@ -14,6 +14,8 @@ interface DataTableProps<T> {
   searchPlaceholder?: string;
   filters?: FilterDef[];
   rowsPerPage?: number;
+  onEdit?: (row: T) => void; 
+  onDelete?: (row: T) => void; 
 }
 
 export const DataTable = <T extends object>({
@@ -22,6 +24,8 @@ export const DataTable = <T extends object>({
   searchPlaceholder = "Buscar...",
   filters = [],
   rowsPerPage = 8,
+  onEdit, 
+  onDelete, 
 }: DataTableProps<T>) => {
   const [query, setQuery] = useState("");
   const [page, setPage] = useState(1);
@@ -57,6 +61,7 @@ export const DataTable = <T extends object>({
 
   return (
     <div className="w-full space-y-4">
+      {/* Buscador y Filtros */}
       <div className="flex flex-col md:flex-row gap-3 bg-card border border-panel p-3 rounded-xl items-center">
         <div className="flex-1 flex items-center gap-3 px-4 bg-gris-oscuro rounded-lg border border-panel h-11 w-full">
           <Icons.Search className="w-4 h-4 text-secondary shrink-0" />
@@ -94,6 +99,7 @@ export const DataTable = <T extends object>({
         )}
       </div>
 
+      {/* Tabla */}
       <div className="bg-card rounded-xl border border-sidebar-separador overflow-hidden shadow-lg">
         <div className="overflow-x-auto">
           <table className="w-full text-left min-w-[780px] border-collapse">
@@ -126,9 +132,7 @@ export const DataTable = <T extends object>({
                 paginated.map((row, i) => (
                   <tr
                     key={i}
-                    className={`border-b border-sidebar-separador last:border-0 text-[15px] hover-bg-item transition-colors ${
-                      i % 2 === 0 ? "bg-gris-oscuro" : "bg-gris"
-                    }`}
+                    className={`border-b border-sidebar-separador last:border-0 text-[15px] hover-bg-item transition-colors ${i % 2 === 0 ? "bg-card" : "bg-gris-oscuro"}`}
                   >
                     {columns.map((col, j) => (
                       <td key={j} className="px-6 py-4">
@@ -140,12 +144,14 @@ export const DataTable = <T extends object>({
                         <ActionButton
                           color="var(--accent-orange)"
                           title="Editar"
+                          onClick={() => onEdit?.(row)}
                         >
                           <Icons.Edit className="w-5 h-5" />
                         </ActionButton>
                         <ActionButton
                           color="var(--metrica-rojo)"
                           title="Eliminar"
+                          onClick={() => onDelete?.(row)}
                         >
                           <Icons.Trash2 className="w-5 h-5" />
                         </ActionButton>
@@ -159,6 +165,7 @@ export const DataTable = <T extends object>({
         </div>
       </div>
 
+      {/* Paginación */}
       {totalPages > 1 && (
         <div className="flex items-center justify-center gap-1">
           <PageBtn
@@ -197,13 +204,16 @@ const ActionButton = ({
   color,
   title,
   children,
+  onClick,
 }: {
   color: string;
   title: string;
   children: React.ReactNode;
+  onClick?: () => void;
 }) => (
   <button
     title={title}
+    onClick={onClick} 
     className="p-2 rounded-lg border transition-colors"
     style={{ borderColor: color, color }}
     onMouseEnter={(e) => {

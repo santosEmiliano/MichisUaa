@@ -1,8 +1,9 @@
+import { useState } from "react";
 import Icons from "../components/Icons";
 import { DataTable, type ColumnDef } from "../components/DataTable";
 import type { User } from "../types/models";
+import { UsuarioModal } from "../components/UsuarioModal";
 
-// Simula GET /api/users
 const mockUsers: User[] = [
   {
     id: 1,
@@ -53,46 +54,6 @@ const mockUsers: User[] = [
     rol: "Administrador",
     coloniasAsignadas: ["Zona alberca", "Ed. 108"],
     creadoEn: "Noviembre 2023",
-  },
-  {
-    id: 6,
-    nombre: "B. Osorio",
-    email: "b.osorio@edu.uaa.mx",
-    iniciales: "BO",
-    colorAvatar: "#7a4a2e",
-    rol: "Administrador",
-    coloniasAsignadas: ["Ed. 114"],
-    creadoEn: "Febrero 2024",
-  },
-  {
-    id: 6,
-    nombre: "B. Osorio",
-    email: "b.osorio@edu.uaa.mx",
-    iniciales: "BO",
-    colorAvatar: "#7a4a2e",
-    rol: "Administrador",
-    coloniasAsignadas: ["Ed. 114"],
-    creadoEn: "Febrero 2024",
-  },
-  {
-    id: 6,
-    nombre: "B. Osorio",
-    email: "b.osorio@edu.uaa.mx",
-    iniciales: "BO",
-    colorAvatar: "#7a4a2e",
-    rol: "Administrador",
-    coloniasAsignadas: ["Ed. 114"],
-    creadoEn: "Febrero 2024",
-  },
-  {
-    id: 6,
-    nombre: "B. Osorio",
-    email: "b.osorio@edu.uaa.mx",
-    iniciales: "BO",
-    colorAvatar: "#7a4a2e",
-    rol: "Administrador",
-    coloniasAsignadas: ["Ed. 114"],
-    creadoEn: "Febrero 2024",
   },
   {
     id: 6,
@@ -170,31 +131,42 @@ const columns: ColumnDef<User>[] = [
   },
 ];
 
-const UsuariosPage = () => (
-  <div className="space-y-6">
-    <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
-      <div className="flex items-center gap-3">
-        <h1 className="text-4xl font-extrabold text-main">Usuarios</h1>
-        <span className="text-sm font-semibold px-3 py-1 rounded-full border border-sidebar-separador bg-panel text-secondary">
-          {mockUsers.length} registrados
-        </span>
+const UsuariosPage = () => {
+  const [modalOpen, setModalOpen] = useState(false);
+
+  return (
+    <div className="space-y-6">
+      <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
+        <div className="flex items-center gap-3">
+          <h1 className="text-4xl font-extrabold text-main">Usuarios</h1>
+          <span className="text-sm font-semibold px-3 py-1 rounded-full border border-sidebar-separador bg-panel text-secondary">
+            {mockUsers.length} registrados
+          </span>
+        </div>
+        <button
+          onClick={() => setModalOpen(true)}
+          className="flex items-center gap-2 bg-gris border border-sidebar-separador text-main font-bold py-2.5 px-6 rounded-xl hover:bg-gris-oscuro transition-colors"
+        >
+          <Icons.Plus className="w-5 h-5" /> Nuevo Usuario
+        </button>
       </div>
-      <button className="flex items-center gap-2 bg-gris border border-sidebar-separador text-main font-bold py-2.5 px-6 rounded-xl hover:bg-gris-oscuro transition-colors">
-        <Icons.Plus className="w-5 h-5" /> Nuevo Usuario
-      </button>
+
+      <DataTable
+        data={mockUsers}
+        columns={columns}
+        searchPlaceholder="Buscar por nombre o email..."
+        onEdit={() => setModalOpen(true)}
+        filters={[
+          {
+            label: "Todos los roles",
+            options: ["Administrador", "Simpatizante"],
+          },
+        ]}
+      />
+
+      <UsuarioModal isOpen={modalOpen} onClose={() => setModalOpen(false)} />
     </div>
-    <DataTable
-      data={mockUsers}
-      columns={columns}
-      searchPlaceholder="Buscar por nombre o email..."
-      filters={[
-        {
-          label: "Todos los roles",
-          options: ["Administrador", "Simpatizante", "Veterinario"],
-        },
-      ]}
-    />
-  </div>
-);
+  );
+};
 
 export default UsuariosPage;

@@ -1,8 +1,9 @@
+import { useState } from "react";
 import Icons from "../components/Icons";
 import { DataTable, type ColumnDef } from "../components/DataTable";
 import type { Cat } from "../types/models";
+import { GatoModal } from "../components/GatoModal";
 
-//datos de prueba
 const mockCats: Cat[] = [
   {
     id: 1,
@@ -214,6 +215,7 @@ const columns: ColumnDef<Cat>[] = [
 ];
 
 const GatosPage = () => {
+  const [modalOpen, setModalOpen] = useState(false);
   const colonias = [...new Set(mockCats.map((c) => c.colonia))];
 
   return (
@@ -225,14 +227,19 @@ const GatosPage = () => {
             {mockCats.length} registrados
           </span>
         </div>
-        <button className="flex items-center gap-2 bg-gris border border-sidebar-separador text-main font-bold py-2.5 px-6 rounded-xl hover:bg-gris-oscuro transition-colors">
+        <button
+          onClick={() => setModalOpen(true)}
+          className="flex items-center gap-2 bg-gris border border-sidebar-separador text-main font-bold py-2.5 px-6 rounded-xl hover:bg-gris-oscuro transition-colors"
+        >
           <Icons.Plus className="w-5 h-5" /> Nuevo Gato
         </button>
       </div>
+
       <DataTable
         data={mockCats}
         columns={columns}
         searchPlaceholder="Buscar por nombre o colonia..."
+        onEdit={() => setModalOpen(true)}
         filters={[
           { label: "Todas las colonias", options: colonias },
           {
@@ -242,6 +249,8 @@ const GatosPage = () => {
           { label: "Esterilizados", options: ["Sí", "No"] },
         ]}
       />
+
+      <GatoModal isOpen={modalOpen} onClose={() => setModalOpen(false)} />
     </div>
   );
 };

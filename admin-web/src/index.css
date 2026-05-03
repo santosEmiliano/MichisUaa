@@ -26,6 +26,7 @@
   --sidebar-separadores: rgba(255, 255, 255, 0.08);
 
   --fondo-gris: #30302e;
+  --bg-card: #1e1e1c;
   --fondo-gris-oscuro: #262624;
 
   --metrica-naranja: #e8893c;
@@ -93,6 +94,9 @@ body {
 }
 .bg-verde-claro {
   background-color: var(--verde-claro);
+}
+.bg-card {
+  background-color: var(--bg-card);
 }
 
 .text-main {
