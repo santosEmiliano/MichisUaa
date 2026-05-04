@@ -71,8 +71,19 @@ const logout = async (req, res) => {
   res.status(200).json({ mensaje: "Token revocado correctamente" });
 };
 
+const obtainUsers = async (req, res) => {
+  try {
+    const usuarios = await userModel.getUsers();
+    res.status(200).json(usuarios);
+  } catch (error) {
+    console.error("error al obtener datos de usuarios: ", error);
+    res.status(500).json({ mensaje: "Error al obtener datos de usuarios" });
+  }
+}
+
 module.exports = {
     createUser,
     login,
-    logout
+    logout,
+    obtainUsers
 }

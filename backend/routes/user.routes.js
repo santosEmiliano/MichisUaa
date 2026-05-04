@@ -9,6 +9,14 @@ router.post(
   userFunctions.login
 );
 
+//Ruta GET de usuarios para admin
+router.get(
+  "/",
+  token.verifyToken,
+  token.verifyAdmin,
+  userFunctions.obtainUsers
+);
+
 // Ruta POST de Registro (crear nuevo usuario desde el panel admin)
 router.post(
     "/register", 
