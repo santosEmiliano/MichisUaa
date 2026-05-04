@@ -93,7 +93,7 @@ async function getColonyById(id) {
         }
       }
     });
-    
+
     return colony;
   } catch (error) {
     console.error("Error buscando colonia por su id:", error);
@@ -108,11 +108,23 @@ async function updateColony(id, data) {
     if (data.nombre !== undefined) updateData.nombre = data.nombre;
     if (data.descripcion !== undefined) updateData.descripcion = data.descripcion;
     if (data.zona !== undefined) updateData.zona = data.zona;
+    if (data.encargadosIds !== undefined && Array.isArray(data.encargadosIds)) {
+      let encargados = [];
+      encargados = data.encargadosIds.map((id) => {
+        return { Usuario_idUsuario: Number(id) };
+      });
+
+      updateData.usuariosCols = {
+        deleteMany: {},
+        create: encargados
+      }
+    }
 
     const updatedColony = await prisma.colonia.update({
       where: { idColonia: Number(id) },
       data: updateData
     });
+
     return updatedColony;
   } catch (error) {
     console.error("Error actualizando colonia:", error);

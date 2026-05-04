@@ -59,20 +59,20 @@ const modifyColony = async (req, res) => {
     const { id } = req.params;
     
     // Verificamos si existe antes de intentar actualizar
-    const existingAnimal = await animalModel.getAnimalById(id);
-    if (!existingAnimal) {
-      return res.status(404).json({ mensaje: "Animal no encontrado para actualizar" });
+    const oldColony = await coloniesModel.getColonyById(id);
+    if (!oldColony) {
+      return res.status(404).json({ mensaje: "Colonia no encontrada para actualizar" });
     }
 
-    const updatedAnimal = await animalModel.updateAnimal(id, req.body);
+    const updatedColony = await coloniesModel.updateColony(id, req.body);
     
     return res.status(200).json({ 
-      mensaje: "Animal actualizado correctamente", 
-      animal: updatedAnimal 
+      mensaje: "Colonia actualizada correctamente", 
+      colonia: updatedColony 
     });
   } catch (error) {
-    console.error("Error al actualizar animal:", error);
-    return res.status(500).json({ mensaje: "Error al actualizar el animal" });
+    console.error("Error al actualizar colonia:", error);
+    return res.status(500).json({ mensaje: "Error al actualizar la colonia" });
   }
 };
 
@@ -82,17 +82,17 @@ const removeColony = async (req, res) => {
     const { id } = req.params;
     
     // Verificamos si existe antes de intentar eliminar
-    const existingAnimal = await animalModel.getAnimalById(id);
-    if (!existingAnimal) {
-      return res.status(404).json({ mensaje: "Animal no encontrado para eliminar" });
+    const existColony = await coloniesModel.getColonyById(id);
+    if (!existColony) {
+      return res.status(404).json({ mensaje: "Colonia no encontrada para eliminar, verificar el id" });
     }
 
-    await animalModel.deleteAnimal(id);
+    await coloniesModel.deleteColony(id);
     
-    return res.status(200).json({ mensaje: "Animal eliminado correctamente" });
+    return res.status(200).json({ mensaje: "Colonia eliminada correctamente" });
   } catch (error) {
-    console.error("Error al eliminar animal:", error);
-    return res.status(500).json({ mensaje: "Error al eliminar el animal" });
+    console.error("Error al eliminar colonia:", error);
+    return res.status(500).json({ mensaje: "Error al eliminar la colonia" });
   }
 };
 
