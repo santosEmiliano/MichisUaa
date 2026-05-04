@@ -17,11 +17,23 @@ const prisma = new PrismaClient();
 // CREATE
 async function createColony(data) {
   try {
+
+    let encargados = [];
+    if (data.encargadosIds && data.encargadosIds.length > 0) {
+      encargados = data.encargadosIds.map((id) => {
+        return { Usuario_idUsuario: Number(id) };
+      });
+    }
+
     const newColony = await prisma.colonia.create({
       data: {
         nombre: data.nombre,
         descripcion: data.descripcion || null,
         zona: data.zona || null,
+
+        usuariosCols: {
+          create: encargados
+        }
       }
     });
     return newColony;
@@ -42,6 +54,18 @@ async function getAllColonies(idEncargado) {
           }
         }
       } : undefined,
+      include : {
+        usuariosCols: {
+          include: {
+            usuario: {
+              select: {
+                idUsuario: true,
+                nombre: true
+              }
+            }
+          }
+        }
+      }
     });
 
     return colonies;
@@ -56,7 +80,20 @@ async function getColonyById(id) {
   try {
     const colony = await prisma.colonia.findUnique({
       where: { idColonia: Number(id) },
+      include : {
+        usuariosCols: {
+          include: {
+            usuario: {
+              select: {
+                idUsuario: true,
+                nombre: true
+              }
+            }
+          }
+        }
+      }
     });
+    
     return colony;
   } catch (error) {
     console.error("Error buscando colonia por su id:", error);
