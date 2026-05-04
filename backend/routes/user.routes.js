@@ -9,6 +9,12 @@ router.post(
   userFunctions.login
 );
 
+// Ruta POST de Registro (crear nuevo usuario desde el panel admin)
+router.post(
+    "/register", 
+    userFunctions.createUser
+);
+
 //Ruta POST de Logout
 router.post(
   "/logout",

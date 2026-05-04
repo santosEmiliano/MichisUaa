@@ -1,32 +1,253 @@
 import { useState } from "react";
 import { ModalCrud } from "./ModalCrud";
 import Icons from "./Icons";
+import { authService } from "../services/authApi";
 
 interface UserModalProps {
   isOpen: boolean;
   onClose: () => void;
+  onCreated?: () => void; // Sirve para refrescar la lista
 }
 
-export const UsuarioModal = ({ isOpen, onClose }: UserModalProps) => {
+// ── Validaciones ──
+interface FormErrors {
+  nombre?: string;
+  email?: string;
+  password?: string;
+  confirmPassword?: string;
+}
+
+function validateForm(
+  nombre: string,
+  email: string,
+  password: string,
+  confirmPassword: string
+): FormErrors {
+  const errors: FormErrors = {};
+
+  // Nombre
+  if (!nombre.trim()) {
+    errors.nombre = "El nombre es obligatorio.";
+  } else if (nombre.trim().length < 3) {
+    errors.nombre = "El nombre debe tener al menos 3 caracteres.";
+  }
+
+  // Email
+  const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+  if (!email.trim()) {
+    errors.email = "El correo es obligatorio.";
+  } else if (!emailRegex.test(email)) {
+    errors.email = "Ingresa un correo válido.";
+  }
+
+  // Contraseña
+  if (!password) {
+    errors.password = "La contraseña es obligatoria.";
+  } else if (password.length < 6) {
+    errors.password = "Mínimo 6 caracteres.";
+  } else if (!/[A-Z]/.test(password)) {
+    errors.password = "Debe contener al menos una mayúscula.";
+  } else if (!/[0-9]/.test(password)) {
+    errors.password = "Debe contener al menos un número.";
+  }
+
+  // Confirmación
+  if (!confirmPassword) {
+    errors.confirmPassword = "Confirma tu contraseña.";
+  } else if (password !== confirmPassword) {
+    errors.confirmPassword = "Las contraseñas no coinciden.";
+  }
+
+  return errors;
+}
+
+// ── Estetica para la contraseña ──
+
+function getPasswordStrength(password: string): {
+  label: string;
+  color: string;
+  width: string;
+} {
+  if (!password) return { label: "", color: "", width: "0%" };
+
+  let score = 0;
+  if (password.length >= 6) score++;
+  if (password.length >= 10) score++;
+  if (/[A-Z]/.test(password)) score++;
+  if (/[0-9]/.test(password)) score++;
+  if (/[^A-Za-z0-9]/.test(password)) score++;
+
+  if (score <= 1) return { label: "Muy débil", color: "#ef4444", width: "20%" };
+  if (score === 2) return { label: "Débil", color: "#f97316", width: "40%" };
+  if (score === 3) return { label: "Regular", color: "#eab308", width: "60%" };
+  if (score === 4) return { label: "Buena", color: "#22c55e", width: "80%" };
+  return { label: "Fuerte", color: "#16a34a", width: "100%" };
+}
+
+// ── Colonias  ──────────
+
+interface Colonia {
+  idColonia: number;
+  nombre: string;
+  zona: string;
+}
+
+// TODO: Reemplazar por GET /colonia cuando el endpoint esté listo.
+// El servicio quedará en: coloniaApi.ts → coloniaService.getAll()
+// y se llamará con useEffect al montar el componente:
+//   useEffect(() => {
+//     coloniaService.getAll().then(setColonias);
+//   }, []);
+const COLONIAS_HARDCODED: Colonia[] = [
+  { idColonia: 1, nombre: "Colonia Edificio 108", zona: "Edificio 108" },
+  { idColonia: 2, nombre: "Colonia UMD",          zona: "UMD" },
+  { idColonia: 3, nombre: "Colonia Edificio 114", zona: "Edificio 114" },
+  { idColonia: 4, nombre: "Zona Alberca",         zona: "Alberca" },
+  { idColonia: 5, nombre: "Colonia Central",      zona: "Centro UAA" },
+];
+
+// ── Componente ──
+
+export const UsuarioModal = ({ isOpen, onClose, onCreated }: UserModalProps) => {
   const [showPassword, setShowPassword] = useState(false);
-  const [role, setRole] = useState<"Administrador" | "Simpatizante">(
-    "Administrador",
-  );
+  const [showConfirm, setShowConfirm] = useState(false);
+  const [role, setRole] = useState<"Administrador" | "Simpatizante">("Administrador");
+
+  // Colonias seleccionadas (ids). Se enviarán al back cuando el endpoint esté listo.
+  // TODO: conectar al createUser cuando el back soporte asignación de colonias en la creación.
+  const [selectedColonias, setSelectedColonias] = useState<number[]>([]);
+
+  const toggleColonia = (id: number) => {
+    setSelectedColonias((prev) =>
+      prev.includes(id) ? prev.filter((c) => c !== id) : [...prev, id]
+    );
+  };
+
+  // Campos
+  const [nombre, setNombre] = useState("");
+  const [email, setEmail] = useState("");
+  const [password, setPassword] = useState("");
+  const [confirmPassword, setConfirmPassword] = useState("");
+
+  // Errores por campo (se muestran después del primer intento de submit)
+  const [fieldErrors, setFieldErrors] = useState<FormErrors>({});
+  const [submitted, setSubmitted] = useState(false);
+
+  // UI general
+  const [loading, setLoading] = useState(false);
+  const [apiError, setApiError] = useState<string | null>(null);
+  const [success, setSuccess] = useState(false);
+
+  const strength = getPasswordStrength(password);
+
+  // Revalida en tiempo real
+  const handleChange = (
+    setter: React.Dispatch<React.SetStateAction<string>>,
+    field: keyof FormErrors,
+    value: string,
+    extra?: { confirmValue?: string; passwordValue?: string }
+  ) => {
+    setter(value);
+    if (submitted) {
+      const current = {
+        nombre: field === "nombre" ? value : nombre,
+        email: field === "email" ? value : email,
+        password: field === "password" ? value : password,
+        confirmPassword:
+          field === "confirmPassword"
+            ? value
+            : extra?.confirmValue ?? confirmPassword,
+      };
+      const errs = validateForm(
+        current.nombre,
+        current.email,
+        current.password,
+        current.confirmPassword
+      );
+      setFieldErrors(errs);
+    }
+  };
+
+  const resetForm = () => {
+    setNombre("");
+    setEmail("");
+    setPassword("");
+    setConfirmPassword("");
+    setRole("Administrador");
+    setSelectedColonias([]);
+    setFieldErrors({});
+    setSubmitted(false);
+    setApiError(null);
+    setSuccess(false);
+  };
+
+  const handleClose = () => {
+    resetForm();
+    onClose();
+  };
+
+  const handleSubmit = async (e: React.FormEvent) => {
+    e.preventDefault();
+    setSubmitted(true);
+    setApiError(null);
+
+    const errors = validateForm(nombre, email, password, confirmPassword);
+    setFieldErrors(errors);
+
+    if (Object.keys(errors).length > 0) return;
+
+    setLoading(true);
+    try {
+      const esAdmin = role === "Administrador";
+      await authService.createUser(nombre, email, password, esAdmin);
+      setSuccess(true);
+      onCreated?.();
+      setTimeout(() => {
+        handleClose();
+      }, 1400);
+    } catch (err: unknown) {
+      setApiError(
+        err instanceof Error ? err.message : "Error al crear el usuario"
+      );
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  const inputClass = (field: keyof FormErrors) =>
+    `w-full bg-gris border rounded-xl px-4 py-3.5 text-main focus:outline-none transition-all duration-200 placeholder-secondary ${
+      fieldErrors[field]
+        ? "border-red-500 focus:border-red-500"
+        : "border-sidebar-separador focus:border-acento-naranja hover:border-acento-naranja focus:bg-[rgba(232,137,60,0.05)]"
+    }`;
 
   const footer = (
     <div className="flex gap-4 w-full justify-end">
       <button
         type="button"
-        onClick={onClose}
-        className="px-6 py-2.5 rounded-xl border border-sidebar-separador text-main font-bold bg-gris hover:bg-gris-oscuro hover:border-acento-naranja focus:border-acento-naranja focus:bg-[var(--bg-active-item)] transition-all duration-200"
+        onClick={handleClose}
+        disabled={loading}
+        className="px-6 py-2.5 rounded-xl border border-sidebar-separador text-main font-bold bg-gris hover:bg-gris-oscuro hover:border-acento-naranja transition-all duration-200 disabled:opacity-50"
       >
         Cancelar
       </button>
       <button
         type="submit"
-        className="px-6 py-2.5 rounded-xl border border-[#e8893c] bg-[var(--bg-active-item)] text-[#e8893c] font-bold hover:bg-[rgba(232,137,60,0.30)] hover:border-acento-naranja transition-all duration-200"
+        form="form-nuevo-usuario"
+        disabled={loading}
+        className="px-6 py-2.5 rounded-xl border border-[#e8893c] bg-[var(--bg-active-item)] text-[#e8893c] font-bold hover:bg-[rgba(232,137,60,0.30)] transition-all duration-200 disabled:opacity-50 flex items-center gap-2"
       >
-        Crear usuario
+        {loading ? (
+          <>
+            <svg className="animate-spin h-4 w-4" viewBox="0 0 24 24" fill="none">
+              <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4" />
+              <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8v8H4z" />
+            </svg>
+            Creando...
+          </>
+        ) : (
+          "Crear usuario"
+        )}
       </button>
     </div>
   );
@@ -34,57 +255,125 @@ export const UsuarioModal = ({ isOpen, onClose }: UserModalProps) => {
   return (
     <ModalCrud
       isOpen={isOpen}
-      onClose={onClose}
+      onClose={handleClose}
       title="Nuevo Usuario"
       footer={footer}
     >
-      <form className="space-y-6">
+      <form id="form-nuevo-usuario" onSubmit={handleSubmit} className="space-y-5" noValidate>
+
+        {/* Éxito */}
+        {success && (
+          <div className="text-sm text-green-400 bg-green-400/10 border border-green-400/30 rounded-xl px-4 py-3 flex items-center gap-2">
+            <span>✓</span> Usuario creado correctamente
+          </div>
+        )}
+
+        {/* Error del API */}
+        {apiError && (
+          <div className="text-sm text-red-400 bg-red-400/10 border border-red-400/30 rounded-xl px-4 py-3">
+            {apiError}
+          </div>
+        )}
+
+        {/* Nombre */}
         <div>
-          <label className="block text-main font-bold mb-2">
-            Nombre Completo
-          </label>
+          <label className="block text-main font-bold mb-2">Nombre Completo</label>
           <input
             type="text"
+            value={nombre}
+            onChange={(e) => handleChange(setNombre, "nombre", e.target.value)}
             placeholder="Ej. Julián Emmanuel"
-            className="w-full bg-gris border border-sidebar-separador rounded-xl px-4 py-3.5 text-main focus:outline-none focus:border-acento-naranja focus:bg-[rgba(232,137,60,0.05)] hover:border-acento-naranja transition-all duration-200 placeholder-secondary"
+            className={inputClass("nombre")}
           />
+          {fieldErrors.nombre && (
+            <p className="text-xs text-red-400 mt-1.5">{fieldErrors.nombre}</p>
+          )}
         </div>
 
+        {/* Email */}
         <div>
-          <label className="block text-main font-bold mb-2">
-            Email Institucional
-          </label>
+          <label className="block text-main font-bold mb-2">Email Institucional</label>
           <input
             type="email"
+            value={email}
+            onChange={(e) => handleChange(setEmail, "email", e.target.value)}
             placeholder="usuario@edu.uaa.mx"
-            className="w-full bg-gris border border-sidebar-separador rounded-xl px-4 py-3.5 text-main focus:outline-none focus:border-acento-naranja focus:bg-[rgba(232,137,60,0.05)] hover:border-acento-naranja transition-all duration-200 placeholder-secondary"
+            className={inputClass("email")}
           />
+          {fieldErrors.email && (
+            <p className="text-xs text-red-400 mt-1.5">{fieldErrors.email}</p>
+          )}
         </div>
 
+        {/* Contraseña */}
         <div>
-          <label className="block text-main font-bold mb-2">
-            Contraseña temporal
-          </label>
+          <label className="block text-main font-bold mb-2">Contraseña</label>
           <div className="relative">
             <input
               type={showPassword ? "text" : "password"}
-              placeholder="*****************"
-              className="w-full bg-gris border border-sidebar-separador rounded-xl px-4 py-3.5 pr-12 text-main focus:outline-none focus:border-acento-naranja focus:bg-[rgba(232,137,60,0.05)] hover:border-acento-naranja transition-all duration-200 placeholder-secondary"
+              value={password}
+              onChange={(e) => handleChange(setPassword, "password", e.target.value)}
+              placeholder="••••••••"
+              className={`${inputClass("password")} pr-12`}
             />
             <button
               type="button"
               onClick={() => setShowPassword(!showPassword)}
               className="absolute right-4 top-4 text-secondary hover:text-main transition-colors"
             >
-              {showPassword ? (
-                <Icons.EyeOff className="w-5 h-5" />
-              ) : (
-                <Icons.Eye className="w-5 h-5" />
-              )}
+              {showPassword ? <Icons.EyeOff className="w-5 h-5" /> : <Icons.Eye className="w-5 h-5" />}
             </button>
           </div>
+          {/* Indicador de fortaleza */}
+          {password && (
+            <div className="mt-2 space-y-1">
+              <div className="h-1 w-full bg-gris rounded-full overflow-hidden">
+                <div
+                  className="h-full rounded-full transition-all duration-500"
+                  style={{ width: strength.width, backgroundColor: strength.color }}
+                />
+              </div>
+              <p className="text-xs" style={{ color: strength.color }}>
+                {strength.label}
+              </p>
+            </div>
+          )}
+          {fieldErrors.password && (
+            <p className="text-xs text-red-400 mt-1.5">{fieldErrors.password}</p>
+          )}
         </div>
 
+        {/* Confirmar contraseña */}
+        <div>
+          <label className="block text-main font-bold mb-2">Confirmar Contraseña</label>
+          <div className="relative">
+            <input
+              type={showConfirm ? "text" : "password"}
+              value={confirmPassword}
+              onChange={(e) =>
+                handleChange(setConfirmPassword, "confirmPassword", e.target.value)
+              }
+              placeholder="••••••••"
+              className={`${inputClass("confirmPassword")} pr-12`}
+            />
+            <button
+              type="button"
+              onClick={() => setShowConfirm(!showConfirm)}
+              className="absolute right-4 top-4 text-secondary hover:text-main transition-colors"
+            >
+              {showConfirm ? <Icons.EyeOff className="w-5 h-5" /> : <Icons.Eye className="w-5 h-5" />}
+            </button>
+          </div>
+          {/* Icono de coincidencia */}
+          {confirmPassword && !fieldErrors.confirmPassword && (
+            <p className="text-xs text-green-400 mt-1.5">✓ Las contraseñas coinciden</p>
+          )}
+          {fieldErrors.confirmPassword && (
+            <p className="text-xs text-red-400 mt-1.5">{fieldErrors.confirmPassword}</p>
+          )}
+        </div>
+
+        {/* Rol */}
         <div>
           <label className="block text-main font-bold mb-2">Rol</label>
           <div className="grid grid-cols-2 gap-4">
@@ -100,30 +389,62 @@ export const UsuarioModal = ({ isOpen, onClose }: UserModalProps) => {
               >
                 <div className="font-bold text-base text-main">{r}</div>
                 <div className="text-sm text-secondary mt-0.5">
-                  {r === "Administrador"
-                    ? "Acceso completo"
-                    : "Solo avistamientos"}
+                  {r === "Administrador" ? "Acceso completo" : "Solo avistamientos"}
                 </div>
               </div>
             ))}
           </div>
         </div>
 
-        <div className="flex items-center justify-between pt-2">
-          <label className="block text-main font-bold">
-            Colonias Asignadas
-          </label>
-          <div className="relative w-56">
-            <select
-              className="appearance-none w-full bg-gris border border-sidebar-separador text-secondary rounded-xl px-4 py-3 pr-10 focus:outline-none focus:border-acento-naranja focus:bg-[rgba(232,137,60,0.05)] hover:border-acento-naranja transition-all duration-200 cursor-pointer [&>option]:bg-[#30302e] [&>option]:text-white"
-              style={{ colorScheme: "dark" }}
-            >
-              <option>Seleccionar colonias</option>
-              <option>Colonia Central</option>
-              <option>Ed. 108</option>
-              <option>UMD</option>
-            </select>
-            <Icons.ChevronDown className="absolute right-3 top-3.5 w-5 h-5 text-secondary pointer-events-none" />
+        {/* ── Colonias Asignadas ─────────────────────────────────────────────
+             Valores hardcodeados. Pendiente conectar al endpoint:
+             GET /colonia  →  coloniaService.getAll()  →  coloniaApi.ts
+             Cuando esté listo, reemplazar COLONIAS_HARDCODED por el estado
+             `colonias` que se cargue con useEffect.
+        ────────────────────────────────────────────────────────────────── */}
+        <div className="pt-1">
+          <div className="flex items-center justify-between mb-3">
+            <label className="block text-main font-bold">Colonias Asignadas</label>
+            {selectedColonias.length > 0 && (
+              <span className="text-xs font-semibold px-2.5 py-1 rounded-full bg-[rgba(232,137,60,0.18)] text-[#e8893c] border border-[#e8893c]">
+                {selectedColonias.length} seleccionada{selectedColonias.length > 1 ? "s" : ""}
+              </span>
+            )}
+          </div>
+          <div className="grid grid-cols-1 gap-2">
+            {COLONIAS_HARDCODED.map((colonia) => {
+              const checked = selectedColonias.includes(colonia.idColonia);
+              return (
+                <div
+                  key={colonia.idColonia}
+                  onClick={() => toggleColonia(colonia.idColonia)}
+                  className={`flex items-center gap-3 cursor-pointer rounded-xl border px-4 py-3 transition-all duration-200 ${
+                    checked
+                      ? "border-[#e8893c] bg-[rgba(232,137,60,0.10)]"
+                      : "border-sidebar-separador bg-gris hover:border-[#e8893c] hover:bg-[rgba(232,137,60,0.05)]"
+                  }`}
+                >
+                  {/* Checkbox visual */}
+                  <div
+                    className={`w-4 h-4 rounded flex-shrink-0 flex items-center justify-center border transition-all duration-200 ${
+                      checked
+                        ? "bg-[#e8893c] border-[#e8893c]"
+                        : "border-sidebar-separador bg-transparent"
+                    }`}
+                  >
+                    {checked && (
+                      <svg className="w-2.5 h-2.5 text-white" viewBox="0 0 10 8" fill="none">
+                        <path d="M1 4l2.5 2.5L9 1" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" />
+                      </svg>
+                    )}
+                  </div>
+                  <div className="min-w-0">
+                    <p className="text-sm font-semibold text-main truncate">{colonia.nombre}</p>
+                    <p className="text-xs text-secondary">{colonia.zona}</p>
+                  </div>
+                </div>
+              );
+            })}
           </div>
         </div>
       </form>

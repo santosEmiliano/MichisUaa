@@ -6,7 +6,8 @@ const bcrypt = require("bcryptjs");
 const createUser = async (req, res) => {
   try {
     const { nombre, email, password } = req.body;
-
+    let admin = req.body.admin ?? false;
+  
     if (!nombre || !email || !password) {
       return res.status(400).json({ mensaje: "datos incompletos" });
     }
@@ -21,9 +22,9 @@ const createUser = async (req, res) => {
     const saltos = await bcrypt.genSalt(10); 
     const hash = await bcrypt.hash(password, saltos); 
 
-    const userId = await userModel.addUser(nombre, email, hash, false);
+    const userId = await userModel.addUser(nombre, email, hash, admin);
 
-    const token = tokenfunctions.generateToken(userId, false);
+    const token = tokenfunctions.generateToken(userId, admin);
 
     return res
       .status(200)
