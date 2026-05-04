@@ -24,7 +24,7 @@ const createUser = async (req, res) => {
 
     const userId = await userModel.addUser(nombre, email, hash, admin);
 
-    const token = tokenfunctions.generateToken(userId, false);
+    const token = tokenfunctions.generateToken(userId, admin);
 
     return res
       .status(200)
