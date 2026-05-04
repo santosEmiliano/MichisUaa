@@ -31,7 +31,8 @@ model Animal {
   Colonia_idColonia    Int
   nombre               String       @db.VarChar(80)
   esterilizado         Boolean      @default(false) @db.TinyInt
-  foto                 String?      @db.VarChar(120)
+  foto                 String?      @db.VarChar(160)
+  public_id            String?      @db.VarChat(160)
   estado               EstadoAnimal @default(Registrado)
   fecha_nac            DateTime?
   fecha_esterilizacion DateTime?
