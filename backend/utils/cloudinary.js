@@ -6,13 +6,12 @@ cloudinary.config({
   api_secret: process.env.CLOUD_SECRET 
 });
 
-const uploadToCloudinary = (fileBuffer, folderName) => {
+const uploadToCloudinary = (fileBuffer) => {
     return new Promise((resolve, reject) => {
         const uploadStream = cloudinary.uploader.upload_stream(
-            { folder: folderName },
             (error, result) => {
                 if (error) reject(error);
-                else resolve(result); // result.secure_url es la URL para tu BD
+                else resolve(result); 
             }
         );
         uploadStream.end(fileBuffer);
