@@ -7,6 +7,7 @@ const animalsFunctions = require("../controllers/animals.controller");
 router.get(
   "/",
   token.verifyToken,
+  token.verifyAdmin,
   animalsFunctions.getAnimals
 );
 
@@ -14,6 +15,7 @@ router.get(
 router.get(
   "/:id",
   token.verifyToken,
+  token.verifyAdmin,
   animalsFunctions.getAnimalById
 );
 
@@ -21,6 +23,7 @@ router.get(
 router.post(
   "/",
   token.verifyToken,
+  token.verifyAdmin,
   animalsFunctions.createAnimal
 );
 
@@ -28,6 +31,7 @@ router.post(
 router.put(
   "/:id",
   token.verifyToken,
+  token.verifyAdmin,
   animalsFunctions.updateAnimal
 );
 
@@ -35,6 +39,7 @@ router.put(
 router.delete(
   "/:id",
   token.verifyToken,
+  token.verifyAdmin,
   animalsFunctions.deleteAnimal
 );
 
