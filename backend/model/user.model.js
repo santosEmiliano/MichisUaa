@@ -95,10 +95,53 @@ async function searchMail(email) {
   }
 }
 
+async function modifyUser(id, data) {
+  try {
+    const updateData = {};
+    if (data.nombre !== undefined) updateData.nombre = data.nombre;
+    if (data.email !== undefined) updateData.email = data.email;
+    if (data.password !== undefined) updateData.password = data.password;
+    if (data.admin !== undefined) updateData.admin = data.admin;
+    if (data.coloniasIds !== undefined && Array.isArray(data.coloniasIds)) {
+      let colonias = [];
+      colonias = data.coloniasIds.map((id) => {
+        return { Colonia_idColonia: Number(id) };
+      });
+
+      updateData.usuariosCols = {
+        deleteMany: {},
+        create: colonias
+      }
+    }
+
+    const updatedUser = await prisma.usuario.update({
+      where: { idUsuario: Number(id) },
+      data: updateData
+    });
+  } catch (error) {
+    console.error("Error modificando al usuario:", error);
+    return null;
+  }
+}
+
+async function deleteUser(id) {
+  try {
+    const deletedUser = await prisma.usuario.delete({
+      where: { idUsuario: Number(id) }
+    });
+    return deletedUser;
+  } catch (error) {
+    console.error("Error al eliminar usuario: ", error);
+    return null;
+  } 
+}
+
 module.exports = {
     addUser,
     getUsers,
     occupied,
     searchId,
-    searchMail
+    searchMail,
+    modifyUser,
+    deleteUser
 }
