@@ -2,6 +2,9 @@ const express = require("express");
 const router = express.Router();
 const token = require("../middleware/verifyToken");
 const animalsFunctions = require("../controllers/animals.controller");
+const multer = require("../middleware/multer");
+
+const upload = multer();
 
 // Obtener todos los animales
 router.get(
@@ -24,6 +27,7 @@ router.post(
   "/",
   token.verifyToken,
   token.verifyAdmin,
+  upload.single('foto'),
   animalsFunctions.createAnimal
 );
 
@@ -32,6 +36,7 @@ router.put(
   "/:id",
   token.verifyToken,
   token.verifyAdmin,
+  upload.single('foto'),
   animalsFunctions.updateAnimal
 );
 
