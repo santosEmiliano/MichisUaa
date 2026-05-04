@@ -1,46 +1,47 @@
 const express = require("express");
 const router = express.Router();
 const token = require("../middleware/verifyToken");
-const animalsFunctions = require("../controllers/animals.controller");
+const coloniesFunctions = require("../controllers/colonies.controller");
 
-// Obtener todos los animales
+// Obtener todos las colonias
+// NOTA: Aqui viene en queryparams el ?idEncargado={id}
 router.get(
   "/",
   token.verifyToken,
   token.verifyAdmin,
-  animalsFunctions.getAnimals
+  coloniesFunctions.readColonies
 );
 
-// Obtener un animal por su ID
+// Obtener una colonia por su ID
 router.get(
   "/:id",
   token.verifyToken,
   token.verifyAdmin,
-  animalsFunctions.getAnimalById
+  coloniesFunctions.readColonyById
 );
 
-// Crear un nuevo animal
+// Crear una nueva colonia
 router.post(
   "/",
   token.verifyToken,
   token.verifyAdmin,
-  animalsFunctions.createAnimal
+  coloniesFunctions.registerColony
 );
 
-// Actualizar un animal por su ID
+// Actualizar una colonia
 router.put(
   "/:id",
   token.verifyToken,
   token.verifyAdmin,
-  animalsFunctions.updateAnimal
+  coloniesFunctions.modifyColony
 );
 
-// Eliminar un animal por su ID
+// Eliminar una colonia mediante su ID
 router.delete(
   "/:id",
   token.verifyToken,
   token.verifyAdmin,
-  animalsFunctions.deleteAnimal
+  coloniesFunctions.removeColony
 );
 
 module.exports = router;
