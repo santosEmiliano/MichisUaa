@@ -9,7 +9,8 @@ async function createAnimal(data) {
         Colonia_idColonia: data.Colonia_idColonia,
         nombre: data.nombre,
         esterilizado: data.esterilizado || false,
-        foto: data.foto || null,
+        foto_url: data.foto_url || null,
+        foto_id: data.foto_id || null,
         estado: data.estado || 'Registrado',
         fecha_nac: data.fecha_nac ? new Date(data.fecha_nac) : null,
         fecha_esterilizacion: data.fecha_esterilizacion ? new Date(data.fecha_esterilizacion) : null,
@@ -55,7 +56,8 @@ async function updateAnimal(id, data) {
     if (data.Colonia_idColonia !== undefined) updateData.Colonia_idColonia = data.Colonia_idColonia;
     if (data.nombre !== undefined) updateData.nombre = data.nombre;
     if (data.esterilizado !== undefined) updateData.esterilizado = data.esterilizado;
-    if (data.foto !== undefined) updateData.foto = data.foto;
+    if (data.foto_url !== undefined) updateData.foto_url = data.foto_url;
+    if (data.foto_id !== undefined) updateData.foto_id = data.foto_id;
     if (data.estado !== undefined) updateData.estado = data.estado;
     if (data.fecha_nac !== undefined) updateData.fecha_nac = data.fecha_nac ? new Date(data.fecha_nac) : null;
     if (data.fecha_esterilizacion !== undefined) updateData.fecha_esterilizacion = data.fecha_esterilizacion ? new Date(data.fecha_esterilizacion) : null;
