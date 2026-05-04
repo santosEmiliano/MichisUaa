@@ -18,6 +18,24 @@ async function addUser(nombre, email, password, admin) {
   } 
 }
 
+async function getUsers() {
+  try {
+    const users = await prisma.usuario.findMany({
+      select: {
+        idUsuario: true,
+        nombre: true,
+        email: true,
+        admin: true,
+        createdAt: true
+      }
+    });
+    return users;
+  } catch (error) {
+    console.error("Error obteniendo lista de usuarios:", error);
+    throw error;
+  }
+}
+
 async function occupied(nombre, email) {
   try {
     const user = await prisma.usuario.findFirst({
@@ -79,6 +97,7 @@ async function searchMail(email) {
 
 module.exports = {
     addUser,
+    getUsers,
     occupied,
     searchId,
     searchMail
