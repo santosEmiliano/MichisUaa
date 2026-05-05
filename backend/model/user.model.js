@@ -118,6 +118,8 @@ async function modifyUser(id, data) {
       where: { idUsuario: Number(id) },
       data: updateData
     });
+
+    return updatedUser ? true : false;
   } catch (error) {
     console.error("Error modificando al usuario:", error);
     return null;

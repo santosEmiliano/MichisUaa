@@ -81,9 +81,51 @@ const obtainUsers = async (req, res) => {
   }
 }
 
+const updateUser = async (req, res) => {
+  try {
+    const { id } = req.params;
+
+    const oldUser = await userModel.searchId(id);
+    if (!oldUser) {
+      return res.status(404).json({ mensaje: "El id no coincide con ningun usuario registrado, porfavor comprobar usuario" });
+    }
+
+    const updatedUser = await userModel.modifyUser(id, req.body);
+
+    return res.status(200).json({
+      mensaje: "Usuario actualizado correctamente",
+      modificado: updatedUser
+    });
+
+  } catch (error) {
+    console.error("error al modificar los datos de usuario: ", error);
+    res.status(500).json({ mensaje: "Error al realizar la modificacion de los datos del usuario" });
+  }
+}
+
+const removeUser = async (req, res) => {
+  try {
+    const { id } = req.params;
+
+    const oldUser = await userModel.searchId(id);
+    if (!oldUser) {
+      return res.status(404).json({ mensaje: "El id no coincide con ningun usuario registrado, porfavor comprobar usuario" });
+    }
+
+    await userModel.deleteUser(id);
+
+    return res.status(200).json({ mensaje: "Usuario eliminado correctamente" });
+  } catch(error) {
+    console.error("error al eliminar los datos del usuario: ", error);
+    res.status(500).json({ mensaje: "Error al realizar la eliminacion del usuario"});
+  }
+}
+
 module.exports = {
     createUser,
     login,
     logout,
-    obtainUsers
+    obtainUsers,
+    updateUser,
+    removeUser
 }
