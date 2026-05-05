@@ -7,6 +7,7 @@ import Gatos from "./pages/Gatos";
 import Usuarios from "./pages/Usuarios";
 import Colonias from "./pages/Colonias";
 import AlertsPrueba from "./pages/AlertsPruebas";
+import Estadisticas from "./pages/Estadisticas";
 
 function App() {
   const [isAuthenticated, setIsAuthenticated] = useState(false);
@@ -34,6 +35,7 @@ function App() {
         <Route path="gatos" element={<Gatos />} />
         <Route path="usuarios" element={<Usuarios />} />
         <Route path="colonias" element={<Colonias />} />
+        <Route path="estadisticas" element={<Estadisticas />} />
         <Route path="exportar" element={<AlertsPrueba />} />
         <Route path="*" element={<Navigate to="/" />} />
       </Route>
