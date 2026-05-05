@@ -1,11 +1,6 @@
 import { useState } from "react";
 import { ModalCrud } from "./ModalCrud";
-import Icons from "./Icons";
 import type { Colonia } from "../types/models";
-import {
-  COLONIA_RESPONSABLE_OPTIONS,
-  getResponsableById,
-} from "../data/coloniaResponsables";
 
 export interface ColoniaModalProps {
   isOpen: boolean;
@@ -13,6 +8,7 @@ export interface ColoniaModalProps {
   mode: "create" | "edit";
   initial?: Colonia | null;
   onSave: (data: ColoniaFormSave) => void;
+  users: { id: string; nombre: string }[];
 }
 
 export interface ColoniaFormSave {
@@ -21,7 +17,7 @@ export interface ColoniaFormSave {
   location: string;
   description: string;
   alerta: boolean;
-  responsableId: string;
+  responsableIds: string[];
 }
 
 const defaultForm = (): ColoniaFormSave => ({
@@ -29,7 +25,7 @@ const defaultForm = (): ColoniaFormSave => ({
   location: "",
   description: "",
   alerta: false,
-  responsableId: COLONIA_RESPONSABLE_OPTIONS[0]?.id ?? "",
+  responsableIds: [],
 });
 
 function formFromProps(
@@ -42,7 +38,7 @@ function formFromProps(
       location: initial.location,
       description: initial.description,
       alerta: initial.alerta ?? false,
-      responsableId: initial.responsableId,
+      responsableIds: initial.responsableIds || [],
     };
   }
   return defaultForm();
@@ -54,6 +50,7 @@ export const ColoniaModal = ({
   mode,
   initial,
   onSave,
+  users,
 }: ColoniaModalProps) => {
   const [form, setForm] = useState<ColoniaFormSave>(() =>
     formFromProps(mode, initial),
@@ -90,8 +87,10 @@ export const ColoniaModal = ({
         className="space-y-4"
         onSubmit={(e) => {
           e.preventDefault();
-          const r = getResponsableById(form.responsableId);
-          if (!r) return;
+          if (form.responsableIds.length === 0) {
+            alert("Debes seleccionar al menos un encargado");
+            return;
+          }
           onSave({
             ...form,
             ...(mode === "edit" && initial ? { id: initial.id } : {}),
@@ -158,31 +157,31 @@ export const ColoniaModal = ({
         </div>
 
         <div>
-          <label
-            className="block text-main font-bold mb-1.5 text-sm"
-            htmlFor="colonia-responsable"
-          >
-            Responsable
+          <label className="block text-main font-bold mb-1.5 text-sm">
+            Encargados de Colonia
           </label>
-          <div className="relative">
-            <select
-              id="colonia-responsable"
-              required
-              value={form.responsableId}
-              onChange={(e) =>
-                setForm((f) => ({ ...f, responsableId: e.target.value }))
-              }
-              className="appearance-none w-full bg-gris border border-sidebar-separador text-secondary rounded-xl px-4 py-3 pr-10 text-sm focus:outline-none focus:border-acento-naranja focus:bg-[rgba(232,137,60,0.05)] hover:border-acento-naranja transition-all duration-200 cursor-pointer [&>option]:bg-[#30302e] [&>option]:text-white"
-              style={{ colorScheme: "dark" }}
-            >
-              {COLONIA_RESPONSABLE_OPTIONS.map((o) => (
-                <option key={o.id} value={o.id}>
-                  {o.nombre}
-                </option>
-              ))}
-            </select>
-            <Icons.ChevronDown className="absolute right-3 top-3.5 w-4 h-4 text-secondary pointer-events-none" />
+          <div className="grid grid-cols-1 sm:grid-cols-2 gap-2 max-h-40 overflow-y-auto pr-2 custom-scrollbar">
+            {users.map((o) => (
+              <label key={o.id} className="flex items-center gap-2 cursor-pointer bg-gris border border-sidebar-separador rounded-xl px-3 py-2 hover:border-acento-naranja transition-colors">
+                <input
+                  type="checkbox"
+                  value={o.id}
+                  checked={form.responsableIds.includes(o.id)}
+                  onChange={(e) => {
+                    const newIds = e.target.checked 
+                      ? [...form.responsableIds, o.id]
+                      : form.responsableIds.filter(id => id !== o.id);
+                    setForm(f => ({ ...f, responsableIds: newIds }));
+                  }}
+                  className="w-4 h-4 text-acento-naranja bg-[#30302e] border-sidebar-separador rounded focus:ring-acento-naranja focus:ring-2 focus:ring-offset-2 focus:ring-offset-gris-oscuro"
+                />
+                <span className="text-sm text-white truncate" title={o.nombre}>{o.nombre}</span>
+              </label>
+            ))}
           </div>
+          {form.responsableIds.length === 0 && (
+            <p className="text-xs text-red-400 mt-1">Debes seleccionar al menos un encargado.</p>
+          )}
         </div>
 
         <div className="flex items-center justify-between rounded-xl border border-sidebar-separador bg-gris px-4 py-3">

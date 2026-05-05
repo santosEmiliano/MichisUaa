@@ -7,9 +7,10 @@ const RED = "#c84b4b";
 
 export interface ColoniaCardProps extends Omit<
   Colonia,
-  "id" | "responsableId"
+  "id" | "responsableIds"
 > {
   onEdit?: () => void;
+  onDelete?: () => void;
 }
 
 const StatBox = ({
@@ -35,7 +36,9 @@ export const ColoniaCard = ({
   esterilizadoPercent,
   responsableInitials,
   responsableName,
+  extraResponsablesCount,
   onEdit,
+  onDelete,
   alerta,
 }: ColoniaCardProps) => {
   const topColor = alerta ? RED : GREEN;
@@ -110,19 +113,38 @@ export const ColoniaCard = ({
           >
             {responsableInitials}
           </div>
-          <p className="font-semibold text-main text-xs truncate">
-            {responsableName}
-          </p>
+          <div className="flex items-center gap-1 min-w-0">
+            <p className="font-semibold text-main text-xs truncate">
+              {responsableName}
+            </p>
+            {extraResponsablesCount > 0 && (
+              <span className="text-[10px] font-bold text-acento-naranja bg-acento-naranja/10 px-1.5 py-0.5 rounded-md" title={`+${extraResponsablesCount} encargados adicionales`}>
+                +{extraResponsablesCount}
+              </span>
+            )}
+          </div>
         </div>
 
-        <button
-          type="button"
-          onClick={onEdit}
-          title="Editar colonia"
-          className="p-2 rounded-lg border border-white/[0.35] text-main hover:bg-white/[0.06] transition-colors shrink-0"
-        >
-          <Icons.Edit className="w-4 h-4" />
-        </button>
+        <div className="flex gap-2">
+          <button
+            type="button"
+            onClick={onEdit}
+            title="Editar colonia"
+            className="p-2 rounded-lg border border-white/[0.35] text-main hover:bg-white/[0.06] transition-colors shrink-0"
+          >
+            <Icons.Edit className="w-4 h-4" />
+          </button>
+          {onDelete && (
+            <button
+              type="button"
+              onClick={onDelete}
+              title="Eliminar colonia"
+              className="p-2 rounded-lg border border-red-500/30 text-red-400 hover:bg-red-500/10 transition-colors shrink-0"
+            >
+              <Icons.Trash2 className="w-4 h-4" />
+            </button>
+          )}
+        </div>
       </div>
     </article>
   );
