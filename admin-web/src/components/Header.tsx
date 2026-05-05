@@ -8,12 +8,9 @@ const routeTitles: Record<string, string> = {
   "/gatos": "Gatos",
   "/avistamientos": "Avistamientos",
   "/estadisticas": "Estadísticas",
-  "/exportar": "Exportar Datos",
-  "/usarios": "Usuarios",
-  "/importar": "Importar",
+  "/usuarios": "Usuarios",
 };
 
-//datos de prueba
 const mockNotifications = [
   {
     id: 1,
@@ -37,82 +34,82 @@ const mockNotifications = [
 
 const Header = () => {
   const location = useLocation();
-
   const [isNotifOpen, setIsNotifOpen] = useState(false);
 
+  const isDashboard = location.pathname === "/";
   const currentTitle = routeTitles[location.pathname] || "Panel";
-
   const unreadCount = mockNotifications.filter((n) => n.unread).length;
 
   return (
-    <header className="sticky top-0 z-20 px-6 py-6 md:px-10 flex items-center justify-between border-b border-panel bg-main">
-      <div className="flex items-center gap-4">
-        <h1 className="text-4xl font-extrabold text-main">{currentTitle}</h1>
-        <div id="header-actions" className="flex items-center gap-4">
-          {location.pathname === "/" && (
-            <span
-              className="text-lg px-6 py-2 rounded-full font-semibold border"
-              style={{
-                borderColor: "var(--accent-gold)",
-                color: "var(--accent-gold)",
-                backgroundColor: "rgba(216, 170, 113, 0.1)",
-              }}
-            >
-              Colonia Central
-            </span>
-          )}
-        </div>
+    <header className="sticky top-0 z-20 px-6 py-5 md:px-10 flex items-center justify-between border-b border-panel bg-gris">
+      <div className="flex items-center gap-3 min-w-0">
+        <h1 className="text-4xl font-extrabold text-main shrink-0">
+          {currentTitle}
+        </h1>
+
+        {isDashboard ? (
+          <span className="text-base px-5 py-1.5 rounded-full font-bold bg-badge-naranja text-badge-naranja">
+            Colonia Central
+          </span>
+        ) : (
+          <div id="header-badge" className="flex items-center shrink-0" />
+        )}
       </div>
 
-      {/*notificaciones */}
       <div className="flex items-center gap-3 relative">
-        <button
-          onClick={() => setIsNotifOpen(!isNotifOpen)}
-          className="relative p-2 rounded-full hover-bg-item transition-colors"
-        >
-          <Icons.Bell className="w-10 h-10 text-main" />
-          {unreadCount > 0 && (
-            <span
-              className="absolute top-2.5 right-3 w-3 h-3 rounded-full border-2"
-              style={{
-                backgroundColor: "var(--accent-orange)",
-                borderColor: "var(--bg-dark)",
-              }}
-            ></span>
-          )}
-        </button>
-
-        {isNotifOpen && (
-          <div className="absolute top-full right-0 mt-4 w-80 bg-panel border border-panel rounded-2xl shadow-2xl overflow-hidden z-50">
-            <div className="p-4 border-b border-panel flex justify-between items-center bg-main">
-              <h3 className="font-bold text-lg text-main">Notificaciones</h3>
+        {isDashboard ? (
+          <>
+            <button
+              onClick={() => setIsNotifOpen(!isNotifOpen)}
+              className="relative p-2 rounded-full hover-bg-item transition-colors"
+            >
+              <Icons.Bell className="w-8 h-8 text-main" />
               {unreadCount > 0 && (
-                <span className="text-xs font-bold px-2 py-1 bg-orange text-white rounded-full">
-                  {unreadCount} nuevas
-                </span>
+                <span
+                  className="absolute top-2.5 right-2.5 w-2.5 h-2.5 rounded-full border-2"
+                  style={{
+                    backgroundColor: "var(--accent-orange)",
+                    borderColor: "var(--fondo-gris)",
+                  }}
+                />
               )}
-            </div>
+            </button>
 
-            <div className="max-h-[60vh] overflow-y-auto">
-              {mockNotifications.map((notif) => (
-                <div
-                  key={notif.id}
-                  className={`p-4 border-b border-panel hover-bg-item cursor-pointer transition-colors ${notif.unread ? "active-bg-item" : ""}`}
-                >
-                  <p className="text-sm text-main font-medium mb-1">
-                    {notif.text}
-                  </p>
-                  <p className="text-xs text-secondary">{notif.time}</p>
+            {isNotifOpen && (
+              <div className="absolute top-full right-0 mt-4 w-80 bg-card border border-panel rounded-2xl shadow-2xl overflow-hidden z-50">
+                <div className="p-4 border-b border-panel flex justify-between items-center bg-gris-oscuro">
+                  <h3 className="font-bold text-lg text-main">
+                    Notificaciones
+                  </h3>
+                  {unreadCount > 0 && (
+                    <span className="text-xs font-bold px-2 py-1 bg-orange text-white rounded-full">
+                      {unreadCount} nuevas
+                    </span>
+                  )}
                 </div>
-              ))}
-            </div>
-
-            <div className="p-3 text-center border-t border-panel bg-main hover-bg-item cursor-pointer transition-colors">
-              <span className="text-orange font-semibold text-sm">
-                Ver todo el historial
-              </span>
-            </div>
-          </div>
+                <div className="max-h-[60vh] overflow-y-auto">
+                  {mockNotifications.map((notif) => (
+                    <div
+                      key={notif.id}
+                      className={`p-4 border-b border-panel hover-bg-item cursor-pointer transition-colors ${notif.unread ? "active-bg-item" : ""}`}
+                    >
+                      <p className="text-sm text-main font-medium mb-1">
+                        {notif.text}
+                      </p>
+                      <p className="text-xs text-secondary">{notif.time}</p>
+                    </div>
+                  ))}
+                </div>
+                <div className="p-3 text-center border-t border-panel bg-gris-oscuro hover-bg-item cursor-pointer transition-colors">
+                  <span className="text-orange font-semibold text-sm">
+                    Ver todo el historial
+                  </span>
+                </div>
+              </div>
+            )}
+          </>
+        ) : (
+          <div id="header-actions" className="flex items-center gap-3" />
         )}
       </div>
     </header>
