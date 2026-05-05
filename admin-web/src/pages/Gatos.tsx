@@ -175,11 +175,10 @@ const GatosPage = () => {
     return () => clearTimeout(timer);
   }, []);
 
-  // Fetch de animales al renderizar el componente
-  useEffect(() => {
-    const fetchCats = async () => {
-      try {
-        const token = localStorage.getItem("token") || "";
+  // Fetch de animales
+  const fetchCats = async () => {
+    try {
+      const token = localStorage.getItem("token") || "";
         const res = await fetch("http://localhost:3000/animal/", {
           headers: {
             Authorization: `Bearer ${token}`
@@ -225,6 +224,7 @@ const GatosPage = () => {
       }
     };
 
+  useEffect(() => {
     fetchCats();
   }, []);
 
@@ -267,7 +267,7 @@ const GatosPage = () => {
         />
       )}
 
-      <GatoModal isOpen={modalOpen} onClose={() => setModalOpen(false)} />
+      <GatoModal isOpen={modalOpen} onClose={() => setModalOpen(false)} onSuccess={fetchCats} />
       <DeleteConfirmModal 
         isOpen={deleteModalOpen} 
         onClose={() => setDeleteModalOpen(false)} 
