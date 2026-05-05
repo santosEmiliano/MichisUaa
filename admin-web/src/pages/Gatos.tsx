@@ -4,6 +4,7 @@ import Icons from "../components/Icons";
 import { DataTable, type ColumnDef } from "../components/DataTable";
 import type { Cat } from "../types/models";
 import { GatoModal } from "../components/GatoModal";
+import { DeleteConfirmModal } from "../components/DeleteConfirmModal";
 
 type EstadoCat = Cat["estado"];
 
@@ -116,9 +117,24 @@ const GatosPage = () => {
   const [cats, setCats] = useState<Cat[]>([]);
   const [loading, setLoading] = useState(true);
   const [modalOpen, setModalOpen] = useState(false);
+  const [deleteModalOpen, setDeleteModalOpen] = useState(false);
+  const [catToDelete, setCatToDelete] = useState<Cat | null>(null);
+  
   const colonias = [...new Set(cats.map((c) => c.colonia))];
   const [headerTarget, setHeaderTarget] = useState<HTMLElement | null>(null);
   const [rowsPerPage, setRowsPerPage] = useState(8);
+
+  const confirmDelete = (cat: Cat) => {
+    setCatToDelete(cat);
+    setDeleteModalOpen(true);
+  };
+
+  const handleDeleteCat = async () => {
+    if (!catToDelete) return;
+    
+    setDeleteModalOpen(false);
+    setCatToDelete(null);
+  };
 
   useEffect(() => {
     const updateRows = () => {
@@ -221,6 +237,7 @@ const GatosPage = () => {
           searchPlaceholder="Buscar por nombre o colonia..."
           rowsPerPage={rowsPerPage}
           onEdit={() => setModalOpen(true)}
+          onDelete={confirmDelete}
           filters={[
             { label: "Todas las colonias", options: colonias },
             {
@@ -233,6 +250,11 @@ const GatosPage = () => {
       )}
 
       <GatoModal isOpen={modalOpen} onClose={() => setModalOpen(false)} />
+      <DeleteConfirmModal 
+        isOpen={deleteModalOpen} 
+        onClose={() => setDeleteModalOpen(false)} 
+        onConfirm={handleDeleteCat} 
+      />
     </div>
   );
 };
