@@ -194,3 +194,19 @@ body {
   border-color: var(--accent-orange);
   box-shadow: 0 0 0 2px rgba(232, 137, 60, 0.15);
 }
+
+/*Animación para las alerts*/
+@keyframes popIn {
+  0% {
+    opacity: 0;
+    transform: scale(0.9) translateY(10px);
+  }
+  100% {
+    opacity: 1;
+    transform: scale(1) translateY(0);
+  }
+}
+
+.animate-pop-in {
+  animation: popIn 0.3s cubic-bezier(0.16, 1, 0.3, 1) forwards;
+}

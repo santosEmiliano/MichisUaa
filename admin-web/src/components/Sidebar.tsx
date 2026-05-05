@@ -125,7 +125,7 @@ const Sidebar: React.FC<SidebarProps> = ({ isOpen, toggleSidebar }) => {
           </div>
           <div>
             <p className="text-[17px] font-bold text-[#EAEAEA]">
-              Santos
+              
             </p>
             <p className="text-[14px] font-semibold text-secondary">
               Responsable de colonia
