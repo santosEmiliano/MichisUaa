@@ -189,11 +189,12 @@ const Colonias = () => {
     return colonias.slice(start, start + itemsPerPage);
   }, [colonias, safePage, itemsPerPage]);
 
-  const [headerTarget, setHeaderTarget] = useState<HTMLElement | null>(null);
+  const [badgeTarget, setBadgeTarget] = useState<HTMLElement | null>(null);
+  const [actionsTarget, setActionsTarget] = useState<HTMLElement | null>(null);
   useEffect(() => {
     const timer = setTimeout(() => {
-      const el = document.getElementById("header-actions");
-      if (el) setHeaderTarget(el);
+      setBadgeTarget(document.getElementById("header-badge"));
+      setActionsTarget(document.getElementById("header-actions"));
     }, 0);
     return () => clearTimeout(timer);
   }, []);
@@ -253,24 +254,26 @@ const Colonias = () => {
     }
   };
 
-  const headerDynamicContent = (
-    <>
-      <span className="text-sm font-semibold px-3 py-1 rounded-full border border-sidebar-separador bg-panel text-secondary">
-        {colonias.length} colonias
-      </span>
-      <button
-        type="button"
-        onClick={openCreate}
-        className="flex items-center gap-2 bg-gris border border-sidebar-separador text-main font-bold py-2.5 px-6 rounded-xl hover:bg-gris-oscuro transition-colors"
-      >
-        <Icons.Plus className="w-5 h-5" /> Nueva Colonia
-      </button>
-    </>
+  const headerBadge = (
+    <span className="text-sm font-semibold px-3 py-1 rounded-full border border-sidebar-separador bg-gris-oscuro text-secondary">
+      {colonias.length} colonias
+    </span>
+  );
+
+  const headerAction = (
+    <button
+      type="button"
+      onClick={openCreate}
+      className="flex items-center gap-2 bg-gris border border-sidebar-separador text-main font-bold py-2.5 px-6 rounded-xl shrink-0 transition-all duration-200 hover:bg-gris-oscuro hover:border-white/15"
+    >
+      <Icons.Plus className="w-5 h-5" /> Nueva Colonia
+    </button>
   );
 
   return (
     <div className="flex flex-col h-full min-h-0 pt-2 gap-3 overflow-hidden">
-      {headerTarget && createPortal(headerDynamicContent, headerTarget)}
+      {badgeTarget && createPortal(headerBadge, badgeTarget)}
+      {actionsTarget && createPortal(headerAction, actionsTarget)}
 
       <ColoniaModal
         key={modalKey}
