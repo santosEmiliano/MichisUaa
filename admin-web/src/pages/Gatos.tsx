@@ -132,8 +132,26 @@ const GatosPage = () => {
   const handleDeleteCat = async () => {
     if (!catToDelete) return;
     
-    setDeleteModalOpen(false);
-    setCatToDelete(null);
+    try {
+      const token = localStorage.getItem("token") || "";
+      const res = await fetch(`http://localhost:3000/animal/${catToDelete.id}`, {
+        method: "DELETE",
+        headers: {
+          Authorization: `Bearer ${token}`
+        }
+      });
+      
+      if (!res.ok) throw new Error("Error al eliminar el gato");
+      
+      // Filtramos de la lista local para no recargar la página
+      setCats((prev) => prev.filter((c) => c.id !== catToDelete.id));
+    } catch (error) {
+      console.error("Error eliminando gato:", error);
+      alert("Hubo un error al intentar eliminar el gato.");
+    } finally {
+      setDeleteModalOpen(false);
+      setCatToDelete(null);
+    }
   };
 
   useEffect(() => {
