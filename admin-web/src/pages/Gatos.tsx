@@ -5,109 +5,6 @@ import { DataTable, type ColumnDef } from "../components/DataTable";
 import type { Cat } from "../types/models";
 import { GatoModal } from "../components/GatoModal";
 
-const mockCats: Cat[] = [
-  {
-    id: 1,
-    nombre: "Manchas",
-    genero: "Hembra",
-    edad: "2 años",
-    colonia: "Ed. 108",
-    esterilizado: true,
-    estado: "Desaparecido",
-    fechaRegistro: "Enero 2025",
-  },
-  {
-    id: 2,
-    nombre: "Michi",
-    genero: "Macho",
-    edad: "3 años",
-    colonia: "Zona alberca",
-    esterilizado: true,
-    estado: "Registrado",
-    fechaRegistro: "Febrero 2026",
-  },
-  {
-    id: 3,
-    nombre: "Wakanda",
-    genero: "Hembra",
-    edad: "1 año",
-    colonia: "Ed. 114",
-    esterilizado: true,
-    estado: "Registrado",
-    fechaRegistro: "Marzo 2023",
-  },
-  {
-    id: 4,
-    nombre: "Canela",
-    genero: "Hembra",
-    edad: "4 años",
-    colonia: "Ed. 108",
-    esterilizado: false,
-    estado: "Registrado",
-    fechaRegistro: "Octubre 2025",
-  },
-  {
-    id: 5,
-    nombre: "Julián",
-    genero: "Hembra",
-    edad: "20 años",
-    colonia: "UMD",
-    esterilizado: false,
-    estado: "No Registrado",
-    fechaRegistro: "Noviembre 2021",
-  },
-  {
-    id: 6,
-    nombre: "José",
-    genero: "Hembra",
-    edad: "20 años",
-    colonia: "Ed. 59",
-    esterilizado: false,
-    estado: "Desaparecido",
-    fechaRegistro: "Diciembre 2024",
-  },
-  {
-    id: 7,
-    nombre: "Santos",
-    genero: "Macho",
-    edad: "21 años",
-    colonia: "Ed. 59",
-    esterilizado: true,
-    estado: "Registrado",
-    fechaRegistro: "Marzo 2020",
-  },
-  {
-    id: 8,
-    nombre: "Harim",
-    genero: "Macho",
-    edad: "20 años",
-    colonia: "Ed. 59",
-    esterilizado: true,
-    estado: "Desaparecido",
-    fechaRegistro: "Octubre 2025",
-  },
-  {
-    id: 9,
-    nombre: "Luna",
-    genero: "Hembra",
-    edad: "1 año",
-    colonia: "Zona alberca",
-    esterilizado: true,
-    estado: "Registrado",
-    fechaRegistro: "Enero 2026",
-  },
-  {
-    id: 10,
-    nombre: "Tigre",
-    genero: "Macho",
-    edad: "5 años",
-    colonia: "Ed. 108",
-    esterilizado: false,
-    estado: "Registrado",
-    fechaRegistro: "Junio 2023",
-  },
-];
-
 type EstadoCat = Cat["estado"];
 
 const estadoBadge: Record<EstadoCat, React.CSSProperties> = {
@@ -216,8 +113,10 @@ const columns: ColumnDef<Cat>[] = [
 ];
 
 const GatosPage = () => {
+  const [cats, setCats] = useState<Cat[]>([]);
+  const [loading, setLoading] = useState(true);
   const [modalOpen, setModalOpen] = useState(false);
-  const colonias = [...new Set(mockCats.map((c) => c.colonia))];
+  const colonias = [...new Set(cats.map((c) => c.colonia))];
   const [headerTarget, setHeaderTarget] = useState<HTMLElement | null>(null);
 
   useEffect(() => {
@@ -228,11 +127,63 @@ const GatosPage = () => {
     return () => clearTimeout(timer);
   }, []);
 
+  // Fetch de animales al renderizar el componente
+  useEffect(() => {
+    const fetchCats = async () => {
+      try {
+        const token = localStorage.getItem("token") || "";
+        const res = await fetch("http://localhost:3000/animal/", {
+          headers: {
+            Authorization: `Bearer ${token}`
+          }
+        });
+        
+        if (!res.ok) throw new Error("Error al obtener los animales");
+        
+        const data = await res.json();
+        
+        // Mapeamos los datos de la base de datos a la interfaz Cat del frontend
+        const mappedCats: Cat[] = data.map((animal: any) => {
+          // Calculamos la edad
+          let edadStr = "Desconocida";
+          if (animal.fecha_nac) {
+            const anios = new Date().getFullYear() - new Date(animal.fecha_nac).getFullYear();
+            edadStr = anios > 0 ? `${anios} años` : "Meses";
+          }
+
+          // Formato: "Enero 2025"
+          const fechaObj = new Date(animal.createdAt);
+          const mesCapitalizado = fechaObj.toLocaleString('es-ES', { month: 'long' });
+          const fechaReg = `${mesCapitalizado.charAt(0).toUpperCase() + mesCapitalizado.slice(1)} ${fechaObj.getFullYear()}`;
+
+          return {
+            id: animal.idAnimal,
+            nombre: animal.nombre,
+            genero: "Hembra",
+            edad: edadStr,
+            colonia: `Colonia ${animal.Colonia_idColonia}`, // TODO: El backend solo manda el ID por ahora
+            esterilizado: animal.esterilizado,
+            estado: animal.estado === "NoRegistrado" ? "No Registrado" : animal.estado,
+            fechaRegistro: fechaReg,
+            fotoUrl: animal.foto_url || undefined,
+          };
+        });
+
+        setCats(mappedCats);
+      } catch (error) {
+        console.error("Error fetching cats:", error);
+      } finally {
+        setLoading(false);
+      }
+    };
+
+    fetchCats();
+  }, []);
+
   const headerDynamicContent = (
     <>
       <span className="text-sm font-semibold px-3 py-1 rounded-full border border-sidebar-separador bg-panel text-secondary">
-        {/* despues se sustituye con los datos que tiene el back */}
-        {mockCats.length} registrados
+        {cats.length} {cats.length > 1 ? "registrados" : "registrado"}
       </span>
       <button
         onClick={() => setModalOpen(true)}
@@ -246,20 +197,25 @@ const GatosPage = () => {
   return (
     <div className="space-y-6 pt-2">
       {headerTarget && createPortal(headerDynamicContent, headerTarget)}
-      <DataTable
-        data={mockCats}
-        columns={columns}
-        searchPlaceholder="Buscar por nombre o colonia..."
-        onEdit={() => setModalOpen(true)}
-        filters={[
-          { label: "Todas las colonias", options: colonias },
-          {
-            label: "Todos los estados",
-            options: ["Registrado", "Desaparecido", "No Registrado"],
-          },
-          { label: "Esterilizados", options: ["Sí", "No"] },
-        ]}
-      />
+      
+      {loading ? (
+        <div className="text-center py-10 text-secondary">Cargando gatos...</div>
+      ) : (
+        <DataTable
+          data={cats}
+          columns={columns}
+          searchPlaceholder="Buscar por nombre o colonia..."
+          onEdit={() => setModalOpen(true)}
+          filters={[
+            { label: "Todas las colonias", options: colonias },
+            {
+              label: "Todos los estados",
+              options: ["Registrado", "Desaparecido", "No Registrado"],
+            },
+            { label: "Esterilizados", options: ["Sí", "No"] },
+          ]}
+        />
+      )}
 
       <GatoModal isOpen={modalOpen} onClose={() => setModalOpen(false)} />
     </div>
