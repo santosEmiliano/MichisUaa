@@ -6,6 +6,7 @@ import { ColoniaModal } from "../components/ColoniaModal";
 import type { ColoniaFormSave } from "../components/ColoniaModal";
 import type { Colonia } from "../types/models";
 import { getResponsableById } from "../data/coloniaResponsables";
+import { Pestanas } from "../components/Pestanas";
 
 const ROWS_DESKTOP = 2;
 const ROWS_MOBILE = 3;
@@ -300,44 +301,11 @@ const Colonias = () => {
         })}
       </div>
 
-      {totalPages > 1 && (
-        <div className="flex items-center justify-center gap-3 pt-2 border-t border-sidebar-separador shrink-0">
-          <button
-            type="button"
-            onClick={() => setCurrentPage((p) => Math.max(1, p - 1))}
-            disabled={safePage === 1}
-            className="p-2 rounded-xl text-secondary border border-transparent hover:bg-gris hover:border-sidebar-separador disabled:opacity-30 disabled:cursor-not-allowed transition-all"
-          >
-            <Icons.ArrowRight className="w-5 h-5 rotate-180" />
-          </button>
-
-          <div className="flex items-center gap-1.5">
-            {Array.from({ length: totalPages }, (_, i) => i + 1).map((p) => (
-              <button
-                type="button"
-                key={p}
-                onClick={() => setCurrentPage(Math.min(p, totalPages))}
-                className={`w-8 h-8 rounded-lg text-sm font-bold transition-all duration-200 ${
-                  p === safePage
-                    ? "border border-[#e8893c] bg-[var(--bg-active-item)] text-[#e8893c]"
-                    : "text-secondary hover:bg-gris hover:text-main border border-transparent"
-                }`}
-              >
-                {p}
-              </button>
-            ))}
-          </div>
-
-          <button
-            type="button"
-            onClick={() => setCurrentPage((p) => Math.min(totalPages, p + 1))}
-            disabled={safePage === totalPages}
-            className="p-2 rounded-xl text-secondary border border-transparent hover:bg-gris hover:border-sidebar-separador disabled:opacity-30 disabled:cursor-not-allowed transition-all"
-          >
-            <Icons.ArrowRight className="w-5 h-5" />
-          </button>
-        </div>
-      )}
+      <Pestanas 
+        currentPage={currentPage}
+        totalPages={totalPages}
+        onPageChange={setCurrentPage}
+      />
     </div>
   );
 };
