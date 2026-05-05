@@ -27,9 +27,16 @@ const Colonias = () => {
     try {
       const token = localStorage.getItem("token");
       
-      const [coloniasData, usersRes] = await Promise.all([
+      // Llamadas paralelas
+      const [coloniasData, usersRes, animalsRes] = await Promise.all([
         coloniesService.getColonies(),
         fetch("http://localhost:3000/user", {
+          headers: {
+            "Content-Type": "application/json",
+            Authorization: `Bearer ${token}`,
+          },
+        }),
+        fetch("http://localhost:3000/animal", {
           headers: {
             "Content-Type": "application/json",
             Authorization: `Bearer ${token}`,
@@ -37,7 +44,35 @@ const Colonias = () => {
         })
       ]);
 
-      setColonias(coloniasData);
+      let animals: { Colonia_idColonia: number; esterilizado: boolean | number }[] = [];
+      if (animalsRes.ok) {
+        animals = await animalsRes.json();
+      }
+
+      // Calcular estadísticas por colonia
+      const colonyStats: Record<number, { total: number; esterilizados: number }> = {};
+      animals.forEach((animal) => {
+        const colId = animal.Colonia_idColonia;
+        if (!colonyStats[colId]) colonyStats[colId] = { total: 0, esterilizados: 0 };
+        colonyStats[colId].total += 1;
+        // Dependiendo de si esterilizado viene como booleano o 1/0
+        if (animal.esterilizado === true || animal.esterilizado === 1) {
+          colonyStats[colId].esterilizados += 1;
+        }
+      });
+
+      // Aplicar estadísticas
+      const coloniasWithStats = coloniasData.map(col => {
+        const stats = colonyStats[col.id] || { total: 0, esterilizados: 0 };
+        const pct = stats.total > 0 ? Math.round((stats.esterilizados / stats.total) * 100) : 0;
+        return {
+          ...col,
+          animalCount: stats.total,
+          esterilizadoPercent: pct
+        };
+      });
+
+      setColonias(coloniasWithStats);
 
       if (usersRes.ok) {
         const usersData = await usersRes.json();
