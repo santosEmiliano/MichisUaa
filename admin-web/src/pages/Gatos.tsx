@@ -118,6 +118,20 @@ const GatosPage = () => {
   const [modalOpen, setModalOpen] = useState(false);
   const colonias = [...new Set(cats.map((c) => c.colonia))];
   const [headerTarget, setHeaderTarget] = useState<HTMLElement | null>(null);
+  const [rowsPerPage, setRowsPerPage] = useState(8);
+
+  useEffect(() => {
+    const updateRows = () => {
+      const h = window.innerHeight;
+      if (h < 700) setRowsPerPage(3);
+      else if (h < 850) setRowsPerPage(4);
+      else if (h < 1000) setRowsPerPage(6);
+      else setRowsPerPage(8);
+    };
+    updateRows();
+    window.addEventListener("resize", updateRows);
+    return () => window.removeEventListener("resize", updateRows);
+  }, []);
 
   useEffect(() => {
     const timer = setTimeout(() => {
@@ -205,6 +219,7 @@ const GatosPage = () => {
           data={cats}
           columns={columns}
           searchPlaceholder="Buscar por nombre o colonia..."
+          rowsPerPage={rowsPerPage}
           onEdit={() => setModalOpen(true)}
           filters={[
             { label: "Todas las colonias", options: colonias },
