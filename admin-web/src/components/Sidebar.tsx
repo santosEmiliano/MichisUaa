@@ -26,17 +26,11 @@ const navGroups = [
   },
   {
     group: "Análisis",
-    items: [
-      { label: "Estadísticas", path: "/estadisticas" },
-      { label: "Exportar datos", path: "/exportar" },
-    ],
+    items: [{ label: "Estadísticas", path: "/estadisticas" }],
   },
   {
     group: "Sistema",
-    items: [
-      { label: "Usuarios", path: "/usuarios" },
-      { label: "Importar Censo", path: "/importar" },
-    ],
+    items: [{ label: "Usuarios", path: "/usuarios" }],
   },
 ];
 
@@ -75,37 +69,44 @@ const Sidebar: React.FC<SidebarProps> = ({ isOpen, toggleSidebar }) => {
                 <NavLink
                   key={item.label}
                   to={item.path}
-                  className={({ isActive }) =>
-                    clsx(
-                      "flex items-center gap-4 px-5 py-3.5 rounded-xl text-[17px] font-semibold transition-colors group hover-bg-item",
-                      isActive
-                        ? "active-bg-item text-orange"
-                        : "text-secondary hover:text-white",
-                    )
-                  }
                   end={item.path === "/"}
                   onClick={() => {
                     if (isOpen) toggleSidebar();
                   }}
+                  className={({ isActive }) =>
+                    clsx(
+                      "flex items-center gap-4 px-5 py-3.5 rounded-xl text-[17px] font-semibold transition-all duration-200 group hover-bg-item",
+                      isActive ? "active-bg-item" : "",
+                    )
+                  }
                 >
                   {({ isActive }) => (
                     <>
                       <div
-                        className={clsx(
-                          "w-2.5 h-2.5 rounded-full transition-colors",
-                          isActive
-                            ? "bg-orange"
-                            : "bg-secondary group-hover:bg-gray-400",
-                        )}
+                        className="w-2.5 h-2.5 rounded-full shrink-0 transition-colors duration-200"
+                        style={{
+                          backgroundColor: isActive
+                            ? "var(--accent-orange)"
+                            : "var(--text-secondary)",
+                        }}
                       />
 
-                      <span className="flex-1">{item.label}</span>
+                      <span
+                        className={clsx(
+                          "flex-1 transition-all duration-200",
+                          isActive
+                            ? "translate-x-3 text-orange"
+                            : "translate-x-0 text-secondary group-hover:text-white",
+                        )}
+                      >
+                        {item.label}
+                      </span>
 
-                      {item.badge && (
+                      {item.badge ? (
                         <span className="text-[13px] font-bold px-3 py-1 rounded-full bg-orange text-white">
                           {item.badge}
                         </span>
-                      )}
+                      ) : null}
                     </>
                   )}
                 </NavLink>
@@ -124,9 +125,7 @@ const Sidebar: React.FC<SidebarProps> = ({ isOpen, toggleSidebar }) => {
             </div>
           </div>
           <div>
-            <p className="text-[17px] font-bold text-[#EAEAEA]">
-              Santos
-            </p>
+            <p className="text-[17px] font-bold text-[#EAEAEA]">Santos</p>
             <p className="text-[14px] font-semibold text-secondary">
               Responsable de colonia
             </p>

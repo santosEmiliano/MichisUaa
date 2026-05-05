@@ -170,8 +170,8 @@ const GatosPage = () => {
 
   useEffect(() => {
     const timer = setTimeout(() => {
-      const el = document.getElementById("header-actions");
-      if (el) setHeaderTarget(el);
+      setBadgeTarget(document.getElementById("header-badge"));
+      setActionsTarget(document.getElementById("header-actions"));
     }, 0);
     return () => clearTimeout(timer);
   }, []);

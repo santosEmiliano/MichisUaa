@@ -20,6 +20,10 @@ import {
   Eye,
   EyeOff,
   ImagePlus,
+  CheckCircle2,
+  AlertCircle,
+  AlertTriangle,
+  HelpCircle,
 } from "lucide-react";
 
 const Icons = {
@@ -45,6 +49,10 @@ const Icons = {
   Eye: Eye,
   EyeOff: EyeOff,
   ImagePlus: ImagePlus,
+  CheckCircle: CheckCircle2,
+  ErrorCircle: AlertCircle,
+  WarningTriangle: AlertTriangle,
+  QuestionCircle: HelpCircle,
 };
 
 export default Icons;

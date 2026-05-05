@@ -134,35 +134,37 @@ const columns: ColumnDef<User>[] = [
 
 const UsuariosPage = () => {
   const [modalOpen, setModalOpen] = useState(false);
-  const [headerTarget, setHeaderTarget] = useState<HTMLElement | null>(null);
+  const [badgeTarget, setBadgeTarget] = useState<HTMLElement | null>(null);
+  const [actionsTarget, setActionsTarget] = useState<HTMLElement | null>(null);
 
   useEffect(() => {
     const timer = setTimeout(() => {
-      const el = document.getElementById("header-actions");
-      if (el) setHeaderTarget(el);
+      setBadgeTarget(document.getElementById("header-badge"));
+      setActionsTarget(document.getElementById("header-actions"));
     }, 0);
     return () => clearTimeout(timer);
   }, []);
 
+  const headerBadge = (
+    <span className="text-sm font-semibold px-3 py-1 rounded-full border border-sidebar-separador bg-gris-oscuro text-secondary">
+      {mockUsers.length} registrados
+    </span>
+  );
 
-  const headerDynamicContent = (
-    <>
-      <span className="text-sm font-semibold px-3 py-1 rounded-full border border-sidebar-separador bg-panel text-secondary">
-        {mockUsers.length} registrados
-      </span>
-      <button
-        onClick={() => setModalOpen(true)}
-        className="flex items-center gap-2 bg-gris border border-sidebar-separador text-main font-bold py-2.5 px-6 rounded-xl hover:bg-gris-oscuro transition-colors"
-      >
-        <Icons.Plus className="w-5 h-5" /> Nuevo Usuario
-      </button>
-    </>
+  const headerAction = (
+    <button
+      onClick={() => setModalOpen(true)}
+      className="flex items-center gap-2 bg-gris border border-sidebar-separador text-main font-bold py-2.5 px-6 rounded-xl shrink-0 transition-all duration-200 hover:bg-gris-oscuro hover:border-white/15"
+    >
+      <Icons.Plus className="w-5 h-5" /> Nuevo Usuario
+    </button>
   );
 
   return (
     <div className="space-y-6 pt-2">
       {/* 4. Si el Header ya cargó, disparamos el Portal */}
-      {headerTarget && createPortal(headerDynamicContent, headerTarget)}
+      {badgeTarget && createPortal(headerBadge, badgeTarget)}
+      {actionsTarget && createPortal(headerAction, actionsTarget)}
 
       <DataTable
         data={mockUsers}

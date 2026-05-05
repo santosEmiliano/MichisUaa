@@ -77,16 +77,17 @@ model Avistamiento {
   usuarioId      Int
   animalId       Int?
   verificadoPor  Int?
-  foto           String?  @db.VarChar(150)
+  foto_url             String?      @db.VarChar(160)
+  foto_id              String?      @db.VarChar(160)
   descripcion    String?  @db.VarChar(400)
   verificado     Boolean  @default(false)
   longitud       Decimal  @db.Decimal(9, 1)
   latitud        Decimal  @db.Decimal(9, 1)
   createdAt      DateTime @default(now()) @map("created_at")
 
-  usuario     Usuario  @relation("RegistradoPor", fields: [usuarioId], references: [idUsuario])
+  usuario     Usuario  @relation("RegistradoPor", fields: [usuarioId], references: [idUsuario], onDelete: Cascade)
   animal      Animal?  @relation(fields: [animalId], references: [idAnimal])
-  verificador Usuario? @relation("VerificadoPor", fields: [verificadoPor], references: [idUsuario])
+  verificador Usuario? @relation("VerificadoPor", fields: [verificadoPor], references: [idUsuario], onDelete: SetNull)
 
   @@map("Avistamiento")
 }
