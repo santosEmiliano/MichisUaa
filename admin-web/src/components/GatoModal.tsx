@@ -9,6 +9,20 @@ interface CatModalProps {
 
 export const GatoModal = ({ isOpen, onClose }: CatModalProps) => {
   const [esterilizado, setEsterilizado] = useState<boolean>(true);
+  const [imagePreview, setImagePreview] = useState<string | null>(null);
+
+  const handleImageChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+    const file = e.target.files?.[0];
+    if (file) {
+      const reader = new FileReader();
+      reader.onloadend = () => {
+        setImagePreview(reader.result as string);
+      };
+      reader.readAsDataURL(file);
+    } else {
+      setImagePreview(null);
+    }
+  };
 
   const footer = (
     <div className="flex gap-4 w-full justify-end">
@@ -51,17 +65,22 @@ export const GatoModal = ({ isOpen, onClose }: CatModalProps) => {
           <label className="block text-main font-bold mb-2">
             Foto del Gato
           </label>
-          <div className="relative flex flex-col items-center justify-center w-full h-32 bg-gris border-2 border-dashed border-sidebar-separador rounded-xl hover:border-acento-naranja hover:bg-[rgba(232,137,60,0.05)] transition-all duration-200 cursor-pointer group">
+          <div className="relative flex flex-col items-center justify-center w-full h-32 bg-gris border-2 border-dashed border-sidebar-separador rounded-xl hover:border-acento-naranja hover:bg-[rgba(232,137,60,0.05)] transition-all duration-200 cursor-pointer group overflow-hidden">
             <input 
               type="file" 
               accept="image/*"
               className="absolute inset-0 w-full h-full opacity-0 cursor-pointer z-10"
+              onChange={handleImageChange}
             />
-            <div className="flex flex-col items-center justify-center group-hover:text-acento-naranja transition-colors duration-200">
-              <Icons.ImagePlus className="w-8 h-8 text-secondary group-hover:text-acento-naranja mb-2 transition-colors duration-200" />
-              <span className="text-secondary group-hover:text-acento-naranja text-sm font-medium transition-colors duration-200">Haz clic para subir una imagen</span>
-              <span className="text-secondary/70 group-hover:text-acento-naranja/70 text-xs mt-1 transition-colors duration-200">PNG, JPG, GIF hasta 5MB</span>
-            </div>
+            {imagePreview ? (
+              <img src={imagePreview} alt="Vista previa del gato" className="w-full h-full object-cover" />
+            ) : (
+              <div className="flex flex-col items-center justify-center group-hover:text-acento-naranja transition-colors duration-200">
+                <Icons.ImagePlus className="w-8 h-8 text-secondary group-hover:text-acento-naranja mb-2 transition-colors duration-200" />
+                <span className="text-secondary group-hover:text-acento-naranja text-sm font-medium transition-colors duration-200">Haz clic para subir una imagen</span>
+                <span className="text-secondary/70 group-hover:text-acento-naranja/70 text-xs mt-1 transition-colors duration-200">PNG, JPG, GIF hasta 5MB</span>
+              </div>
+            )}
           </div>
         </div>
 
