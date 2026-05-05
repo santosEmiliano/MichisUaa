@@ -47,6 +47,10 @@
   --badge-rojo-fondo: #ffe6e6;
   --badge-rojo-texto: #8a3939;
 
+  --badge-gris-fondo: #30302e;
+  --badge-gris-texto: rgba(255, 255, 255, 0.52);
+  --badge-gris-borde: rgba(255, 255, 255, 0.08);
+
   --verde-claro: #ebffee;
 }
 
@@ -91,6 +95,9 @@ body {
 }
 .bg-badge-rojo {
   background-color: var(--badge-rojo-fondo);
+}
+.bg-badge-gris {
+  background-color: var(--badge-gris-fondo);
 }
 .bg-verde-claro {
   background-color: var(--verde-claro);
@@ -140,6 +147,9 @@ body {
 .text-badge-rojo {
   color: var(--badge-rojo-texto);
 }
+.text-badge-gris {
+  color: var(--badge-gris-texto);
+}
 
 .border-panel {
   border-color: var(--border-color);
@@ -150,6 +160,9 @@ body {
 
 .border-badge-naranja {
   border-color: var(--badge-naranja-borde);
+}
+.border-badge-gris {
+  border-color: var(--badge-gris-borde);
 }
 
 .border-metrica-naranja {
