@@ -90,7 +90,14 @@ const updateUser = async (req, res) => {
       return res.status(404).json({ mensaje: "El id no coincide con ningun usuario registrado, porfavor comprobar usuario" });
     }
 
-    const updatedUser = await userModel.modifyUser(id, req.body);
+    const data = { ...req.body };
+
+    if (data.password) {
+      const saltos = await bcrypt.genSalt(10);
+      data.password = await bcrypt.hash(dataToUpdate.password, saltos);
+    }
+
+    const updatedUser = await userModel.modifyUser(id, data);
 
     return res.status(200).json({
       mensaje: "Usuario actualizado correctamente",
