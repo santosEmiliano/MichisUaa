@@ -17,6 +17,7 @@ interface DataTableProps<T> {
   rowsPerPage?: number;
   onEdit?: (row: T) => void; 
   onDelete?: (row: T) => void; 
+  middleContent?: React.ReactNode;
 }
 
 export const DataTable = <T extends object>({
@@ -27,6 +28,7 @@ export const DataTable = <T extends object>({
   rowsPerPage = 8,
   onEdit, 
   onDelete, 
+  middleContent,
 }: DataTableProps<T>) => {
   const [query, setQuery] = useState("");
   const [page, setPage] = useState(1);
@@ -96,6 +98,8 @@ export const DataTable = <T extends object>({
         )}
       </div>
 
+      {middleContent && <div>{middleContent}</div>}
+
       {/* Tabla */}
       <div className="bg-card rounded-xl border border-sidebar-separador overflow-hidden shadow-lg">
         <div className="overflow-x-auto">
@@ -110,9 +114,11 @@ export const DataTable = <T extends object>({
                     {col.header}
                   </th>
                 ))}
-                <th className="px-6 py-4 text-[15px] font-bold text-sidebar-secundario text-center whitespace-nowrap">
-                  Acciones
-                </th>
+                {(onEdit || onDelete) && (
+                  <th className="px-6 py-4 text-[15px] font-bold text-sidebar-secundario text-center whitespace-nowrap">
+                    Acciones
+                  </th>
+                )}
               </tr>
             </thead>
             <tbody>
@@ -136,24 +142,26 @@ export const DataTable = <T extends object>({
                         {col.render(row)}
                       </td>
                     ))}
-                    <td className="px-6 py-4">
-                      <div className="flex items-center justify-center gap-2">
-                        <ActionButton
-                          color="var(--accent-orange)"
-                          title="Editar"
-                          onClick={() => onEdit?.(row)}
-                        >
-                          <Icons.Edit className="w-5 h-5" />
-                        </ActionButton>
-                        <ActionButton
-                          color="var(--metrica-rojo)"
-                          title="Eliminar"
-                          onClick={() => onDelete?.(row)}
-                        >
-                          <Icons.Trash2 className="w-5 h-5" />
-                        </ActionButton>
-                      </div>
-                    </td>
+                    {(onEdit || onDelete) && (
+                      <td className="px-6 py-4">
+                        <div className="flex items-center justify-center gap-2">
+                          <ActionButton
+                            color="var(--accent-orange)"
+                            title="Editar"
+                            onClick={() => onEdit?.(row)}
+                          >
+                            <Icons.Edit className="w-5 h-5" />
+                          </ActionButton>
+                          <ActionButton
+                            color="var(--metrica-rojo)"
+                            title="Eliminar"
+                            onClick={() => onDelete?.(row)}
+                          >
+                            <Icons.Trash2 className="w-5 h-5" />
+                          </ActionButton>
+                        </div>
+                      </td>
+                    )}
                   </tr>
                 ))
               )}

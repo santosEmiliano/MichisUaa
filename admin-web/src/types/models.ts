@@ -42,6 +42,20 @@ export interface FilterDef {
   options: string[];
 }
 
+export interface Avistamiento {
+  id: number;
+  fotoUrl?: string;
+  animalName: string;
+  animalColonia: string;
+  reportadoPor: string;
+  ubicacion: string;
+  hace: string;
+  estado: "Pendiente" | "Verificado" | "Rechazado" | "Sin identificar";
+  descripcion?: string;
+  coordenadas?: string;
+  fechaHora?: string;
+}
+
 /*Alertas */
 export type AlertType = "success" | "error" | "warning" | "question";
 
