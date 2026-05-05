@@ -114,3 +114,11 @@ const deleteSighting = async (req, res) => {
     return res.status(500).json({ mensaje: "Error al eliminar el avistamiento" });
   }
 };
+
+module.exports = {
+  readSightings,
+  readSightingsById,
+  registerSighting,
+  modifySighting,
+  deleteSighting
+}
