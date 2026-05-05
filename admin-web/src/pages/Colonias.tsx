@@ -157,7 +157,7 @@ const Colonias = () => {
           nombre: data.name,
           descripcion: data.description,
           zona: data.location,
-          encargadosIds: [Number(data.responsableId)],
+          encargadosIds: data.responsableIds.map(Number),
         });
       } else {
         // Crear
@@ -165,7 +165,7 @@ const Colonias = () => {
           nombre: data.name,
           descripcion: data.description,
           zona: data.location,
-          encargadosIds: [Number(data.responsableId)],
+          encargadosIds: data.responsableIds.map(Number),
         });
       }
       // Recargar lista

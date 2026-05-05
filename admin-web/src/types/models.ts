@@ -27,9 +27,10 @@ export interface Colonia {
   location: string;
   description: string;
   alerta?: boolean;
-  responsableId: string;
+  responsableIds: string[];
   responsableName: string;
   responsableInitials: string;
+  extraResponsablesCount: number;
   animalCount: number;
   esterilizadoPercent: number;
 }

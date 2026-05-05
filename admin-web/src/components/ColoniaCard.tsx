@@ -7,7 +7,7 @@ const RED = "#c84b4b";
 
 export interface ColoniaCardProps extends Omit<
   Colonia,
-  "id" | "responsableId"
+  "id" | "responsableIds"
 > {
   onEdit?: () => void;
   onDelete?: () => void;
@@ -36,6 +36,7 @@ export const ColoniaCard = ({
   esterilizadoPercent,
   responsableInitials,
   responsableName,
+  extraResponsablesCount,
   onEdit,
   onDelete,
   alerta,
@@ -112,9 +113,16 @@ export const ColoniaCard = ({
           >
             {responsableInitials}
           </div>
-          <p className="font-semibold text-main text-xs truncate">
-            {responsableName}
-          </p>
+          <div className="flex items-center gap-1 min-w-0">
+            <p className="font-semibold text-main text-xs truncate">
+              {responsableName}
+            </p>
+            {extraResponsablesCount > 0 && (
+              <span className="text-[10px] font-bold text-acento-naranja bg-acento-naranja/10 px-1.5 py-0.5 rounded-md" title={`+${extraResponsablesCount} encargados adicionales`}>
+                +{extraResponsablesCount}
+              </span>
+            )}
+          </div>
         </div>
 
         <div className="flex gap-2">

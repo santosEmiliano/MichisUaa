@@ -36,11 +36,12 @@ function mapColonia(b: BackendColonia): Colonia {
     alerta: false,
     animalCount: 0,
     esterilizadoPercent: 0,
-    responsableId: primerEncargado ? primerEncargado.idUsuario.toString() : "",
+    responsableIds: b.usuariosCols ? b.usuariosCols.map(uc => String(uc.usuario.idUsuario)) : [],
     responsableName: primerEncargado ? primerEncargado.nombre : "Sin Encargado",
     responsableInitials: primerEncargado
       ? primerEncargado.nombre.substring(0, 2).toUpperCase()
       : "NA",
+    extraResponsablesCount: b.usuariosCols ? Math.max(0, b.usuariosCols.length - 1) : 0,
   };
 }
 
