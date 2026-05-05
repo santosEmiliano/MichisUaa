@@ -81,9 +81,58 @@ const obtainUsers = async (req, res) => {
   }
 }
 
+const updateUser = async (req, res) => {
+  try {
+    const { id } = req.params;
+
+    const oldUser = await userModel.searchId(Number(id));
+    if (!oldUser) {
+      return res.status(404).json({ mensaje: "El id no coincide con ningun usuario registrado, porfavor comprobar usuario" });
+    }
+
+    const data = { ...req.body };
+
+    if (data.password) {
+      const saltos = await bcrypt.genSalt(10);
+      data.password = await bcrypt.hash(data.password, saltos);
+    }
+
+    const updatedUser = await userModel.modifyUser(Number(id), data);
+
+    return res.status(200).json({
+      mensaje: "Usuario actualizado correctamente",
+      modificado: updatedUser
+    });
+
+  } catch (error) {
+    console.error("error al modificar los datos de usuario: ", error);
+    res.status(500).json({ mensaje: "Error al realizar la modificacion de los datos del usuario" });
+  }
+}
+
+const removeUser = async (req, res) => {
+  try {
+    const { id } = req.params;
+
+    const oldUser = await userModel.searchId(Number(id));
+    if (!oldUser) {
+      return res.status(404).json({ mensaje: "El id no coincide con ningun usuario registrado, porfavor comprobar usuario" });
+    }
+
+    await userModel.deleteUser(Number(id));
+
+    return res.status(200).json({ mensaje: "Usuario eliminado correctamente" });
+  } catch(error) {
+    console.error("error al eliminar los datos del usuario: ", error);
+    res.status(500).json({ mensaje: "Error al realizar la eliminacion del usuario"});
+  }
+}
+
 module.exports = {
     createUser,
     login,
     logout,
-    obtainUsers
+    obtainUsers,
+    updateUser,
+    removeUser
 }

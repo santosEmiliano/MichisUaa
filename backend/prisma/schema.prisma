@@ -84,9 +84,9 @@ model Avistamiento {
   latitud        Decimal  @db.Decimal(9, 1)
   createdAt      DateTime @default(now()) @map("created_at")
 
-  usuario     Usuario  @relation("RegistradoPor", fields: [usuarioId], references: [idUsuario])
+  usuario     Usuario  @relation("RegistradoPor", fields: [usuarioId], references: [idUsuario], onDelete: Cascade)
   animal      Animal?  @relation(fields: [animalId], references: [idAnimal])
-  verificador Usuario? @relation("VerificadoPor", fields: [verificadoPor], references: [idUsuario])
+  verificador Usuario? @relation("VerificadoPor", fields: [verificadoPor], references: [idUsuario], onDelete: SetNull)
 
   @@map("Avistamiento")
 }
