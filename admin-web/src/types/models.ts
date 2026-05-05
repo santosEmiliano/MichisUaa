@@ -4,9 +4,11 @@ export interface Cat {
   genero: "Macho" | "Hembra";
   edad: string;
   colonia: string;
+  coloniaId?: number;
   esterilizado: boolean;
   estado: "Registrado" | "Desaparecido" | "No Registrado";
   fechaRegistro: string;
+  fecha_nac?: string;
   fotoUrl?: string;
 }
 

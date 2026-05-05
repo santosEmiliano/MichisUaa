@@ -27,7 +27,11 @@ async function createAnimal(data) {
 // READ ALL
 async function getAllAnimals() {
   try {
-    const animals = await prisma.animal.findMany();
+    const animals = await prisma.animal.findMany({
+      include: {
+        colonia: true
+      }
+    });
     return animals;
   } catch (error) {
     console.error("Error obteniendo animales:", error);
@@ -40,6 +44,9 @@ async function getAnimalById(id) {
   try {
     const animal = await prisma.animal.findUnique({
       where: { idAnimal: Number(id) },
+      include: {
+        colonia: true
+      }
     });
     return animal;
   } catch (error) {

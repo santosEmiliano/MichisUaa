@@ -1,5 +1,6 @@
 import React, { useState, useMemo } from "react";
 import Icons from "./Icons";
+import { Pestanas } from "./Pestanas";
 import type { FilterDef } from "../types/models";
 
 export interface ColumnDef<T> {
@@ -165,37 +166,12 @@ export const DataTable = <T extends object>({
         </div>
       </div>
 
-      {/* Paginación */}
-      {totalPages > 1 && (
-        <div className="flex items-center justify-center gap-1">
-          <PageBtn
-            onClick={() => setPage((p) => Math.max(1, p - 1))}
-            disabled={safePage === 1}
-          >
-            &lt;
-          </PageBtn>
-          {pageWindow().map((n) => (
-            <button
-              key={n}
-              onClick={() => setPage(n)}
-              className="w-8 h-8 rounded-lg text-sm font-medium transition-colors"
-              style={
-                n === safePage
-                  ? { background: "var(--accent-orange)", color: "#fff" }
-                  : { color: "var(--text-secondary)" }
-              }
-            >
-              {n}
-            </button>
-          ))}
-          <PageBtn
-            onClick={() => setPage((p) => Math.min(totalPages, p + 1))}
-            disabled={safePage === totalPages}
-          >
-            &gt;
-          </PageBtn>
-        </div>
-      )}
+      {/* Controles para cambiar de pestaña */}
+      <Pestanas 
+        currentPage={page}
+        totalPages={totalPages}
+        onPageChange={setPage}
+      />
     </div>
   );
 };
@@ -231,20 +207,4 @@ const ActionButton = ({
   </button>
 );
 
-const PageBtn = ({
-  children,
-  onClick,
-  disabled,
-}: {
-  children: React.ReactNode;
-  onClick: () => void;
-  disabled: boolean;
-}) => (
-  <button
-    onClick={onClick}
-    disabled={disabled}
-    className="w-8 h-8 rounded-lg text-sm text-secondary hover-bg-item disabled:opacity-30 disabled:cursor-not-allowed transition-colors"
-  >
-    {children}
-  </button>
-);
+
