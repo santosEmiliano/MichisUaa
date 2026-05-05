@@ -54,11 +54,7 @@ export const DataTable = <T extends object>({
     safePage * rowsPerPage,
   );
 
-  const pageWindow = () => {
-    const start = Math.max(1, safePage - 2);
-    const end = Math.min(totalPages, start + 4);
-    return Array.from({ length: end - start + 1 }, (_, i) => start + i);
-  };
+
 
   return (
     <div className="w-full space-y-4">

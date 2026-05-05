@@ -1,10 +1,10 @@
-import React, {
+import {
   createContext,
   useContext,
   useState,
   useCallback,
-  ReactNode,
 } from "react";
+import type { ReactNode } from "react";
 import Icons from "../components/Icons";
 import type {
   AlertType,

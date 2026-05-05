@@ -5,7 +5,7 @@ import { ColoniaCard } from "../components/ColoniaCard";
 import { ColoniaModal } from "../components/ColoniaModal";
 import type { ColoniaFormSave } from "../components/ColoniaModal";
 import type { Colonia } from "../types/models";
-import { getResponsableById } from "../data/coloniaResponsables";
+
 import { Pestanas } from "../components/Pestanas";
 import { coloniesService } from "../services/coloniesApi";
 

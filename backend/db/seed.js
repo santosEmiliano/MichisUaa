@@ -112,10 +112,6 @@ async function main() {
       { nombre: 'Julián', Colonia_idColonia: colonia2.idColonia, esterilizado: false, estado: 'NoRegistrado', fecha_nac: new Date('2023-12-01') },
     ]
   });
-        create: { Colonia_idColonia: createdColonies[0].idColonia } // Admin assigned to the first colony by default
-      }
-    }
-  });
 
   // Adding some random animals to populate the stats
   console.log('Creando animales...');
