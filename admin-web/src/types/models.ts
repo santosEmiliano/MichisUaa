@@ -38,3 +38,32 @@ export interface FilterDef {
   label: string;
   options: string[];
 }
+
+/*Alertas */
+export type AlertType = "success" | "error" | "warning" | "question";
+
+export type AlertPosition =
+  | "top-right"
+  | "top-left"
+  | "top-center"
+  | "bottom-right"
+  | "bottom-left"
+  | "bottom-center";
+
+export interface Alert {
+  id: string;
+  type: AlertType;
+  title: string;
+  message?: string;
+  position: AlertPosition;
+}
+
+export interface AlertaLogicaProps {
+  showAlert: (
+    type: AlertType,
+    title: string,
+    message?: string,
+    position?: AlertPosition,
+    duration?: number,
+  ) => void;
+}
