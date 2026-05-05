@@ -161,7 +161,7 @@ const GatosPage = () => {
             nombre: animal.nombre,
             genero: "Hembra",
             edad: edadStr,
-            colonia: `Colonia ${animal.Colonia_idColonia}`, // TODO: El backend solo manda el ID por ahora
+            colonia: animal.colonia?.nombre || `Colonia ${animal.Colonia_idColonia}`,
             esterilizado: animal.esterilizado,
             estado: animal.estado === "NoRegistrado" ? "No Registrado" : animal.estado,
             fechaRegistro: fechaReg,
