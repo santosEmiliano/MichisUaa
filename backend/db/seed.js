@@ -66,6 +66,9 @@ async function main() {
       { nombre: 'Harim', Colonia_idColonia: colonia3.idColonia, esterilizado: true, estado: 'Desaparecido', fecha_nac: new Date('2021-09-09') },
       { nombre: 'Luna', Colonia_idColonia: colonia2.idColonia, esterilizado: true, estado: 'Registrado', fecha_nac: new Date('2024-01-01') },
       { nombre: 'Tigre', Colonia_idColonia: colonia1.idColonia, esterilizado: false, estado: 'Registrado', fecha_nac: new Date('2018-07-20') },
+      { nombre: 'Wakanda', Colonia_idColonia: colonia3.idColonia, esterilizado: true, estado: 'Registrado', fecha_nac: new Date('2022-08-22') },
+      { nombre: 'Canela', Colonia_idColonia: colonia1.idColonia, esterilizado: false, estado: 'Registrado', fecha_nac: new Date('2020-11-05') },
+      { nombre: 'Julián', Colonia_idColonia: colonia2.idColonia, esterilizado: false, estado: 'NoRegistrado', fecha_nac: new Date('2023-12-01') },
     ]
   });
 
