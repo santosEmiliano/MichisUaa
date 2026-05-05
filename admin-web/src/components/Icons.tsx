@@ -19,6 +19,7 @@ import {
   Plus,
   Eye,
   EyeOff,
+  ImagePlus,
 } from "lucide-react";
 
 const Icons = {
@@ -43,6 +44,7 @@ const Icons = {
   Plus: Plus,
   Eye: Eye,
   EyeOff: EyeOff,
+  ImagePlus: ImagePlus,
 };
 
 export default Icons;
