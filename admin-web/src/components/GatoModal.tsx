@@ -1,14 +1,16 @@
 import { useState, useEffect } from "react";
 import { ModalCrud } from "./ModalCrud";
 import Icons from "./Icons";
+import type { Cat } from "../types/models";
 
 interface CatModalProps {
   isOpen: boolean;
   onClose: () => void;
   onSuccess?: () => void;
+  catToEdit?: Cat | null;
 }
 
-export const GatoModal = ({ isOpen, onClose, onSuccess }: CatModalProps) => {
+export const GatoModal = ({ isOpen, onClose, onSuccess, catToEdit }: CatModalProps) => {
   const [esterilizado, setEsterilizado] = useState<boolean>(true);
   const [imagePreview, setImagePreview] = useState<string | null>(null);
   const [file, setFile] = useState<File | null>(null);
@@ -37,16 +39,37 @@ export const GatoModal = ({ isOpen, onClose, onSuccess }: CatModalProps) => {
         }
       };
       fetchColonias();
+
+      if (catToEdit) {
+        setNombre(catToEdit.nombre);
+        setColoniaId(catToEdit.coloniaId ? catToEdit.coloniaId.toString() : "");
+        setEstado(catToEdit.estado === "No Registrado" ? "NoRegistrado" : catToEdit.estado);
+        setFechaNac(catToEdit.fecha_nac || "");
+        setEsterilizado(catToEdit.esterilizado);
+        setImagePreview(catToEdit.fotoUrl || null);
+        setFile(null);
+      } else {
+        setNombre("");
+        setColoniaId("");
+        setEstado("Registrado");
+        setFechaNac("");
+        setEsterilizado(true);
+        setImagePreview(null);
+        setFile(null);
+      }
     } else {
-      setNombre("");
-      setColoniaId("");
-      setEstado("Registrado");
-      setFechaNac("");
-      setEsterilizado(true);
-      setImagePreview(null);
-      setFile(null);
+      // Avoid flickering on close
+      setTimeout(() => {
+        setNombre("");
+        setColoniaId("");
+        setEstado("Registrado");
+        setFechaNac("");
+        setEsterilizado(true);
+        setImagePreview(null);
+        setFile(null);
+      }, 200);
     }
-  }, [isOpen]);
+  }, [isOpen, catToEdit]);
 
   const handleImageChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     const selectedFile = e.target.files?.[0];
@@ -81,19 +104,24 @@ export const GatoModal = ({ isOpen, onClose, onSuccess }: CatModalProps) => {
       if (fechaNac) formData.append("fecha_nac", fechaNac);
       if (file) formData.append("foto", file);
 
-      const res = await fetch("http://localhost:3000/animal/", {
-        method: "POST",
+      const url = catToEdit 
+        ? `http://localhost:3000/animal/${catToEdit.id}`
+        : "http://localhost:3000/animal/";
+      const method = catToEdit ? "PUT" : "POST";
+
+      const res = await fetch(url, {
+        method,
         headers: { Authorization: `Bearer ${token}` },
         body: formData
       });
 
-      if (!res.ok) throw new Error("Error al registrar el gato");
+      if (!res.ok) throw new Error(catToEdit ? "Error al actualizar el gato" : "Error al registrar el gato");
       
       onSuccess?.();
       onClose();
     } catch (error) {
-      console.error("Error registrando gato:", error);
-      alert("Hubo un error al registrar el gato.");
+      console.error("Error guardando gato:", error);
+      alert("Hubo un error al guardar el gato.");
     } finally {
       setLoading(false);
     }
@@ -114,7 +142,7 @@ export const GatoModal = ({ isOpen, onClose, onSuccess }: CatModalProps) => {
         disabled={loading}
         className={`px-6 py-2.5 rounded-xl border border-[#e8893c] bg-[var(--bg-active-item)] text-[#e8893c] font-bold hover:bg-[rgba(232,137,60,0.30)] hover:border-acento-naranja transition-all duration-200 ${loading ? 'opacity-50 cursor-not-allowed' : ''}`}
       >
-        {loading ? 'Registrando...' : 'Registrar Gato'}
+        {loading ? (catToEdit ? 'Actualizando...' : 'Registrando...') : (catToEdit ? 'Guardar Cambios' : 'Registrar Gato')}
       </button>
     </div>
   );
@@ -123,7 +151,7 @@ export const GatoModal = ({ isOpen, onClose, onSuccess }: CatModalProps) => {
     <ModalCrud
       isOpen={isOpen}
       onClose={onClose}
-      title="Nuevo Gato"
+      title={catToEdit ? "Editar Gato" : "Nuevo Gato"}
       footer={footer}
     >
       <form id="gato-form" className="space-y-6" onSubmit={handleSubmit}>

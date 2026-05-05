@@ -117,6 +117,7 @@ const GatosPage = () => {
   const [cats, setCats] = useState<Cat[]>([]);
   const [loading, setLoading] = useState(true);
   const [modalOpen, setModalOpen] = useState(false);
+  const [catToEdit, setCatToEdit] = useState<Cat | null>(null);
   const [deleteModalOpen, setDeleteModalOpen] = useState(false);
   const [catToDelete, setCatToDelete] = useState<Cat | null>(null);
   
@@ -209,9 +210,11 @@ const GatosPage = () => {
             genero: "Hembra",
             edad: edadStr,
             colonia: animal.colonia?.nombre || `Colonia ${animal.Colonia_idColonia}`,
+            coloniaId: animal.Colonia_idColonia,
             esterilizado: animal.esterilizado,
             estado: animal.estado === "NoRegistrado" ? "No Registrado" : animal.estado,
             fechaRegistro: fechaReg,
+            fecha_nac: animal.fecha_nac ? new Date(animal.fecha_nac).toISOString().split('T')[0] : "",
             fotoUrl: animal.foto_url || undefined,
           };
         });
@@ -234,7 +237,10 @@ const GatosPage = () => {
         {cats.length} {cats.length > 1 ? "registrados" : "registrado"}
       </span>
       <button
-        onClick={() => setModalOpen(true)}
+        onClick={() => {
+          setCatToEdit(null);
+          setModalOpen(true);
+        }}
         className="flex items-center gap-2 bg-gris border border-sidebar-separador text-main font-bold py-2.5 px-6 rounded-xl hover:bg-gris-oscuro transition-colors"
       >
         <Icons.Plus className="w-5 h-5" /> Nuevo Gato
@@ -254,7 +260,10 @@ const GatosPage = () => {
           columns={columns}
           searchPlaceholder="Buscar por nombre o colonia..."
           rowsPerPage={rowsPerPage}
-          onEdit={() => setModalOpen(true)}
+          onEdit={(cat) => {
+            setCatToEdit(cat);
+            setModalOpen(true);
+          }}
           onDelete={confirmDelete}
           filters={[
             { label: "Todas las colonias", options: colonias },
@@ -267,7 +276,15 @@ const GatosPage = () => {
         />
       )}
 
-      <GatoModal isOpen={modalOpen} onClose={() => setModalOpen(false)} onSuccess={fetchCats} />
+      <GatoModal 
+        isOpen={modalOpen} 
+        onClose={() => {
+          setModalOpen(false);
+          setCatToEdit(null);
+        }} 
+        onSuccess={fetchCats}
+        catToEdit={catToEdit}
+      />
       <DeleteConfirmModal 
         isOpen={deleteModalOpen} 
         onClose={() => setDeleteModalOpen(false)} 
