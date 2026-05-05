@@ -43,3 +43,5 @@ router.delete(
     token.verifyToken,
     sightingFunctions.deleteSighting
 )
+
+module.exports = router;

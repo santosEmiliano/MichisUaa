@@ -8,6 +8,7 @@ const port = 3000;
 const userRoutes = require('./routes/user.routes');
 const animalRoutes = require('./routes/animals.routes');
 const coloniesRoutes = require('./routes/colonies.routes');
+const sightingRoutes = require('./routes/sightings.routes');
 
 // Middlewares globales
 app.use(cors()); //De momento asi sin na
@@ -22,6 +23,7 @@ app.get('/', (req, res) => {
 app.use('/user', userRoutes);
 app.use('/animal', animalRoutes);
 app.use('/colonies', coloniesRoutes);
+app.use('/avistamientos', sightingRoutes);
 
 // RUTA DE CHECK 2
 app.get('/api/status', (req, res) => {
