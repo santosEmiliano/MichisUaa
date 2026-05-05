@@ -2,10 +2,6 @@ import { useState } from "react";
 import { ModalCrud } from "./ModalCrud";
 import Icons from "./Icons";
 import type { Colonia } from "../types/models";
-import {
-  COLONIA_RESPONSABLE_OPTIONS,
-  getResponsableById,
-} from "../data/coloniaResponsables";
 
 export interface ColoniaModalProps {
   isOpen: boolean;
@@ -13,6 +9,7 @@ export interface ColoniaModalProps {
   mode: "create" | "edit";
   initial?: Colonia | null;
   onSave: (data: ColoniaFormSave) => void;
+  users: { id: string; nombre: string }[];
 }
 
 export interface ColoniaFormSave {
@@ -29,7 +26,7 @@ const defaultForm = (): ColoniaFormSave => ({
   location: "",
   description: "",
   alerta: false,
-  responsableId: COLONIA_RESPONSABLE_OPTIONS[0]?.id ?? "",
+  responsableId: "",
 });
 
 function formFromProps(
@@ -54,6 +51,7 @@ export const ColoniaModal = ({
   mode,
   initial,
   onSave,
+  users,
 }: ColoniaModalProps) => {
   const [form, setForm] = useState<ColoniaFormSave>(() =>
     formFromProps(mode, initial),
@@ -90,8 +88,6 @@ export const ColoniaModal = ({
         className="space-y-4"
         onSubmit={(e) => {
           e.preventDefault();
-          const r = getResponsableById(form.responsableId);
-          if (!r) return;
           onSave({
             ...form,
             ...(mode === "edit" && initial ? { id: initial.id } : {}),
@@ -175,7 +171,8 @@ export const ColoniaModal = ({
               className="appearance-none w-full bg-gris border border-sidebar-separador text-secondary rounded-xl px-4 py-3 pr-10 text-sm focus:outline-none focus:border-acento-naranja focus:bg-[rgba(232,137,60,0.05)] hover:border-acento-naranja transition-all duration-200 cursor-pointer [&>option]:bg-[#30302e] [&>option]:text-white"
               style={{ colorScheme: "dark" }}
             >
-              {COLONIA_RESPONSABLE_OPTIONS.map((o) => (
+              <option value="" disabled>Seleccione un encargado</option>
+              {users.map((o) => (
                 <option key={o.id} value={o.id}>
                   {o.nombre}
                 </option>

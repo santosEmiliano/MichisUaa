@@ -10,6 +10,7 @@ export interface ColoniaCardProps extends Omit<
   "id" | "responsableId"
 > {
   onEdit?: () => void;
+  onDelete?: () => void;
 }
 
 const StatBox = ({
@@ -36,6 +37,7 @@ export const ColoniaCard = ({
   responsableInitials,
   responsableName,
   onEdit,
+  onDelete,
   alerta,
 }: ColoniaCardProps) => {
   const topColor = alerta ? RED : GREEN;
@@ -115,14 +117,26 @@ export const ColoniaCard = ({
           </p>
         </div>
 
-        <button
-          type="button"
-          onClick={onEdit}
-          title="Editar colonia"
-          className="p-2 rounded-lg border border-white/[0.35] text-main hover:bg-white/[0.06] transition-colors shrink-0"
-        >
-          <Icons.Edit className="w-4 h-4" />
-        </button>
+        <div className="flex gap-2">
+          <button
+            type="button"
+            onClick={onEdit}
+            title="Editar colonia"
+            className="p-2 rounded-lg border border-white/[0.35] text-main hover:bg-white/[0.06] transition-colors shrink-0"
+          >
+            <Icons.Edit className="w-4 h-4" />
+          </button>
+          {onDelete && (
+            <button
+              type="button"
+              onClick={onDelete}
+              title="Eliminar colonia"
+              className="p-2 rounded-lg border border-red-500/30 text-red-400 hover:bg-red-500/10 transition-colors shrink-0"
+            >
+              <Icons.Trash2 className="w-4 h-4" />
+            </button>
+          )}
+        </div>
       </div>
     </article>
   );

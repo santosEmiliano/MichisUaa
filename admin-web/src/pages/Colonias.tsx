@@ -5,160 +5,61 @@ import { ColoniaCard } from "../components/ColoniaCard";
 import { ColoniaModal } from "../components/ColoniaModal";
 import type { ColoniaFormSave } from "../components/ColoniaModal";
 import type { Colonia } from "../types/models";
-import { getResponsableById } from "../data/coloniaResponsables";
+import { coloniesService } from "../services/coloniesApi";
 
 const ROWS_DESKTOP = 2;
 const ROWS_MOBILE = 3;
 
-const initialColonias: Colonia[] = [
-  {
-    id: 1,
-    name: "Edificio 108",
-    location: "Zona central - Ed. 108",
-    description:
-      "Colonia principal del área central, frente a la entrada a la biblioteca central.",
-    animalCount: 12,
-    esterilizadoPercent: 83,
-    responsableId: "u1",
-    responsableName: "M. Rodriguez",
-    responsableInitials: "MR",
-  },
-  {
-    id: 2,
-    name: "Zona alberca",
-    location: "Area deportiva - Alberca",
-    description:
-      "Colonia ubicada en los jardines alrededor de la alberca universitaria.",
-    animalCount: 8,
-    esterilizadoPercent: 75,
-    responsableId: "u2",
-    responsableName: "E. Santos",
-    responsableInitials: "ES",
-  },
-  {
-    id: 3,
-    name: "UMD",
-    location: "Unidad médico-didáctica",
-    description:
-      "Colonia en zona de estacionamiento y entrada principal de UMD.",
-    animalCount: 8,
-    esterilizadoPercent: 75,
-    responsableId: "u3",
-    responsableName: "H. Dueñas",
-    responsableInitials: "HD",
-    alerta: true,
-  },
-  {
-    id: 4,
-    name: "Edificio 114",
-    location: "Zona noreste - Ed. 114",
-    description:
-      "Colonia en pasillo B y área de jardines del edificio 114 cercano a la cafeteria norte.",
-    animalCount: 5,
-    esterilizadoPercent: 40,
-    responsableId: "u4",
-    responsableName: "J. Hernandez",
-    responsableInitials: "JH",
-    alerta: true,
-  },
-  {
-    id: 5,
-    name: "Edificio 117",
-    location: "Zona sur - Ed. 117",
-    description:
-      "Colonia en jardines exteriores del edificio 117, límite del campus contra plaza universidad.",
-    animalCount: 9,
-    esterilizadoPercent: 89,
-    responsableId: "u5",
-    responsableName: "J. Narvaez",
-    responsableInitials: "JN",
-  },
-  {
-    id: 6,
-    name: "Edificio 59",
-    location: "Zona este - Ed. 59",
-    description:
-      "Colonia en zona de los laboratorios de electrónica y edificio de sistemas.",
-    animalCount: 10,
-    esterilizadoPercent: 50,
-    responsableId: "u6",
-    responsableName: "B. Osorio",
-    responsableInitials: "BO",
-    alerta: true,
-  },
-  {
-    id: 7,
-    name: "Rectoría",
-    location: "Zona norte - Rectoría",
-    description:
-      "Colonia en jardines y estacionamiento del edificio de rectoría universitaria.",
-    animalCount: 6,
-    esterilizadoPercent: 66,
-    responsableId: "u1",
-    responsableName: "M. Rodriguez",
-    responsableInitials: "MR",
-  },
-  {
-    id: 8,
-    name: "Edificio 22",
-    location: "Zona oeste - Ed. 22",
-    description:
-      "Colonia establecida en las áreas verdes del edificio 22 y pasillos aledaños.",
-    animalCount: 4,
-    esterilizadoPercent: 100,
-    responsableId: "u2",
-    responsableName: "E. Santos",
-    responsableInitials: "ES",
-  },
-  {
-    id: 9,
-    name: "Cafetería Central",
-    location: "Zona central - Cafetería",
-    description:
-      "Colonia en área de mesas exteriores y carga y descarga trasera de cafetería.",
-    animalCount: 7,
-    esterilizadoPercent: 57,
-    responsableId: "u3",
-    responsableName: "H. Dueñas",
-    responsableInitials: "HD",
-    alerta: true,
-  },
-  {
-    id: 10,
-    name: "Posgrado",
-    location: "Zona sur - Posgrado",
-    description:
-      "Colonia en pasillos y jardines del edificio de posgrado e investigación.",
-    animalCount: 3,
-    esterilizadoPercent: 100,
-    responsableId: "u4",
-    responsableName: "J. Hernandez",
-    responsableInitials: "JH",
-  },
-  {
-    id: 11,
-    name: "Estadio UAA",
-    location: "Zona sur - Estadio",
-    description:
-      "Colonia en gradas exteriores y bodegas del estadio universitario.",
-    animalCount: 11,
-    esterilizadoPercent: 45,
-    responsableId: "u5",
-    responsableName: "J. Narvaez",
-    responsableInitials: "JN",
-    alerta: true,
-  },
-];
-
 const Colonias = () => {
-  const [colonias, setColonias] = useState<Colonia[]>(initialColonias);
+  const [colonias, setColonias] = useState<Colonia[]>([]);
+  const [users, setUsers] = useState<{ id: string; nombre: string }[]>([]);
   const [currentPage, setCurrentPage] = useState(1);
   const [cols, setCols] = useState(3);
   const [modalOpen, setModalOpen] = useState(false);
   const [modalMode, setModalMode] = useState<"create" | "edit">("create");
   const [editingColonia, setEditingColonia] = useState<Colonia | null>(null);
   const [modalKey, setModalKey] = useState(0);
+  const [loading, setLoading] = useState(true);
   const colsRef = useRef(cols);
+
+  const fetchColoniasYUsuarios = async () => {
+    setLoading(true);
+    try {
+      const token = localStorage.getItem("token");
+      
+      const [coloniasData, usersRes] = await Promise.all([
+        coloniesService.getColonies(),
+        fetch("http://localhost:3000/user", {
+          headers: {
+            "Content-Type": "application/json",
+            Authorization: `Bearer ${token}`,
+          },
+        })
+      ]);
+
+      setColonias(coloniasData);
+
+      if (usersRes.ok) {
+        const usersData = await usersRes.json();
+        setUsers(
+          usersData.map((u: { idUsuario: number; nombre: string }) => ({
+            id: String(u.idUsuario),
+            nombre: u.nombre,
+          }))
+        );
+      }
+    } catch (error) {
+      console.error("Error fetching data", error);
+      alert("Error al cargar la información");
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  useEffect(() => {
+    // eslint-disable-next-line react-hooks/set-state-in-effect
+    fetchColoniasYUsuarios();
+  }, []);
 
   useEffect(() => {
     colsRef.current = cols;
@@ -213,44 +114,41 @@ const Colonias = () => {
     setModalOpen(true);
   };
 
-  const handleSave = (data: ColoniaFormSave) => {
-    const r = getResponsableById(data.responsableId);
-    if (!r) return;
+  const handleSave = async (data: ColoniaFormSave) => {
+    try {
+      if (data.id != null) {
+        // Editar
+        await coloniesService.updateColony(data.id, {
+          nombre: data.name,
+          descripcion: data.description,
+          zona: data.location,
+          encargadosIds: [Number(data.responsableId)],
+        });
+      } else {
+        // Crear
+        await coloniesService.createColony({
+          nombre: data.name,
+          descripcion: data.description,
+          zona: data.location,
+          encargadosIds: [Number(data.responsableId)],
+        });
+      }
+      // Recargar lista
+      fetchColoniasYUsuarios();
+    } catch (error) {
+      const err = error as Error;
+      alert(err.message || "Error al guardar la colonia");
+    }
+  };
 
-    if (data.id != null) {
-      setColonias((list) =>
-        list.map((c) =>
-          c.id === data.id
-            ? {
-                ...c,
-                name: data.name,
-                location: data.location,
-                description: data.description,
-                alerta: data.alerta,
-                responsableId: data.responsableId,
-                responsableName: r.nombre,
-                responsableInitials: r.iniciales,
-              }
-            : c,
-        ),
-      );
-    } else {
-      const nextId = colonias.reduce((m, c) => Math.max(m, c.id), 0) + 1;
-      setColonias((list) => [
-        ...list,
-        {
-          id: nextId,
-          name: data.name,
-          location: data.location,
-          description: data.description,
-          alerta: data.alerta,
-          responsableId: data.responsableId,
-          responsableName: r.nombre,
-          responsableInitials: r.iniciales,
-          animalCount: 0,
-          esterilizadoPercent: 0,
-        },
-      ]);
+  const handleDelete = async (id: number) => {
+    if (!window.confirm("¿Seguro que deseas eliminar esta colonia?")) return;
+    try {
+      await coloniesService.deleteColony(id);
+      fetchColoniasYUsuarios();
+    } catch (error) {
+      const err = error as Error;
+      alert(err.message || "Error al eliminar la colonia");
     }
   };
 
@@ -282,7 +180,18 @@ const Colonias = () => {
         mode={modalMode}
         initial={editingColonia}
         onSave={handleSave}
+        users={users}
       />
+
+      {loading ? (
+        <div className="flex-1 flex items-center justify-center text-secondary">
+          Cargando colonias...
+        </div>
+      ) : colonias.length === 0 ? (
+        <div className="flex-1 flex items-center justify-center text-secondary">
+          No hay colonias registradas.
+        </div>
+      ) : (
 
       <div
         className="flex-1 min-h-0 grid gap-2.5 auto-rows-[minmax(0,1fr)]"
@@ -298,10 +207,12 @@ const Colonias = () => {
               key={`${id}-${safePage}`}
               {...cardProps}
               onEdit={() => openEdit(colonia)}
+              onDelete={() => handleDelete(colonia.id)}
             />
           );
         })}
       </div>
+      )}
 
       {totalPages > 1 && (
         <div className="flex items-center justify-center gap-3 pt-2 border-t border-sidebar-separador shrink-0">
