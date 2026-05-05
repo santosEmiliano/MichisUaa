@@ -26,7 +26,17 @@ async function getUsers() {
         nombre: true,
         email: true,
         admin: true,
-        createdAt: true
+        createdAt: true,
+        usuariosCols: {
+            include: {
+                colonia: {
+                    select: {
+                        idColonia: true,
+                        nombre: true
+                    }
+                }
+            }
+        }
       }
     });
     return users;
