@@ -85,7 +85,7 @@ const updateUser = async (req, res) => {
   try {
     const { id } = req.params;
 
-    const oldUser = await userModel.searchId(id);
+    const oldUser = await userModel.searchId(Number(id));
     if (!oldUser) {
       return res.status(404).json({ mensaje: "El id no coincide con ningun usuario registrado, porfavor comprobar usuario" });
     }
@@ -94,10 +94,10 @@ const updateUser = async (req, res) => {
 
     if (data.password) {
       const saltos = await bcrypt.genSalt(10);
-      data.password = await bcrypt.hash(dataToUpdate.password, saltos);
+      data.password = await bcrypt.hash(data.password, saltos);
     }
 
-    const updatedUser = await userModel.modifyUser(id, data);
+    const updatedUser = await userModel.modifyUser(Number(id), data);
 
     return res.status(200).json({
       mensaje: "Usuario actualizado correctamente",
@@ -114,12 +114,12 @@ const removeUser = async (req, res) => {
   try {
     const { id } = req.params;
 
-    const oldUser = await userModel.searchId(id);
+    const oldUser = await userModel.searchId(Number(id));
     if (!oldUser) {
       return res.status(404).json({ mensaje: "El id no coincide con ningun usuario registrado, porfavor comprobar usuario" });
     }
 
-    await userModel.deleteUser(id);
+    await userModel.deleteUser(Number(id));
 
     return res.status(200).json({ mensaje: "Usuario eliminado correctamente" });
   } catch(error) {
