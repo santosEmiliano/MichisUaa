@@ -30,6 +30,22 @@ router.post(
   userFunctions.logout
 );
 
+//Ruta PUT de updateUser
+router.put(
+  "/:id",
+  token.verifyToken,
+  token.verifyAdmin,
+  userFunctions.updateUser
+)
+
+//Ruta DELETE para removeUser
+router.delete(
+  "/:id",
+  token.verifyToken,
+  token.verifyAdmin,
+  userFunctions.removeUser
+)
+
 // -------------------------------------------- DE PRUEBA --------------------------------------------
 // ENDPOINT QUE RETORNA LA INFORMACION DEL USUARIO SEGUN SU ID
 router.get("/login", (req, res) => {
