@@ -45,9 +45,21 @@ const sightingsLastWeek = async (req, res) => {
     }
 }
 
+const signingsPerColony = async (req, res) => {
+    try {
+        const avistamientosColonias = await stadisticsModel.getSigningsPerColony();
+        return res.status(200).json(avistamientosColonias);
+    } catch (error) {
+        console.error("Error al obtener avistamientos de la última semana:", error);
+        return res.status(500).json({ mensaje: "Error al obtener avistamientos" });
+    }
+}
+
+
 module.exports = {
   getTotalCats,
   getSterilizedCount,
   getMissingCats,
-  sightingsLastWeek
+  sightingsLastWeek,
+  signingsPerColony
 };
