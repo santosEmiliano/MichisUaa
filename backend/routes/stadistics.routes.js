@@ -5,7 +5,7 @@ const stadisticsFunctions = require("../controllers/stadistics.controller");
 
 // Ruta GET para obtener el total de gatos registrados
 router.get(
-    "/getTotalCats",
+    "/totalCats",
     token.verifyToken,
     token.verifyAdmin,
     stadisticsFunctions.getTotalCats
@@ -13,7 +13,7 @@ router.get(
 
 // Ruta GET para obtener el porcentaje de gatos esterilizados
 router.get(
-    "/getSterilizedCount",
+    "/sterilizedCount",
     token.verifyToken,
     token.verifyAdmin,
     stadisticsFunctions.getSterilizedCount
@@ -21,10 +21,18 @@ router.get(
 
 // Ruta GET para obtener el numero de gatos desaparecidos
 router.get(
-    "/getMissingCats",
+    "/missingCats",
     token.verifyToken,
     token.verifyAdmin,
     stadisticsFunctions.getMissingCats
+)
+
+// Ruta GET para obtener el total de avistamientos en la ultima semana
+router.get(
+    "/sightingsLastWeek",
+    token.verifyToken,
+    token.verifyAdmin,
+    stadisticsFunctions.sightingsLastWeek
 )
 
 module.exports = router;

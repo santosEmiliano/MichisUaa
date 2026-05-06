@@ -39,8 +39,25 @@ async function getMissingCatsCount() {
   } 
 }
 
+async function getSightingsLastWeekCount(fecha) {
+  try {
+    const totalAvistamientos = await prisma.avistamiento.count({
+      where: {
+        createdAt: {
+          gte: fecha,
+        },
+      },
+    });
+    return totalAvistamientos;
+  } catch (error) {
+    console.error("Error obteniendo total de avistamientos:", error);
+    throw error;
+  } 
+}
+
 module.exports = {
   getAllCats,
   getSterilizedCount,
-  getMissingCatsCount
+  getMissingCatsCount,
+  getSightingsLastWeekCount
 };

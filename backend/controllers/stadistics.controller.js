@@ -32,8 +32,22 @@ const getMissingCats = async (req, res) => {
     }
 }
 
+const sightingsLastWeek = async (req, res) => {
+    try {
+        const fecha = new Date(); // Fecha actual en UTC (Horario universal)
+        fecha.setDate(fecha.getDate() - 7);
+        
+        const sightingsCount = await stadisticsModel.getSightingsLastWeekCount(fecha);
+        return res.status(200).json(sightingsCount);
+    } catch (error) {
+        console.error("Error al obtener avistamientos de la última semana:", error);
+        return res.status(500).json({ mensaje: "Error al obtener avistamientos" });
+    }
+}
+
 module.exports = {
   getTotalCats,
   getSterilizedCount,
-  getMissingCats
+  getMissingCats,
+  sightingsLastWeek
 };
