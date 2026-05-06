@@ -4,6 +4,7 @@ import Icons from "../components/Icons";
 import { DataTable, type ColumnDef } from "../components/DataTable";
 import type { User } from "../types/models";
 import { UsuarioModal } from "../components/UsuarioModal";
+import { LoadingScreen } from "../components/LoadingScreen";
 import { userService } from "../services/userApi";
 import { DeleteConfirmModal } from "../components/DeleteConfirmModal";
 
@@ -83,11 +84,17 @@ const UsuariosPage = () => {
   const [actionsTarget, setActionsTarget] = useState<HTMLElement | null>(null);
 
   useEffect(() => {
+    // Simular carga para mostrar el componente LoadingScreen
+    const loadTimer = setTimeout(() => setLoading(false), 800);
+
     const timer = setTimeout(() => {
       setBadgeTarget(document.getElementById("header-badge"));
       setActionsTarget(document.getElementById("header-actions"));
     }, 0);
-    return () => clearTimeout(timer);
+    return () => {
+      clearTimeout(loadTimer);
+      clearTimeout(timer);
+    };
   }, []);
 
   const fetchUsers = async () => {
@@ -144,13 +151,13 @@ const UsuariosPage = () => {
   );
 
   return (
-    <div className="space-y-6 pt-2">
+    <div className="space-y-6 pt-2 animate-in fade-in slide-in-from-bottom-4 duration-700">
       {/* 4. Si el Header ya cargó, disparamos el Portal */}
       {badgeTarget && createPortal(headerBadge, badgeTarget)}
       {actionsTarget && createPortal(headerAction, actionsTarget)}
 
       {loading ? (
-        <div className="text-center py-10 text-secondary">Cargando usuarios...</div>
+        <LoadingScreen message="Cargando Usuarios" />
       ) : (
         <DataTable
           data={users}

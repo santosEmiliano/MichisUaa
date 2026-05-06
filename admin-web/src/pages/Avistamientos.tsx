@@ -6,6 +6,7 @@ import type { Avistamiento, FilterDef } from "../types/models";
 import Icons from "../components/Icons";
 import { AvistamientoModal } from "../components/AvistamientoModal";
 import { avistamientosApi } from "../services/avistamientosApi";
+import { LoadingScreen } from "../components/LoadingScreen";
 
 const filters: FilterDef[] = [
   {
@@ -260,9 +261,7 @@ const Avistamientos = () => {
       )}
 
       {loading ? (
-        <div className="flex justify-center items-center py-20 text-secondary">
-          Cargando avistamientos...
-        </div>
+        <LoadingScreen message="Cargando Avistamientos" />
       ) : (
         <DataTable
           data={filteredAvistamientos}

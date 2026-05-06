@@ -154,8 +154,6 @@ async function main() {
 
   // Crear Avistamientos de prueba
   console.log('Creando avistamientos...');
-  const firstUser = await prisma.usuario.findFirst();
-  const firstAnimal = await prisma.animal.findFirst();
 
   if (firstUser && firstAnimal) {
     await prisma.avistamiento.createMany({

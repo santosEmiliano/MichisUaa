@@ -5,6 +5,7 @@ import { AvistamientoModal } from "../components/AvistamientoModal";
 import { DataTable, type ColumnDef } from "../components/DataTable";
 import type { Avistamiento } from "../types/models";
 import { avistamientosApi } from "../services/avistamientosApi";
+import { LoadingScreen } from "../components/LoadingScreen";
 
 const getInitials = (name: string) => {
   if (name === "No Identificado") return "?";
@@ -29,41 +30,68 @@ const Dashboard = () => {
   const [isModalOpen, setIsModalOpen] = useState(false);
   const [pendientes, setPendientes] = useState<Avistamiento[]>([]);
   const [loading, setLoading] = useState(true);
+  
+  // Métricas
+  const [totalGatos, setTotalGatos] = useState(0);
+  const [esterilizados, setEsterilizados] = useState(0);
+  const [desapariciones, setDesapariciones] = useState(0);
+  const [coloniasCount, setColoniasCount] = useState(0);
 
   const fetchDatos = useCallback(async () => {
     try {
-      const data = await avistamientosApi.getAvistamientos();
-      const mapped: Avistamiento[] = data.map((item) => {
-        let estado: Avistamiento["estado"] = "Pendiente";
-        if (item.verificado) estado = "Verificado";
-        else if (item.verificadoPor !== null) estado = "Rechazado";
-        else if (item.animalId === null) estado = "Sin identificar";
+      setLoading(true);
+      const token = localStorage.getItem("token") || "";
+      const headers = { Authorization: `Bearer ${token}` };
 
-        const fecha = new Date(item.createdAt);
-        const diffMins = Math.floor((new Date().getTime() - fecha.getTime()) / 60000);
-        const haceText = diffMins < 60 ? `${diffMins} min` : diffMins < 1440 ? `${Math.floor(diffMins / 60)} hrs` : `${Math.floor(diffMins / 1440)} días`;
+      const [resAvistamientos, resTotalCats, resEsterilizados, resDesapariciones, resColonias] = await Promise.all([
+        fetch("http://localhost:3000/avistamientos", { headers }),
+        fetch("http://localhost:3000/stadistics/totalCats", { headers }),
+        fetch("http://localhost:3000/stadistics/sterilizedCount", { headers }),
+        fetch("http://localhost:3000/stadistics/missingCats", { headers }),
+        fetch("http://localhost:3000/colonies", { headers }),
+      ]);
 
-        return {
-          id: item.idAvistamiento,
-          fotoUrl: item.foto_url || undefined,
-          animalName: item.animal?.nombre || "No identificado",
-          animalColonia: item.animal?.colonia?.nombre || "N/A",
-          reportadoPor: item.usuario?.nombre || "Anónimo",
-          ubicacion: `Lat: ${item.latitud}, Lon: ${item.longitud}`,
-          hace: haceText,
-          estado: estado,
-          descripcion: item.descripcion || "Sin descripción proporcionada",
-          coordenadas: `${item.latitud}, ${item.longitud}`,
-          fechaHora: fecha.toLocaleString('es-MX', { dateStyle: 'medium', timeStyle: 'short' })
-        };
-      });
+      if (resAvistamientos.ok) {
+        const dataAvistamientos = await resAvistamientos.json();
+        const mapped: Avistamiento[] = dataAvistamientos.map((item: any) => {
+          let estado: Avistamiento["estado"] = "Pendiente";
+          if (item.verificado) estado = "Verificado";
+          else if (item.verificadoPor !== null) estado = "Rechazado";
+          else if (item.animalId === null) estado = "Sin identificar";
+
+          const fecha = new Date(item.createdAt);
+          const diffMins = Math.floor((new Date().getTime() - fecha.getTime()) / 60000);
+          const haceText = diffMins < 60 ? `${diffMins} min` : diffMins < 1440 ? `${Math.floor(diffMins / 60)} hrs` : `${Math.floor(diffMins / 1440)} días`;
+
+          return {
+            id: item.idAvistamiento,
+            fotoUrl: item.foto_url || undefined,
+            animalName: item.animal?.nombre || "No identificado",
+            animalColonia: item.animal?.colonia?.nombre || "N/A",
+            reportadoPor: item.usuario?.nombre || "Anónimo",
+            ubicacion: `Lat: ${item.latitud}, Lon: ${item.longitud}`,
+            hace: haceText,
+            estado: estado,
+            descripcion: item.descripcion || "Sin descripción proporcionada",
+            coordenadas: `${item.latitud}, ${item.longitud}`,
+            fechaHora: fecha.toLocaleString('es-MX', { dateStyle: 'medium', timeStyle: 'short' })
+          };
+        });
+        setPendientes(mapped.filter((a: any) => a.estado === "Pendiente" || a.estado === "Sin identificar"));
+      }
       
-      // Filtramos solo los pendientes o sin identificar
-      setPendientes(mapped.filter((a) => a.estado === "Pendiente" || a.estado === "Sin identificar"));
+      if (resTotalCats.ok) setTotalGatos(await resTotalCats.json());
+      if (resEsterilizados.ok) setEsterilizados(await resEsterilizados.json());
+      if (resDesapariciones.ok) setDesapariciones(await resDesapariciones.json());
+      if (resColonias.ok) {
+        const cols = await resColonias.json();
+        setColoniasCount(cols.length);
+      }
     } catch (error) {
       console.error(error);
     } finally {
-      setLoading(false);
+      // Delay suave para la pantalla de carga
+      setTimeout(() => setLoading(false), 600);
     }
   }, []);
 
@@ -155,36 +183,40 @@ const Dashboard = () => {
     },
   ];
 
+  if (loading) {
+    return <LoadingScreen message="Cargando Dashboard" />;
+  }
+
   return (
-    <div className="space-y-6 pt-2 pb-10">
+    <div className="space-y-6 pt-2 pb-10 animate-in fade-in slide-in-from-bottom-4 duration-700">
       {/* Grid of MetricCards */}
       <div className="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-4 gap-6">
         <MetricCard
           title="Total Gatos"
-          value="47"
-          trendText="en 8 colonias"
+          value={totalGatos}
+          trendText={`en ${coloniasCount} colonias`}
           trendType="neutral"
           borderColor="var(--accent-orange)"
         />
         <MetricCard
           title="Esterilizados"
-          value="78"
+          value={esterilizados}
           valueSuffix="%"
-          trendText="37 de 48 gatos"
+          trendText="Meta: 100%"
           trendType="neutral"
           borderColor="var(--metrica-verde)"
         />
         <MetricCard
-          title="Pendientes"
-          value="12"
-          trendText="sin verificar"
+          title="Desaparecidos"
+          value={desapariciones}
+          trendText="requieren búsqueda"
           trendType="neutral"
           borderColor="var(--metrica-rojo)"
         />
         <MetricCard
           title="Colonias Activas"
-          value="8"
-          trendText="2 con alertas"
+          value={coloniasCount}
+          trendText="zonas registradas"
           trendType="neutral"
           borderColor="var(--metrica-azul)"
         />
@@ -208,18 +240,12 @@ const Dashboard = () => {
       </div>
 
       <div className="mt-4">
-        {loading ? (
-          <div className="flex justify-center items-center py-10 text-secondary text-sm">
-            Cargando avistamientos recientes...
-          </div>
-        ) : (
-          <DataTable
-            data={pendientes}
-            columns={columns}
-            rowsPerPage={4}
-            hideControls
-          />
-        )}
+        <DataTable
+          data={pendientes}
+          columns={columns}
+          rowsPerPage={4}
+          hideControls
+        />
       </div>
 
       <AvistamientoModal

@@ -7,6 +7,7 @@ import Gatos from "./pages/Gatos";
 import Usuarios from "./pages/Usuarios";
 import Colonias from "./pages/Colonias";
 import Avistamientos from "./pages/Avistamientos";
+import Estadisticas from "./pages/Estadisticas";
 import AlertsPrueba from "./pages/AlertsPruebas";
 
 
@@ -37,6 +38,7 @@ function App() {
         <Route path="usuarios" element={<Usuarios />} />
         <Route path="colonias" element={<Colonias />} />
         <Route path="avistamientos" element={<Avistamientos />} />
+        <Route path="estadisticas" element={<Estadisticas />} />
         <Route path="exportar" element={<AlertsPrueba />} />
         <Route path="*" element={<Navigate to="/" />} />
       </Route>
