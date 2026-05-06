@@ -18,6 +18,7 @@ const Estadisticas = () => {
   // Información de gráficas
   const BAR_COLORS = ["#E8893C", "#3B82F6", "#2B9E76", "#E05252", "#84A98C", "#6366F1"];
   const [barData, setBarData] = useState<{ colonia: string; total: number; color: string; width: string }[]>([]);
+  const [sighingsTendencyData, setSighingsTendencyData] = useState<{ name: string; value: number }[]>([]);
 
   const [animatedBarWidths, setAnimatedBarWidths] = useState<string[]>([]);
 
@@ -76,18 +77,20 @@ const Estadisticas = () => {
       const token = localStorage.getItem("token") || "";
       const headers = { Authorization: `Bearer ${token}` };
 
-      const [resTotalCats, resEsterilizados, resDesapariciones, resAvistamientos, resBarData] = await Promise.all([
+      const [resTotalCats, resEsterilizados, resDesapariciones, resAvistamientos, resBarData, sighingsTendencyData] = await Promise.all([
         fetch("http://localhost:3000/stadistics/totalCats", { headers }),
         fetch("http://localhost:3000/stadistics/sterilizedCount", { headers }),
         fetch("http://localhost:3000/stadistics/missingCats", { headers }),
         fetch("http://localhost:3000/stadistics/sightingsLastWeek", { headers }),
         fetch("http://localhost:3000/stadistics/signingsPerColony", { headers }),
+        fetch("http://localhost:3000/stadistics/sighingsTendency", { headers }),
       ]);
 
       if (resTotalCats.ok) setTotalGatos(await resTotalCats.json());
       if (resEsterilizados.ok) setEsterilizados(await resEsterilizados.json());
       if (resDesapariciones.ok) setDesapariciones(await resDesapariciones.json());
       if (resAvistamientos.ok) setAvistamientosSemana(await resAvistamientos.json());
+      if (sighingsTendencyData.ok) setSighingsTendencyData(await sighingsTendencyData.json());
       
       if (resBarData.ok) {
         const rawBarData = await resBarData.json();
@@ -251,7 +254,7 @@ const Estadisticas = () => {
           
           <div className="flex-1 min-h-[200px] w-full mt-4 relative">
             <ResponsiveContainer width="100%" height="100%">
-              <AreaChart data={lineData} margin={{ top: 5, right: 10, left: 10, bottom: 20 }}>
+              <AreaChart data={sighingsTendencyData} margin={{ top: 5, right: 10, left: 10, bottom: 20 }}>
                 <defs>
                   <linearGradient id="colorValue" x1="0" y1="0" x2="0" y2="1">
                     <stop offset="5%" stopColor="#E8893C" stopOpacity={0.8}/>
