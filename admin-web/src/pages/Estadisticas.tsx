@@ -1,5 +1,6 @@
 import React, { useState, useEffect } from "react";
 import { createPortal } from "react-dom";
+import { PieChart, Pie, Cell, ResponsiveContainer } from "recharts";
 import Icons from "../components/Icons";
 
 const Estadisticas = () => {
@@ -48,6 +49,12 @@ const Estadisticas = () => {
     { label: "Ed. 59", value: 22, color: "#6366F1", width: "25%" },
   ];
 
+  const donutData = [
+    { name: "Esterilizados", value: 78, color: "#2B9E76" },
+    { name: "Sin esterilizar", value: 15, color: "#E8893C" },
+    { name: "Desaparecidos", value: 7, color: "#E05252" },
+  ];
+
   return (
     <div className="space-y-6 pt-2 pb-10 overflow-x-hidden">
       {headerTarget && createPortal(headerFilters, headerTarget)}
@@ -59,7 +66,7 @@ const Estadisticas = () => {
         </button>
       </div>
 
-      <div className="grid grid-cols-1 gap-6">
+      <div className="grid grid-cols-1 xl:grid-cols-[1.5fr_1fr] gap-6">
         {/* Horizontal Bars Chart */}
         <div className="bg-gris-oscuro rounded-3xl p-6 shadow-lg border border-sidebar-separador">
           <div className="flex justify-between items-end mb-6">
@@ -81,6 +88,45 @@ const Estadisticas = () => {
                 </div>
               </div>
             ))}
+          </div>
+        </div>
+
+        {/* Donut Chart */}
+        <div className="bg-gris-oscuro rounded-3xl p-6 shadow-lg border-t-2 border-t-[#E8893C] border-x border-b border-sidebar-separador">
+          <h2 className="text-xl font-bold text-white mb-6">Estado de esterilización</h2>
+          <div className="flex items-center">
+            <div className="w-48 h-48 relative">
+              <ResponsiveContainer width="100%" height="100%">
+                <PieChart>
+                  <Pie
+                    data={donutData}
+                    cx="50%"
+                    cy="50%"
+                    innerRadius={60}
+                    outerRadius={80}
+                    stroke="none"
+                    dataKey="value"
+                  >
+                    {donutData.map((entry, index) => (
+                      <Cell key={`cell-${index}`} fill={entry.color} />
+                    ))}
+                  </Pie>
+                </PieChart>
+              </ResponsiveContainer>
+              <div className="absolute inset-0 flex flex-col items-center justify-center pointer-events-none">
+                <span className="text-3xl font-bold text-white">78%</span>
+                <span className="text-secondary text-sm">esteril</span>
+              </div>
+            </div>
+            
+            <div className="flex flex-col gap-3 ml-4">
+              {donutData.map((item, i) => (
+                <div key={i} className="flex items-center gap-3">
+                  <div className="w-4 h-4 rounded-full" style={{ backgroundColor: item.color }}></div>
+                  <span className="text-secondary text-sm font-medium">{item.name}</span>
+                </div>
+              ))}
+            </div>
           </div>
         </div>
       </div>
