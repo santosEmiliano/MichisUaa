@@ -68,15 +68,21 @@ const Estadisticas = () => {
     { name: "Sem 9", value: 50 },
   ];
 
+  const tableData1 = [
+    { col: "Ed. 108", gatos: 12, est: "83%", status: "#2B9E76" },
+    { col: "Zona alberca", gatos: 8, est: "75%", status: "#2B9E76" },
+    { col: "Ed. 117", gatos: 9, est: "89%", status: "#2B9E76" },
+    { col: "UMD", gatos: 6, est: "50%", status: "#E8893C" },
+    { col: "Ed. 114", gatos: 5, est: "40%", status: "#E8893C" },
+  ];
+
+  const tableData2 = [
+    { col: "Ed. 59", gatos: 4, est: "10%", status: "#E05252" },
+  ];
+
   return (
     <div className="space-y-6 pt-2 pb-10 overflow-x-hidden">
       {headerTarget && createPortal(headerFilters, headerTarget)}
-
-      <div className="border-b border-sidebar-separador">
-        <button className="px-6 py-2 bg-black text-white rounded-t-lg font-medium text-sm">
-          Métricas
-        </button>
-      </div>
 
       <div className="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-4 gap-4">
         <MetricCard
@@ -206,6 +212,57 @@ const Estadisticas = () => {
                   <span>{i+1}</span>
                 </div>
               ))}
+            </div>
+          </div>
+        </div>
+
+        {/* Table */}
+        <div className="bg-gris-oscuro rounded-3xl p-0 shadow-lg border-t-2 border-t-[#8B5CF6] border-x border-b border-sidebar-separador overflow-hidden">
+          <div className="p-6 pb-4">
+            <h2 className="text-xl font-bold text-white">Resumen por colonia</h2>
+          </div>
+          
+          <div className="flex">
+            {/* Left Table */}
+            <div className="flex-1">
+              <div className="bg-[#444] px-6 py-2 grid grid-cols-3 text-xs font-bold text-sidebar-secundario">
+                <span>Colonia</span>
+                <span>Gatos</span>
+                <span>Esteriles</span>
+              </div>
+              <div className="flex flex-col">
+                {tableData1.map((row, i) => (
+                  <div key={i} className="px-6 py-3 grid grid-cols-3 text-sm text-secondary border-b border-sidebar-separador items-center">
+                    <span>{row.col}</span>
+                    <span>{row.gatos}</span>
+                    <div className="flex items-center gap-2">
+                      <span>{row.est}</span>
+                      <div className="w-2 h-2 rounded-full" style={{ backgroundColor: row.status }}></div>
+                    </div>
+                  </div>
+                ))}
+              </div>
+            </div>
+            
+            {/* Right Table */}
+            <div className="flex-1 border-l border-sidebar-separador">
+              <div className="bg-[#444] px-6 py-2 grid grid-cols-3 text-xs font-bold text-sidebar-secundario">
+                <span>Colonia</span>
+                <span>Gatos</span>
+                <span>Esteriles</span>
+              </div>
+              <div className="flex flex-col">
+                {tableData2.map((row, i) => (
+                  <div key={i} className="px-6 py-3 grid grid-cols-3 text-sm text-secondary border-b border-sidebar-separador items-center">
+                    <span>{row.col}</span>
+                    <span>{row.gatos}</span>
+                    <div className="flex items-center gap-2">
+                      <span>{row.est}</span>
+                      <div className="w-2 h-2 rounded-full" style={{ backgroundColor: row.status }}></div>
+                    </div>
+                  </div>
+                ))}
+              </div>
             </div>
           </div>
         </div>
