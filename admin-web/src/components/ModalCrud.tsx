@@ -1,5 +1,7 @@
-import React, { useEffect, useRef } from "react";
+import React, { useEffect, useRef, useState } from "react";
 import Icons from "./Icons";
+
+const CLOSE_DURATION = 200; // ms — debe coincidir con la duración en CSS
 
 interface ModalProps {
   isOpen: boolean;
@@ -16,11 +18,20 @@ export const ModalCrud = ({
   children,
   footer,
 }: ModalProps) => {
+  const [isClosing, setIsClosing] = useState(false);
   const onCloseRef = useRef(onClose);
 
   useEffect(() => {
     onCloseRef.current = onClose;
   }, [onClose]);
+
+  // Cuando isOpen pasa a false desde fuera, lanzar cierre animado
+  useEffect(() => {
+    if (!isOpen && !isClosing) {
+      // No fue cerrado por handleClose, sino por cambio externo de prop
+      // En ese caso simplemente no mostramos (sin animación de salida)
+    }
+  }, [isOpen]);
 
   useEffect(() => {
     if (isOpen) document.body.style.overflow = "hidden";
@@ -30,25 +41,37 @@ export const ModalCrud = ({
     };
   }, [isOpen]);
 
+  const handleClose = () => {
+    setIsClosing(true);
+    setTimeout(() => {
+      setIsClosing(false);
+      onCloseRef.current();
+    }, CLOSE_DURATION);
+  };
+
   useEffect(() => {
     if (!isOpen) return;
     const onKey = (e: KeyboardEvent) => {
-      if (e.key === "Escape") onCloseRef.current();
+      if (e.key === "Escape") handleClose();
     };
     window.addEventListener("keydown", onKey);
     return () => window.removeEventListener("keydown", onKey);
   }, [isOpen]);
 
-  if (!isOpen) return null;
+  if (!isOpen && !isClosing) return null;
 
   return (
     <div
-      className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-overlay backdrop-blur-sm"
-      onClick={onClose}
+      className={`fixed inset-0 z-50 flex items-center justify-center p-4 bg-overlay backdrop-blur-sm ${
+        isClosing ? "animate-overlay-out" : "animate-overlay-in"
+      }`}
+      onClick={handleClose}
       role="presentation"
     >
       <div
-        className="bg-gris-oscuro w-full max-w-[560px] rounded-[2rem] border border-sidebar-separador shadow-2xl flex flex-col max-h-[90vh]"
+        className={`bg-gris-oscuro w-full max-w-[560px] rounded-[2rem] border border-sidebar-separador shadow-2xl flex flex-col max-h-[90vh] ${
+          isClosing ? "animate-modal-out" : "animate-modal-in"
+        }`}
         onClick={(e) => e.stopPropagation()}
         role="dialog"
         aria-modal="true"
@@ -63,7 +86,7 @@ export const ModalCrud = ({
           </h2>
           <button
             type="button"
-            onClick={onClose}
+            onClick={handleClose}
             className="p-2 rounded-xl text-secondary hover:text-main hover:bg-gris border border-transparent hover:border-sidebar-separador transition-all"
             aria-label="Cerrar"
           >

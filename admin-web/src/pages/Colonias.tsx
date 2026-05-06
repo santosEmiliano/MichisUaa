@@ -236,15 +236,20 @@ const Colonias = () => {
           gridTemplateRows: `repeat(${rows}, minmax(0, 1fr))`,
         }}
       >
-        {currentColonias.map((colonia) => {
+        {currentColonias.map((colonia, i) => {
           const { id, ...cardProps } = colonia;
           return (
-            <ColoniaCard
+            <div
               key={`${id}-${safePage}`}
-              {...cardProps}
-              onEdit={() => openEdit(colonia)}
-              onDelete={() => handleDelete(colonia.id)}
-            />
+              className="animate-row-in h-full"
+              style={{ animationDelay: `${i * 60}ms` }}
+            >
+              <ColoniaCard
+                {...cardProps}
+                onEdit={() => openEdit(colonia)}
+                onDelete={() => handleDelete(colonia.id)}
+              />
+            </div>
           );
         })}
       </div>
