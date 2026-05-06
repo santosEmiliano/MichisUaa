@@ -19,6 +19,7 @@ const Estadisticas = () => {
   const BAR_COLORS = ["#E8893C", "#3B82F6", "#2B9E76", "#E05252", "#84A98C", "#6366F1"];
   const [barData, setBarData] = useState<{ colonia: string; total: number; color: string; width: string }[]>([]);
   const [sighingsTendencyData, setSighingsTendencyData] = useState<{ name: string; value: number }[]>([]);
+  const [coloniesSummaryData, setColoniesSummaryData] = useState<{ nombreColonia: string; totalGatos: number; porcentajeEsterilizados: number; }[]>([]);
 
   const [animatedBarWidths, setAnimatedBarWidths] = useState<string[]>([]);
 
@@ -77,13 +78,14 @@ const Estadisticas = () => {
       const token = localStorage.getItem("token") || "";
       const headers = { Authorization: `Bearer ${token}` };
 
-      const [resTotalCats, resEsterilizados, resDesapariciones, resAvistamientos, resBarData, sighingsTendencyData] = await Promise.all([
+      const [resTotalCats, resEsterilizados, resDesapariciones, resAvistamientos, resBarData, sighingsTendencyData, coloniesSummaryData] = await Promise.all([
         fetch("http://localhost:3000/stadistics/totalCats", { headers }),
         fetch("http://localhost:3000/stadistics/sterilizedCount", { headers }),
         fetch("http://localhost:3000/stadistics/missingCats", { headers }),
         fetch("http://localhost:3000/stadistics/sightingsLastWeek", { headers }),
         fetch("http://localhost:3000/stadistics/signingsPerColony", { headers }),
         fetch("http://localhost:3000/stadistics/sighingsTendency", { headers }),
+        fetch("http://localhost:3000/stadistics/coloniesSummary", { headers }),
       ]);
 
       if (resTotalCats.ok) setTotalGatos(await resTotalCats.json());
@@ -91,6 +93,7 @@ const Estadisticas = () => {
       if (resDesapariciones.ok) setDesapariciones(await resDesapariciones.json());
       if (resAvistamientos.ok) setAvistamientosSemana(await resAvistamientos.json());
       if (sighingsTendencyData.ok) setSighingsTendencyData(await sighingsTendencyData.json());
+      if (coloniesSummaryData.ok) setColoniesSummaryData(await coloniesSummaryData.json());
       
       if (resBarData.ok) {
         const rawBarData = await resBarData.json();
@@ -130,18 +133,6 @@ const Estadisticas = () => {
     { name: "Sem 7", value: 35 },
     { name: "Sem 8", value: 42 },
     { name: "Sem 9", value: 50 },
-  ];
-
-  const tableData1 = [
-    { col: "Ed. 108", gatos: 12, est: "83%", status: "#2B9E76" },
-    { col: "Zona alberca", gatos: 8, est: "75%", status: "#2B9E76" },
-    { col: "Ed. 117", gatos: 9, est: "89%", status: "#2B9E76" },
-    { col: "UMD", gatos: 6, est: "50%", status: "#E8893C" },
-    { col: "Ed. 114", gatos: 5, est: "40%", status: "#E8893C" },
-  ];
-
-  const tableData2 = [
-    { col: "Ed. 59", gatos: 4, est: "10%", status: "#E05252" },
   ];
 
   return (
@@ -299,12 +290,12 @@ const Estadisticas = () => {
                 <span>Esteriles</span>
               </div>
               <div className="flex flex-col">
-                {tableData1.map((row, i) => (
+                {coloniesSummaryData.map((row, i) => (
                   <div key={i} className="px-6 py-3 grid grid-cols-3 text-sm text-secondary border-b border-sidebar-separador items-center">
-                    <span>{row.col}</span>
-                    <span>{row.gatos}</span>
+                    <span>{row.nombreColonia}</span>
+                    <span>{row.totalGatos}</span>
                     <div className="flex items-center gap-2">
-                      <span>{row.est}</span>
+                      <span>{row.porcentajeEsterilizados}</span>
                       <div className="w-2 h-2 rounded-full" style={{ backgroundColor: row.status }}></div>
                     </div>
                   </div>
@@ -320,12 +311,12 @@ const Estadisticas = () => {
                 <span>Esteriles</span>
               </div>
               <div className="flex flex-col">
-                {tableData2.map((row, i) => (
+                {coloniesSummaryData.map((row, i) => (
                   <div key={i} className="px-6 py-3 grid grid-cols-3 text-sm text-secondary border-b border-sidebar-separador items-center">
-                    <span>{row.col}</span>
-                    <span>{row.gatos}</span>
+                    <span>{row.nombreColonia}</span>
+                    <span>{row.totalGatos}</span>
                     <div className="flex items-center gap-2">
-                      <span>{row.est}</span>
+                      <span>{row.porcentajeEsterilizados}%</span>
                       <div className="w-2 h-2 rounded-full" style={{ backgroundColor: row.status }}></div>
                     </div>
                   </div>
