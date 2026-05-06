@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from "react";
+import { useState, useEffect } from "react";
 import type { Avistamiento } from "../types/models";
 import Icons from "./Icons";
 
