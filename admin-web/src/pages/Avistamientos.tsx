@@ -5,31 +5,80 @@ import type { ColumnDef } from "../components/DataTable";
 import type { Avistamiento, FilterDef } from "../types/models";
 import Icons from "../components/Icons";
 import { AvistamientoModal } from "../components/AvistamientoModal";
-
-import { mockAvistamientos } from "../data/mockAvistamientos";
+import { avistamientosApi } from "../services/avistamientosApi";
 
 const filters: FilterDef[] = [
   {
-    label: "Todas las colonias",
-    options: ["Ed. 108", "Zona alberca", "UMD", "Ed. 114", "Colonia Central"],
+    label: "Estado",
+    options: ["Pendientes", "Verificados", "Rechazados", "Sin identificar"],
   },
   {
-    label: "Todos los estados",
-    options: ["Pendiente", "Sin identificar", "Verificado", "Rechazado"],
-  },
-  {
-    label: "Últimos 7 días",
-    options: ["Hoy", "Últimos 7 días", "Último mes", "Todos"],
+    label: "Fechas",
+    options: ["Hoy", "Últimos 7 días", "Este mes"],
   },
 ];
 
 const Avistamientos = () => {
-  const [data] = useState<Avistamiento[]>(mockAvistamientos);
-  const [selectedAvistamiento, setSelectedAvistamiento] = useState<Avistamiento | null>(null);
+  const [avistamientos, setAvistamientos] = useState<Avistamiento[]>([]);
+  const [loading, setLoading] = useState(true);
+  const [selectedAvistamiento, setSelectedAvistamiento] =
+    useState<Avistamiento | null>(null);
   const [isModalOpen, setIsModalOpen] = useState(false);
   
   // Elementos del DOM para los portales
   const [badgeContainer, setBadgeContainer] = useState<Element | null>(null);
+
+  const fetchDatos = async () => {
+    try {
+      setLoading(true);
+      const data = await avistamientosApi.getAvistamientos();
+      const mapped: Avistamiento[] = data.map((item) => {
+        let estado: Avistamiento["estado"] = "Pendiente";
+        
+        if (item.verificado) {
+          estado = "Verificado";
+        } else if (item.verificadoPor !== null) {
+          estado = "Rechazado";
+        } else if (item.animalId === null) {
+          estado = "Sin identificar";
+        } else {
+          estado = "Pendiente";
+        }
+
+        const fecha = new Date(item.createdAt);
+        const ahora = new Date();
+        const diffMs = ahora.getTime() - fecha.getTime();
+        const diffMins = Math.floor(diffMs / 60000);
+        let haceText = "";
+        if (diffMins < 60) haceText = `${diffMins} min`;
+        else if (diffMins < 1440) haceText = `${Math.floor(diffMins / 60)} hrs`;
+        else haceText = `${Math.floor(diffMins / 1440)} días`;
+
+        return {
+          id: item.idAvistamiento,
+          fotoUrl: item.foto_url || undefined,
+          animalName: item.animal?.nombre || "No identificado",
+          animalColonia: item.animal?.colonia?.nombre || "N/A",
+          reportadoPor: item.usuario?.nombre || "Anónimo",
+          ubicacion: `Lat: ${item.latitud}, Lon: ${item.longitud}`,
+          hace: haceText,
+          estado: estado,
+          descripcion: item.descripcion || "Sin descripción proporcionada",
+          coordenadas: `${item.latitud}, ${item.longitud}`,
+          fechaHora: fecha.toLocaleString('es-MX', { dateStyle: 'medium', timeStyle: 'short' })
+        };
+      });
+      setAvistamientos(mapped);
+    } catch (error) {
+      console.error(error);
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  useEffect(() => {
+    fetchDatos();
+  }, []);
 
   useEffect(() => {
     // eslint-disable-next-line react-hooks/set-state-in-effect
@@ -150,28 +199,34 @@ const Avistamientos = () => {
   ];
 
   return (
-    <div className="space-y-6 pt-2">
+    <div className="space-y-6 pt-2 pb-10">
       {/* Portales para inyectar contenido en el Header global */}
       {badgeContainer && createPortal(
-        <span className="bg-gris-oscuro text-secondary text-xs font-bold px-3 py-1 rounded-full border border-panel ml-4">
-          {data.length} en total
+        <span className="bg-gris text-white text-xs font-bold px-3 py-1 rounded-full whitespace-nowrap">
+          <span className="text-acento-naranja">{avistamientos.length}</span> en total
         </span>,
         badgeContainer
       )}
 
-      <DataTable
-        data={data}
-        columns={columns}
-        searchPlaceholder="Buscar gato o usuario..."
-        filters={filters}
-        rowsPerPage={8}
-        middleContent={
-          <div className="flex justify-end gap-1 text-sm font-bold px-2 mb-2">
-            <span className="text-acento-naranja">{pendientesCount}</span>
-            <span className="text-white">pendientes</span>
-          </div>
-        }
-      />
+      {loading ? (
+        <div className="flex justify-center items-center py-20 text-secondary">
+          Cargando avistamientos...
+        </div>
+      ) : (
+        <DataTable
+          data={avistamientos}
+          columns={columns}
+          searchPlaceholder="Buscar por animal, colonia o reportador..."
+          filters={filters}
+          rowsPerPage={8}
+          middleContent={
+            <div className="flex justify-end gap-1 text-sm font-bold px-2 mb-2">
+              <span className="text-acento-naranja">{pendientesCount}</span>
+              <span className="text-white">pendientes</span>
+            </div>
+          }
+        />
+      )}
 
       <AvistamientoModal 
         isOpen={isModalOpen}
