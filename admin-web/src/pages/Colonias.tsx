@@ -3,6 +3,7 @@ import { createPortal } from "react-dom";
 import Icons from "../components/Icons";
 import { ColoniaCard } from "../components/ColoniaCard";
 import { ColoniaModal } from "../components/ColoniaModal";
+import { LoadingScreen } from "../components/LoadingScreen";
 import type { ColoniaFormSave } from "../components/ColoniaModal";
 import type { Colonia } from "../types/models";
 
@@ -221,9 +222,7 @@ const Colonias = () => {
       />
 
       {loading ? (
-        <div className="flex-1 flex items-center justify-center text-secondary">
-          Cargando colonias...
-        </div>
+        <LoadingScreen message="Cargando Colonias" />
       ) : colonias.length === 0 ? (
         <div className="flex-1 flex items-center justify-center text-secondary">
           No hay colonias registradas.
