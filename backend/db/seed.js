@@ -134,9 +134,7 @@ async function main() {
       });
     }
   }
-
-  // Adding some sightings for statistics
-  console.log('Creando avistamientos para estadísticas...');
+  
   const firstUser = await prisma.usuario.findFirst();
   const firstAnimal = await prisma.animal.findFirst();
 
