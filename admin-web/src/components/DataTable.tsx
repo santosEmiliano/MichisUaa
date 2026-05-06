@@ -147,7 +147,8 @@ export const DataTable = <T extends object>({
                 paginated.map((row, i) => (
                   <tr
                     key={i}
-                    className={`border-b border-sidebar-separador last:border-0 text-[15px] hover-bg-item transition-colors ${i % 2 === 0 ? "bg-card" : "bg-gris-oscuro"}`}
+                    className={`border-b border-sidebar-separador last:border-0 text-[15px] hover-bg-item transition-colors animate-row-in ${i % 2 === 0 ? "bg-card" : "bg-gris-oscuro"}`}
+                    style={{ animationDelay: `${i * 45}ms` }}
                   >
                     {columns.map((col, j) => (
                       <td key={j} className="px-6 py-4">

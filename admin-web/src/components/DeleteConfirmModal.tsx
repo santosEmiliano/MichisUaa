@@ -1,4 +1,6 @@
-import React, { useEffect, useRef } from "react";
+import React, { useEffect, useRef, useState } from "react";
+
+const CLOSE_DURATION = 200;
 
 interface DeleteConfirmModalProps {
   isOpen: boolean;
@@ -13,6 +15,7 @@ export const DeleteConfirmModal: React.FC<DeleteConfirmModalProps> = ({
   onConfirm,
   title = "¿Eliminar registro de gato?",
 }) => {
+  const [isClosing, setIsClosing] = useState(false);
   const onCloseRef = useRef(onClose);
 
   useEffect(() => {
@@ -27,25 +30,37 @@ export const DeleteConfirmModal: React.FC<DeleteConfirmModalProps> = ({
     };
   }, [isOpen]);
 
+  const handleClose = () => {
+    setIsClosing(true);
+    setTimeout(() => {
+      setIsClosing(false);
+      onCloseRef.current();
+    }, CLOSE_DURATION);
+  };
+
   useEffect(() => {
     if (!isOpen) return;
     const onKey = (e: KeyboardEvent) => {
-      if (e.key === "Escape") onCloseRef.current();
+      if (e.key === "Escape") handleClose();
     };
     window.addEventListener("keydown", onKey);
     return () => window.removeEventListener("keydown", onKey);
   }, [isOpen]);
 
-  if (!isOpen) return null;
+  if (!isOpen && !isClosing) return null;
 
   return (
     <div
-      className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-overlay backdrop-blur-sm"
-      onClick={onClose}
+      className={`fixed inset-0 z-50 flex items-center justify-center p-4 bg-overlay backdrop-blur-sm ${
+        isClosing ? "animate-overlay-out" : "animate-overlay-in"
+      }`}
+      onClick={handleClose}
       role="presentation"
     >
       <div
-        className="bg-card w-full max-w-md rounded-[2rem] border border-sidebar-separador shadow-2xl flex flex-col p-10 gap-8"
+        className={`bg-card w-full max-w-md rounded-[2rem] border border-sidebar-separador shadow-2xl flex flex-col p-10 gap-8 ${
+          isClosing ? "animate-modal-out" : "animate-modal-in"
+        }`}
         onClick={(e) => e.stopPropagation()}
         role="dialog"
         aria-modal="true"
@@ -61,7 +76,7 @@ export const DeleteConfirmModal: React.FC<DeleteConfirmModalProps> = ({
             Si
           </button>
           <button
-            onClick={onClose}
+            onClick={handleClose}
             className="flex-1 py-4 px-6 rounded-2xl border border-sidebar-separador bg-gris-oscuro text-main text-xl font-bold hover:bg-gris transition-all"
           >
             No
