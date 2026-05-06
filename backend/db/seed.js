@@ -9,31 +9,6 @@ async function main() {
   await prisma.colonia.deleteMany();
   await prisma.usuario.deleteMany();
 
-  // Crear colonias
-  const colonia1 = await prisma.colonia.create({
-    data: {
-      nombre: 'Colonia Edificio 108',
-      zona: 'Edificio 108',
-      descripcion: 'Colonia principal zona central'
-    }
-  });
-
-  const colonia2 = await prisma.colonia.create({
-    data: {
-      nombre: 'Colonia Zona Alberca',
-      zona: 'Zona Norte',
-      descripcion: 'Gatos que frecuentan las albercas'
-    }
-  });
-
-  const colonia3 = await prisma.colonia.create({
-    data: {
-      nombre: 'Colonia Edificio 59',
-      zona: 'Edificio 59',
-      descripcion: 'Zona este del campus'
-    }
-  });
-
   // Crear usuario admin
   const saltos = await bcrypt.genSalt(10);
   const hashPassword = await bcrypt.hash('1234', saltos);
@@ -53,6 +28,11 @@ async function main() {
     const col = await prisma.colonia.create({ data: c });
     createdColonies.push(col);
   }
+
+
+  const colonia1 = createdColonies[0];
+  const colonia2 = createdColonies[1];
+  const colonia3 = createdColonies[5];
 
   console.log('Creando usuarios y asignando colonias...');
   const usersData = [

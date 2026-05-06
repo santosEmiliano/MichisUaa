@@ -15,6 +15,10 @@ const Estadisticas = () => {
   const [desapariciones, setDesapariciones] = useState(0);
   const [avistamientosSemana, setAvistamientosSemana] = useState(0);
 
+  // Información de gráficas
+  const BAR_COLORS = ["#E8893C", "#3B82F6", "#2B9E76", "#E05252", "#84A98C", "#6366F1"];
+  const [barData, setBarData] = useState<{ colonia: string; total: number; color: string; width: string }[]>([]);
+
   const [animatedBarWidths, setAnimatedBarWidths] = useState<string[]>([]);
 
   useEffect(() => {
@@ -26,6 +30,7 @@ const Estadisticas = () => {
   }, []);
 
   useEffect(() => {
+    if (barData.length === 0) return;
     // Inicializa las barras en 0%
     setAnimatedBarWidths(barData.map(() => "0%"));
   
@@ -36,11 +41,11 @@ const Estadisticas = () => {
           newWidths[index] = item.width;
           return newWidths;
         });
-      }, index * 150 + 100); // Inicia después de 100ms y hay 150ms de delay entre barras
+      }, index * 150 + 100);
     });
 
     return () => timers.forEach(clearTimeout);
-  }, []);
+  }, [barData]);
 
   const headerFilters = (
     <div className="flex items-center gap-3">
@@ -71,17 +76,32 @@ const Estadisticas = () => {
       const token = localStorage.getItem("token") || "";
       const headers = { Authorization: `Bearer ${token}` };
 
-      const [resTotalCats, resEsterilizados, resDesapariciones, resAvistamientos] = await Promise.all([
+      const [resTotalCats, resEsterilizados, resDesapariciones, resAvistamientos, resBarData] = await Promise.all([
         fetch("http://localhost:3000/stadistics/totalCats", { headers }),
         fetch("http://localhost:3000/stadistics/sterilizedCount", { headers }),
         fetch("http://localhost:3000/stadistics/missingCats", { headers }),
         fetch("http://localhost:3000/stadistics/sightingsLastWeek", { headers }),
+        fetch("http://localhost:3000/stadistics/signingsPerColony", { headers }),
       ]);
 
       if (resTotalCats.ok) setTotalGatos(await resTotalCats.json());
       if (resEsterilizados.ok) setEsterilizados(await resEsterilizados.json());
       if (resDesapariciones.ok) setDesapariciones(await resDesapariciones.json());
       if (resAvistamientos.ok) setAvistamientosSemana(await resAvistamientos.json());
+      
+      if (resBarData.ok) {
+        const rawBarData = await resBarData.json();
+        // Ordenar de mayor a menor y asignar colores + anchos
+        const sorted = rawBarData.sort((a: any, b: any) => b.total - a.total);
+        const maxVal = sorted.length > 0 ? sorted[0].total : 1;
+        const processed = sorted.map((item: any, i: number) => ({
+          colonia: item.colonia,
+          total: item.total,
+          color: BAR_COLORS[i % BAR_COLORS.length],
+          width: `${Math.max((item.total / maxVal) * 100, 5)}%`
+        }));
+        setBarData(processed);
+      }
     } catch (error) {
       console.error("Error fetching data:", error);
     }
@@ -90,15 +110,6 @@ const Estadisticas = () => {
   useEffect(() => {
     fetchData();
   }, []);
-
-  const barData = [
-    { label: "Ed. 108", value: 88, color: "#E8893C", width: "100%" },
-    { label: "Zona alberca", value: 77, color: "#3B82F6", width: "85%" },
-    { label: "Ed. 117", value: 64, color: "#2B9E76", width: "70%" },
-    { label: "UMD", value: 52, color: "#E05252", width: "60%" },
-    { label: "Ed. 114", value: 44, color: "#84A98C", width: "50%" },
-    { label: "Ed. 59", value: 22, color: "#6366F1", width: "25%" },
-  ];
 
   const donutData = [
     { name: "Esterilizados", value: 78, color: "#2B9E76" },
@@ -173,7 +184,7 @@ const Estadisticas = () => {
           <div className="grid grid-cols-1 md:grid-cols-2 gap-x-8 gap-y-4">
             {barData.map((item, i) => (
               <div key={i} className="flex items-center gap-3">
-                <span className="w-24 text-sm text-secondary font-medium truncate">{item.label}</span>
+                <span className="w-24 text-sm text-secondary font-medium truncate">{item.colonia}</span>
                 <div className="flex-1 bg-black/40 h-8 rounded-lg overflow-hidden relative">
                   <div 
                     className="h-full flex items-center justify-end pr-3 rounded-lg overflow-hidden whitespace-nowrap"
@@ -183,7 +194,7 @@ const Estadisticas = () => {
                       transition: "width 1s cubic-bezier(0.16, 1, 0.3, 1)"
                     }}
                   >
-                    <span className="text-white font-bold text-sm">{item.value}</span>
+                    <span className="text-white font-bold text-sm">{item.total}</span>
                   </div>
                 </div>
               </div>
