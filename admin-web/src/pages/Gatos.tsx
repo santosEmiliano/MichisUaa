@@ -1,4 +1,4 @@
-import { useState, useEffect } from "react";
+import { useState, useEffect, useMemo } from "react";
 import { createPortal } from "react-dom";
 import Icons from "../components/Icons";
 import { DataTable, type ColumnDef } from "../components/DataTable";
@@ -137,6 +137,33 @@ const GatosPage = () => {
   const colonias = [...new Set(cats.map((c) => c.colonia))];
   const [headerTarget, setHeaderTarget] = useState<HTMLElement | null>(null);
   const [rowsPerPage, setRowsPerPage] = useState(8);
+  const [activeFilters, setActiveFilters] = useState<Record<string, string>>({});
+
+  const handleFilterChange = (label: string, value: string) => {
+    setActiveFilters((prev) => ({
+      ...prev,
+      [label]: value,
+    }));
+  };
+
+  const filteredCats = useMemo(() => {
+    return cats.filter((cat) => {
+      if (activeFilters["Todas las colonias"] && activeFilters["Todas las colonias"] !== "") {
+        if (cat.colonia !== activeFilters["Todas las colonias"]) return false;
+      }
+      
+      if (activeFilters["Todos los estados"] && activeFilters["Todos los estados"] !== "") {
+        if (cat.estado !== activeFilters["Todos los estados"]) return false;
+      }
+
+      if (activeFilters["Esterilizados"] && activeFilters["Esterilizados"] !== ""){
+        const isEsterilizadoFilter = activeFilters["Esterilizados"] === "Sí";
+        if (cat.esterilizado !== isEsterilizadoFilter) return false;
+      }
+
+      return true;
+    });
+  }, [cats, activeFilters]);
 
   const confirmDelete = (cat: Cat) => {
     setCatToDelete(cat);
@@ -270,10 +297,11 @@ const GatosPage = () => {
         <LoadingScreen message="Cargando Gatos" />
       ) : (
         <DataTable
-          data={cats}
+          data={filteredCats}
           columns={columns}
           searchPlaceholder="Buscar por nombre o colonia..."
           rowsPerPage={rowsPerPage}
+          onFilterChange={handleFilterChange}
           onEdit={(cat) => {
             setCatToEdit(cat);
             setModalOpen(true);
