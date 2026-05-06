@@ -5,6 +5,7 @@ import { DataTable, type ColumnDef } from "../components/DataTable";
 import type { Cat } from "../types/models";
 import { GatoModal } from "../components/GatoModal";
 import { DeleteConfirmModal } from "../components/DeleteConfirmModal";
+import { LoadingScreen } from "../components/LoadingScreen";
 
 type EstadoCat = Cat["estado"];
 
@@ -253,7 +254,7 @@ const GatosPage = () => {
       {headerTarget && createPortal(headerDynamicContent, headerTarget)}
       
       {loading ? (
-        <div className="text-center py-10 text-secondary">Cargando gatos...</div>
+        <LoadingScreen message="Cargando Gatos" />
       ) : (
         <DataTable
           data={cats}

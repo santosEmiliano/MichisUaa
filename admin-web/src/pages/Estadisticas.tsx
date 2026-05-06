@@ -3,6 +3,7 @@ import { createPortal } from "react-dom";
 import { PieChart, Pie, Cell, AreaChart, Area, ResponsiveContainer } from "recharts";
 import Icons from "../components/Icons";
 import { MetricCard } from "../components/MetricCard";
+import { LoadingScreen } from "../components/LoadingScreen";
 
 const Estadisticas = () => {
   const [colonia, setColonia] = useState("Todas las colonias");
@@ -23,6 +24,7 @@ const Estadisticas = () => {
   const [coloniesSummaryData, setColoniesSummaryData] = useState<{ nombreColonia: string; totalGatos: number; porcentajeEsterilizados: number; }[]>([]);
 
   const [animatedBarWidths, setAnimatedBarWidths] = useState<string[]>([]);
+  const [isLoading, setIsLoading] = useState(true);
 
   useEffect(() => {
     const timer = setTimeout(() => {
@@ -75,11 +77,12 @@ const Estadisticas = () => {
   );
 
   const fetchData = async () => {
+    setIsLoading(true);
     try {
       const token = localStorage.getItem("token") || "";
       const headers = { Authorization: `Bearer ${token}` };
 
-      const [resTotalCats, resEsterilizados, resDesapariciones, resAvistamientos, resBarData, sighingsTendencyData, coloniesSummaryData, sterilizedStateData] = await Promise.all([
+      const [resTotalCats, resEsterilizados, resDesapariciones, resAvistamientos, resBarData, resSighingsTendency, resColoniesSummary, resSterilizedState] = await Promise.all([
         fetch("http://localhost:3000/stadistics/totalCats", { headers }),
         fetch("http://localhost:3000/stadistics/sterilizedCount", { headers }),
         fetch("http://localhost:3000/stadistics/missingCats", { headers }),
@@ -94,13 +97,12 @@ const Estadisticas = () => {
       if (resEsterilizados.ok) setEsterilizados(await resEsterilizados.json());
       if (resDesapariciones.ok) setDesapariciones(await resDesapariciones.json());
       if (resAvistamientos.ok) setAvistamientosSemana(await resAvistamientos.json());
-      if (sighingsTendencyData.ok) setSighingsTendencyData(await sighingsTendencyData.json());
-      if (coloniesSummaryData.ok) setColoniesSummaryData(await coloniesSummaryData.json());
-      if (sterilizedStateData.ok) setSterilizedState(await sterilizedStateData.json());
+      if (resSighingsTendency.ok) setSighingsTendencyData(await resSighingsTendency.json());
+      if (resColoniesSummary.ok) setColoniesSummaryData(await resColoniesSummary.json());
+      if (resSterilizedState.ok) setSterilizedState(await resSterilizedState.json());
 
       if (resBarData.ok) {
         const rawBarData = await resBarData.json();
-        // Ordenar de mayor a menor y asignar colores + anchos
         const sorted = rawBarData.sort((a: any, b: any) => b.total - a.total);
         const maxVal = sorted.length > 0 ? sorted[0].total : 1;
         const processed = sorted.map((item: any, i: number) => ({
@@ -113,6 +115,9 @@ const Estadisticas = () => {
       }
     } catch (error) {
       console.error("Error fetching data:", error);
+    } finally {
+      // Pequeño delay para que la transición no sea brusca
+      setTimeout(() => setIsLoading(false), 600);
     }
   }
 
@@ -121,8 +126,12 @@ const Estadisticas = () => {
   }, []);
 
 
+  if (isLoading) {
+    return <LoadingScreen message="Cargando Estadísticas" />;
+  }
+
   return (
-    <div className="space-y-6 pt-2 pb-10 overflow-x-hidden">
+    <div className="space-y-6 pt-2 pb-10 overflow-x-hidden animate-in fade-in slide-in-from-bottom-4 duration-700">
       {headerTarget && createPortal(headerFilters, headerTarget)}
 
       <div className="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-4 gap-4">
