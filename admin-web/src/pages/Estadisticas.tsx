@@ -9,6 +9,12 @@ const Estadisticas = () => {
   const [periodo, setPeriodo] = useState("Últimos 3 meses");
   const [headerTarget, setHeaderTarget] = useState<HTMLElement | null>(null);
 
+  // Información de estadísticas
+  const [totalGatos, setTotalGatos] = useState(0);
+  const [esterilizados, setEsterilizados] = useState(0);
+  const [desapariciones, setDesapariciones] = useState(0);
+  const [avistamientosSemana, setAvistamientosSemana] = useState(0);
+
   const [animatedBarWidths, setAnimatedBarWidths] = useState<string[]>([]);
 
   useEffect(() => {
@@ -60,6 +66,31 @@ const Estadisticas = () => {
     </div>
   );
 
+  const fetchData = async () => {
+    try {
+      const token = localStorage.getItem("token") || "";
+      const headers = { Authorization: `Bearer ${token}` };
+
+      const [resTotalCats, resEsterilizados, resDesapariciones, resAvistamientos] = await Promise.all([
+        fetch("http://localhost:3000/stadistics/totalCats", { headers }),
+        fetch("http://localhost:3000/stadistics/sterilizedCount", { headers }),
+        fetch("http://localhost:3000/stadistics/missingCats", { headers }),
+        fetch("http://localhost:3000/stadistics/sightingsLastWeek", { headers }),
+      ]);
+
+      if (resTotalCats.ok) setTotalGatos(await resTotalCats.json());
+      if (resEsterilizados.ok) setEsterilizados(await resEsterilizados.json());
+      if (resDesapariciones.ok) setDesapariciones(await resDesapariciones.json());
+      if (resAvistamientos.ok) setAvistamientosSemana(await resAvistamientos.json());
+    } catch (error) {
+      console.error("Error fetching data:", error);
+    }
+  }
+
+  useEffect(() => {
+    fetchData();
+  }, []);
+
   const barData = [
     { label: "Ed. 108", value: 88, color: "#E8893C", width: "100%" },
     { label: "Zona alberca", value: 77, color: "#3B82F6", width: "85%" },
@@ -106,27 +137,27 @@ const Estadisticas = () => {
       <div className="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-4 gap-4">
         <MetricCard
           title="Total Gatos"
-          value={47}
+          value={totalGatos}
           trendText="+3 este mes"
           borderColor="#E8893C"
         />
         <MetricCard
           title="Esterilizados"
-          value={78}
+          value={esterilizados}
           valueSuffix="%"
           trendText="+5% vs anterior"
           borderColor="#2B9E76"
         />
         <MetricCard
           title="Desapariciones"
-          value={2}
+          value={desapariciones}
           trendText="+1 este mes"
           trendType="danger"
           borderColor="#E05252"
         />
         <MetricCard
           title="Avistamientos por semana"
-          value={24}
+          value={avistamientosSemana}
           trendText="+8 vs anterior"
           borderColor="#3B82F6"
         />
