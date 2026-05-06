@@ -4,6 +4,7 @@ export interface BackendUsuarioCol {
     nombre: string;
   };
 }
+
 export interface BackendUser {
   idUsuario: number;
   nombre: string;
@@ -12,10 +13,12 @@ export interface BackendUser {
   createdAt: string;
   usuariosCols: BackendUsuarioCol[];
 }
+
 export interface UpdateUserResponse {
   mensaje: string;
   modificado: boolean;
 }
+
 export interface DeleteUserResponse {
   mensaje: string;
 }
