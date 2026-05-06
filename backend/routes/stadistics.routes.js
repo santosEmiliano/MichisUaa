@@ -10,4 +10,11 @@ router.get(
     stadisticsFunctions.getTotalCats
 )
 
+// Ruta GET para obtener el porcentaje de gatos esterilizados
+router.get(
+    "/getSterilizedCount",
+    token.verifyToken,
+    stadisticsFunctions.getSterilizedCount
+)
+
 module.exports = router;
