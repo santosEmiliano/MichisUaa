@@ -1,12 +1,15 @@
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { ModalCrud } from "./ModalCrud";
 import Icons from "./Icons";
 import { authService } from "../services/authApi";
+import { userService } from "../services/userApi";
+import type { User } from "../types/models";
 
 interface UserModalProps {
   isOpen: boolean;
   onClose: () => void;
-  onCreated?: () => void; // Sirve para refrescar la lista
+  userToEdit?: User | null;
+  onSuccess?: () => void;
 }
 
 // ── Validaciones ──
@@ -21,7 +24,8 @@ function validateForm(
   nombre: string,
   email: string,
   password: string,
-  confirmPassword: string
+  confirmPassword: string,
+  isEditing: boolean = false
 ): FormErrors {
   const errors: FormErrors = {};
 
@@ -41,21 +45,35 @@ function validateForm(
   }
 
   // Contraseña
-  if (!password) {
-    errors.password = "La contraseña es obligatoria.";
-  } else if (password.length < 6) {
-    errors.password = "Mínimo 6 caracteres.";
-  } else if (!/[A-Z]/.test(password)) {
-    errors.password = "Debe contener al menos una mayúscula.";
-  } else if (!/[0-9]/.test(password)) {
-    errors.password = "Debe contener al menos un número.";
+  if (!isEditing) {
+    if (!password) {
+      errors.password = "La contraseña es obligatoria.";
+    } else if (password.length < 6) {
+      errors.password = "Mínimo 6 caracteres.";
+    } else if (!/[A-Z]/.test(password)) {
+      errors.password = "Debe contener al menos una mayúscula.";
+    } else if (!/[0-9]/.test(password)) {
+      errors.password = "Debe contener al menos un número.";
+    }
+  } else {
+    if (password) {
+      if (password.length < 6) {
+        errors.password = "Mínimo 6 caracteres.";
+      } else if (!/[A-Z]/.test(password)) {
+        errors.password = "Debe contener al menos una mayúscula.";
+      } else if (!/[0-9]/.test(password)) {
+        errors.password = "Debe contener al menos un número.";
+      }
+    }
   }
 
   // Confirmación
-  if (!confirmPassword) {
-    errors.confirmPassword = "Confirma tu contraseña.";
-  } else if (password !== confirmPassword) {
-    errors.confirmPassword = "Las contraseñas no coinciden.";
+  if (!isEditing || password) {
+    if (!confirmPassword) {
+      errors.confirmPassword = "Confirma tu contraseña.";
+    } else if (password !== confirmPassword) {
+      errors.confirmPassword = "Las contraseñas no coinciden.";
+    }
   }
 
   return errors;
@@ -108,7 +126,8 @@ const COLONIAS_HARDCODED: Colonia[] = [
 
 // ── Componente ──
 
-export const UsuarioModal = ({ isOpen, onClose, onCreated }: UserModalProps) => {
+export const UsuarioModal = ({ isOpen, onClose, userToEdit, onSuccess }: UserModalProps) => {
+  const isEditing = !!userToEdit;
   const [showPassword, setShowPassword] = useState(false);
   const [showConfirm, setShowConfirm] = useState(false);
   const [role, setRole] = useState<"Administrador" | "Simpatizante">("Administrador");
@@ -140,6 +159,20 @@ export const UsuarioModal = ({ isOpen, onClose, onCreated }: UserModalProps) => 
 
   const strength = getPasswordStrength(password);
 
+  useEffect(() => {
+    if (userToEdit) {
+      setNombre(userToEdit.nombre);
+      setEmail(userToEdit.email);
+      setRole(userToEdit.rol);
+      const coloniaIds = COLONIAS_HARDCODED
+        .filter(c => userToEdit.coloniasAsignadas.includes(c.nombre))
+        .map(c => c.idColonia);
+      setSelectedColonias(coloniaIds);
+    } else {
+      resetForm();
+    }
+  }, [userToEdit]);
+
   // Revalida en tiempo real
   const handleChange = (
     setter: React.Dispatch<React.SetStateAction<string>>,
@@ -162,7 +195,8 @@ export const UsuarioModal = ({ isOpen, onClose, onCreated }: UserModalProps) => 
         current.nombre,
         current.email,
         current.password,
-        current.confirmPassword
+        current.confirmPassword,
+        isEditing
       );
       setFieldErrors(errs);
     }
@@ -191,23 +225,34 @@ export const UsuarioModal = ({ isOpen, onClose, onCreated }: UserModalProps) => 
     setSubmitted(true);
     setApiError(null);
 
-    const errors = validateForm(nombre, email, password, confirmPassword);
+    const errors = validateForm(nombre, email, password, confirmPassword, isEditing);
     setFieldErrors(errors);
 
     if (Object.keys(errors).length > 0) return;
 
     setLoading(true);
     try {
-      const esAdmin = role === "Administrador";
-      await authService.createUser(nombre, email, password, esAdmin);
+      if (isEditing && userToEdit) {
+        const body: Record<string, unknown> = {
+          nombre,
+          email,
+          admin: role === "Administrador",
+        };
+        if (password) body.password = password;
+        if (selectedColonias.length > 0) body.coloniasIds = selectedColonias;
+        await userService.updateUser(userToEdit.id, body);
+      } else {
+        const esAdmin = role === "Administrador";
+        await authService.createUser(nombre, email, password, esAdmin);
+      }
       setSuccess(true);
-      onCreated?.();
+      onSuccess?.();
       setTimeout(() => {
         handleClose();
       }, 1400);
     } catch (err: unknown) {
       setApiError(
-        err instanceof Error ? err.message : "Error al crear el usuario"
+        err instanceof Error ? err.message : "Error al guardar el usuario"
       );
     } finally {
       setLoading(false);
@@ -243,10 +288,10 @@ export const UsuarioModal = ({ isOpen, onClose, onCreated }: UserModalProps) => 
               <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4" />
               <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8v8H4z" />
             </svg>
-            Creando...
+            {isEditing ? "Guardando..." : "Creando..."}
           </>
         ) : (
-          "Crear usuario"
+          isEditing ? "Guardar cambios" : "Crear usuario"
         )}
       </button>
     </div>
@@ -256,7 +301,7 @@ export const UsuarioModal = ({ isOpen, onClose, onCreated }: UserModalProps) => 
     <ModalCrud
       isOpen={isOpen}
       onClose={handleClose}
-      title="Nuevo Usuario"
+      title={isEditing ? "Editar Usuario" : "Nuevo Usuario"}
       footer={footer}
     >
       <form id="form-nuevo-usuario" onSubmit={handleSubmit} className="space-y-5" noValidate>
@@ -264,7 +309,7 @@ export const UsuarioModal = ({ isOpen, onClose, onCreated }: UserModalProps) => 
         {/* Éxito */}
         {success && (
           <div className="text-sm text-green-400 bg-green-400/10 border border-green-400/30 rounded-xl px-4 py-3 flex items-center gap-2">
-            <span>✓</span> Usuario creado correctamente
+            <span>✓</span> {isEditing ? "Usuario actualizado correctamente" : "Usuario creado correctamente"}
           </div>
         )}
 

@@ -4,69 +4,9 @@ import Icons from "../components/Icons";
 import { DataTable, type ColumnDef } from "../components/DataTable";
 import type { User } from "../types/models";
 import { UsuarioModal } from "../components/UsuarioModal";
+import { userService } from "../services/userApi";
+import { DeleteConfirmModal } from "../components/DeleteConfirmModal";
 
-const mockUsers: User[] = [
-  {
-    id: 1,
-    nombre: "E. Santos",
-    email: "e.santos@edu.uaa.mx",
-    iniciales: "ES",
-    colorAvatar: "#7a5c2e",
-    rol: "Administrador",
-    coloniasAsignadas: ["Ed. 108", "UMD", "Ed. 114"],
-    creadoEn: "Enero 2025",
-  },
-  {
-    id: 2,
-    nombre: "J. Hernandez",
-    email: "j.hernandez@edu.uaa.mx",
-    iniciales: "JH",
-    colorAvatar: "#2e5c4a",
-    rol: "Simpatizante",
-    coloniasAsignadas: [],
-    creadoEn: "Enero 2025",
-  },
-  {
-    id: 3,
-    nombre: "J. Narvaez",
-    email: "j.luis@edu.uaa.mx",
-    iniciales: "JN",
-    colorAvatar: "#2e4a7a",
-    rol: "Simpatizante",
-    coloniasAsignadas: [],
-    creadoEn: "Marzo 2024",
-  },
-  {
-    id: 4,
-    nombre: "H. Dueñas",
-    email: "h.duenas@edu.uaa.mx",
-    iniciales: "HD",
-    colorAvatar: "#5c2e2e",
-    rol: "Simpatizante",
-    coloniasAsignadas: [],
-    creadoEn: "Abril 2025",
-  },
-  {
-    id: 5,
-    nombre: "A. Rosales",
-    email: "a.rosales@edu.uaa.mx",
-    iniciales: "AR",
-    colorAvatar: "#4a2e7a",
-    rol: "Administrador",
-    coloniasAsignadas: ["Zona alberca", "Ed. 108"],
-    creadoEn: "Noviembre 2023",
-  },
-  {
-    id: 6,
-    nombre: "B. Osorio",
-    email: "b.osorio@edu.uaa.mx",
-    iniciales: "BO",
-    colorAvatar: "#7a4a2e",
-    rol: "Administrador",
-    coloniasAsignadas: ["Ed. 114"],
-    creadoEn: "Febrero 2024",
-  },
-];
 
 type RolUser = User["rol"];
 
@@ -133,7 +73,12 @@ const columns: ColumnDef<User>[] = [
 ];
 
 const UsuariosPage = () => {
+  const [users, setUsers] = useState<User[]>([]);
+  const [loading, setLoading] = useState(true);
   const [modalOpen, setModalOpen] = useState(false);
+  const [userToEdit, setUserToEdit] = useState<User | null>(null);
+  const [deleteModalOpen, setDeleteModalOpen] = useState(false);
+  const [userToDelete, setUserToDelete] = useState<User | null>(null);
   const [badgeTarget, setBadgeTarget] = useState<HTMLElement | null>(null);
   const [actionsTarget, setActionsTarget] = useState<HTMLElement | null>(null);
 
@@ -145,15 +90,52 @@ const UsuariosPage = () => {
     return () => clearTimeout(timer);
   }, []);
 
+  const fetchUsers = async () => {
+    try {
+      setLoading(true);
+      const data = await userService.getUsers();
+      setUsers(data);
+    } catch (error) {
+      console.error("Error fetching users:", error);
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  useEffect(() => {
+    fetchUsers();
+  }, []);
+
+  const confirmDelete = (user: User) => {
+    setUserToDelete(user);
+    setDeleteModalOpen(true);
+  };
+
+  const handleDeleteUser = async () => {
+    if (!userToDelete) return;
+    try {
+      await userService.deleteUser(userToDelete.id);
+      setUsers((prev) => prev.filter((u) => u.id !== userToDelete.id));
+    } catch (error) {
+      console.error("Error eliminando usuario:", error);
+    } finally {
+      setDeleteModalOpen(false);
+      setUserToDelete(null);
+    }
+  };
+
   const headerBadge = (
     <span className="text-sm font-semibold px-3 py-1 rounded-full border border-sidebar-separador bg-gris-oscuro text-secondary">
-      {mockUsers.length} registrados
+      {users.length} registrados
     </span>
   );
 
   const headerAction = (
     <button
-      onClick={() => setModalOpen(true)}
+      onClick={() => {
+        setUserToEdit(null);
+        setModalOpen(true);
+      }}
       className="flex items-center gap-2 bg-gris border border-sidebar-separador text-main font-bold py-2.5 px-6 rounded-xl shrink-0 transition-all duration-200 hover:bg-gris-oscuro hover:border-white/15"
     >
       <Icons.Plus className="w-5 h-5" /> Nuevo Usuario
@@ -166,20 +148,49 @@ const UsuariosPage = () => {
       {badgeTarget && createPortal(headerBadge, badgeTarget)}
       {actionsTarget && createPortal(headerAction, actionsTarget)}
 
-      <DataTable
-        data={mockUsers}
-        columns={columns}
-        searchPlaceholder="Buscar por nombre o email..."
-        onEdit={() => setModalOpen(true)}
-        filters={[
-          {
-            label: "Todos los roles",
-            options: ["Administrador", "Simpatizante"],
-          },
-        ]}
-      />
+      {loading ? (
+        <div className="text-center py-10 text-secondary">Cargando usuarios...</div>
+      ) : (
+        <DataTable
+          data={users}
+          columns={columns}
+          searchPlaceholder="Buscar por nombre o email..."
+          onEdit={(user) => {
+            setUserToEdit(user);
+            setModalOpen(true);
+          }}
+          onDelete={confirmDelete}
+          filters={[
+            {
+              label: "Todos los roles",
+              options: ["Administrador", "Simpatizante"],
+            },
+          ]}
+        />
+      )}
 
-      <UsuarioModal isOpen={modalOpen} onClose={() => setModalOpen(false)} />
+      <UsuarioModal
+        isOpen={modalOpen}
+        onClose={() => {
+          setModalOpen(false);
+          setUserToEdit(null);
+        }}
+        onSuccess={fetchUsers}
+        userToEdit={userToEdit}
+      />
+      <DeleteConfirmModal
+        isOpen={deleteModalOpen}
+        onClose={() => {
+          setDeleteModalOpen(false);
+          setUserToDelete(null);
+        }}
+        onConfirm={handleDeleteUser}
+        title={
+          userToDelete
+            ? `¿Eliminar usuario "${userToDelete.nombre}"?`
+            : "¿Eliminar usuario?"
+        }
+      />
     </div>
   );
 };
