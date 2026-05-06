@@ -56,6 +56,30 @@ export interface Avistamiento {
   fechaHora?: string;
 }
 
+export interface BackendAvistamiento {
+  idAvistamiento: number;
+  usuarioId: number;
+  animalId: number | null;
+  verificadoPor: number | null;
+  foto_url: string | null;
+  foto_id: string | null;
+  descripcion: string | null;
+  verificado: boolean;
+  longitud: number | string;
+  latitud: number | string;
+  createdAt: string;
+  usuario: {
+    nombre: string;
+    email: string;
+  };
+  animal: {
+    nombre: string;
+    colonia: {
+      nombre: string;
+    };
+  } | null;
+}
+
 /*Alertas */
 export type AlertType = "success" | "error" | "warning" | "question";
 
