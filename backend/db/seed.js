@@ -135,6 +135,37 @@ async function main() {
     }
   }
 
+  // Adding some sightings for statistics
+  console.log('Creando avistamientos para estadísticas...');
+  const firstUser = await prisma.usuario.findFirst();
+  const firstAnimal = await prisma.animal.findFirst();
+
+  if (firstUser) {
+    const today = new Date();
+    
+    const threeDaysAgo = new Date(today);
+    threeDaysAgo.setDate(today.getDate() - 3);
+    
+    const fiveDaysAgo = new Date(today);
+    fiveDaysAgo.setDate(today.getDate() - 5);
+    
+    const tenDaysAgo = new Date(today);
+    tenDaysAgo.setDate(today.getDate() - 10);
+    
+    const twoWeeksAgo = new Date(today);
+    twoWeeksAgo.setDate(today.getDate() - 14);
+
+    await prisma.avistamiento.createMany({
+      data: [
+        { usuarioId: firstUser.idUsuario, animalId: firstAnimal?.idAnimal || null, longitud: -102.316, latitud: 21.914, createdAt: today },
+        { usuarioId: firstUser.idUsuario, animalId: firstAnimal?.idAnimal || null, longitud: -102.315, latitud: 21.913, createdAt: threeDaysAgo },
+        { usuarioId: firstUser.idUsuario, animalId: firstAnimal?.idAnimal || null, longitud: -102.314, latitud: 21.912, createdAt: fiveDaysAgo },
+        { usuarioId: firstUser.idUsuario, animalId: firstAnimal?.idAnimal || null, longitud: -102.313, latitud: 21.911, createdAt: tenDaysAgo },
+        { usuarioId: firstUser.idUsuario, animalId: firstAnimal?.idAnimal || null, longitud: -102.312, latitud: 21.910, createdAt: twoWeeksAgo },
+      ]
+    });
+  }
+
   console.log('Seed completado exitosamente.');
 }
 
