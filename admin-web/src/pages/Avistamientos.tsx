@@ -1,93 +1,81 @@
-import { useState, useEffect } from "react";
+import { useState, useEffect, useCallback, useMemo } from "react";
 import { createPortal } from "react-dom";
-import { DataTable, type ColumnDef } from "../components/DataTable";
+import { DataTable } from "../components/DataTable";
+import type { ColumnDef } from "../components/DataTable";
 import type { Avistamiento, FilterDef } from "../types/models";
 import Icons from "../components/Icons";
 import { AvistamientoModal } from "../components/AvistamientoModal";
-
-// ── Mocks ──
-const mockAvistamientos: Avistamiento[] = [
-  {
-    id: 1,
-    animalName: "Manchas",
-    animalColonia: "Ed. 108",
-    reportadoPor: "Ana Rosales",
-    ubicacion: "Entrada sur Ed. 108",
-    hace: "5 min",
-    estado: "Pendiente",
-    descripcion: "El gato estaba comiendo cerca de la entrada sur, se veía en buen estado",
-    coordenadas: "Entrada sur, Ed. 108 - 21.8842°N, 102.2969°W",
-    fechaHora: "03 May 2026 - 8:14 PM",
-  },
-  {
-    id: 2,
-    animalName: "Michi",
-    animalColonia: "Zona alberca",
-    reportadoPor: "Luis Torres",
-    ubicacion: "Zona alberca norte",
-    hace: "23 min",
-    estado: "Pendiente",
-  },
-  {
-    id: 3,
-    animalName: "No identificado",
-    animalColonia: "UMD",
-    reportadoPor: "Carlos Ríos",
-    ubicacion: "Est. UMD",
-    hace: "1 hr",
-    estado: "Sin identificar",
-  },
-  {
-    id: 4,
-    animalName: "Canela",
-    animalColonia: "Ed. 114",
-    reportadoPor: "Sofia Mendez",
-    ubicacion: "Pasillo B, Ed. 114",
-    hace: "2 hrs",
-    estado: "Pendiente",
-  },
-  {
-    id: 5,
-    animalName: "Wakanda",
-    animalColonia: "Ed. 108",
-    reportadoPor: "Jorge Ramos",
-    ubicacion: "Cafetería central",
-    hace: "3 hrs",
-    estado: "Verificado",
-  },
-  {
-    id: 6,
-    animalName: "Tigre",
-    animalColonia: "UMD",
-    reportadoPor: "M. Rodriguez",
-    ubicacion: "Entrada UMD",
-    hace: "5 hrs",
-    estado: "Rechazado",
-  },
-];
+import { avistamientosApi } from "../services/avistamientosApi";
 
 const filters: FilterDef[] = [
   {
-    label: "Todas las colonias",
-    options: ["Ed. 108", "Zona alberca", "UMD", "Ed. 114", "Colonia Central"],
+    label: "Estado",
+    options: ["Pendientes", "Verificados", "Rechazados", "Sin identificar"],
   },
   {
-    label: "Todos los estados",
-    options: ["Pendiente", "Sin identificar", "Verificado", "Rechazado"],
-  },
-  {
-    label: "Últimos 7 días",
-    options: ["Hoy", "Últimos 7 días", "Último mes", "Todos"],
+    label: "Fechas",
+    options: ["Hoy", "Últimos 7 días", "Este mes"],
   },
 ];
 
 const Avistamientos = () => {
-  const [data] = useState<Avistamiento[]>(mockAvistamientos);
-  const [selectedAvistamiento, setSelectedAvistamiento] = useState<Avistamiento | null>(null);
+  const [avistamientos, setAvistamientos] = useState<Avistamiento[]>([]);
+  const [loading, setLoading] = useState(true);
+  const [selectedAvistamiento, setSelectedAvistamiento] =
+    useState<Avistamiento | null>(null);
   const [isModalOpen, setIsModalOpen] = useState(false);
+  const [activeFilters, setActiveFilters] = useState<Record<string, string>>({});
   
   // Elementos del DOM para los portales
   const [badgeContainer, setBadgeContainer] = useState<Element | null>(null);
+
+  const fetchDatos = useCallback(async () => {
+    try {
+      setLoading(true);
+      const data = await avistamientosApi.getAvistamientos();
+      const mapped: Avistamiento[] = data.map((item) => {
+        let estado: Avistamiento["estado"] = "Pendiente";
+        if (item.verificado) estado = "Verificado";
+        else if (item.verificadoPor !== null) estado = "Rechazado";
+        else if (item.animalId === null) estado = "Sin identificar";
+
+        const fecha = new Date(item.createdAt);
+        const ahora = new Date();
+        const diffMins = Math.floor((ahora.getTime() - fecha.getTime()) / 60000);
+        
+        const haceText = diffMins < 60 
+          ? `${diffMins} min` 
+          : diffMins < 1440 
+            ? `${Math.floor(diffMins / 60)} hrs` 
+            : `${Math.floor(diffMins / 1440)} días`;
+
+        return {
+          id: item.idAvistamiento,
+          fotoUrl: item.foto_url || undefined,
+          animalName: item.animal?.nombre || "No identificado",
+          animalColonia: item.animal?.colonia?.nombre || "N/A",
+          reportadoPor: item.usuario?.nombre || "Anónimo",
+          ubicacion: `Lat: ${item.latitud}, Lon: ${item.longitud}`,
+          hace: haceText,
+          estado: estado,
+          descripcion: item.descripcion || "Sin descripción proporcionada",
+          coordenadas: `${item.latitud}, ${item.longitud}`,
+          fechaHora: fecha.toLocaleString('es-MX', { dateStyle: 'medium', timeStyle: 'short' }),
+          fechaObjeto: fecha // Guardamos el objeto Date real para filtrar
+        };
+      });
+      setAvistamientos(mapped);
+    } catch (error) {
+      console.error(error);
+    } finally {
+      setLoading(false);
+    }
+  }, []);
+
+  useEffect(() => {
+    // eslint-disable-next-line react-hooks/set-state-in-effect
+    fetchDatos();
+  }, [fetchDatos]);
 
   useEffect(() => {
     // eslint-disable-next-line react-hooks/set-state-in-effect
@@ -95,12 +83,64 @@ const Avistamientos = () => {
   }, []);
 
   // Calcular métricas
-  const pendientesCount = data.filter((d) => d.estado === "Pendiente").length;
+  const pendientesCount = avistamientos.filter((d) => d.estado === "Pendiente" || d.estado === "Sin identificar").length;
 
   const handleOpenModal = (avistamiento: Avistamiento) => {
     setSelectedAvistamiento(avistamiento);
     setIsModalOpen(true);
   };
+
+  const handleQuickReject = async (id: number) => {
+    try {
+      setLoading(true);
+      await avistamientosApi.rechazarAvistamiento(id);
+      await fetchDatos();
+    } catch (error) {
+      console.error(error);
+      alert("Error al rechazar el avistamiento");
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  const handleFilterChange = (label: string, value: string) => {
+    setActiveFilters(prev => ({
+      ...prev,
+      [label]: value
+    }));
+  };
+
+  const filteredAvistamientos = useMemo(() => {
+    return avistamientos.filter(item => {
+      // Filtro de Estado
+      if (activeFilters["Estado"]) {
+        const filterVal = activeFilters["Estado"];
+        if (filterVal === "Pendientes" && item.estado !== "Pendiente") return false;
+        if (filterVal === "Verificados" && item.estado !== "Verificado") return false;
+        if (filterVal === "Rechazados" && item.estado !== "Rechazado") return false;
+        if (filterVal === "Sin identificar" && item.estado !== "Sin identificar") return false;
+      }
+
+      // Filtro de Fechas
+      if (activeFilters["Fechas"] && item.fechaObjeto) {
+        const filterVal = activeFilters["Fechas"];
+        const itemDate = item.fechaObjeto;
+        const ahora = new Date();
+        
+        if (filterVal === "Hoy") {
+          if (itemDate.toDateString() !== ahora.toDateString()) return false;
+        } else if (filterVal === "Últimos 7 días") {
+          const sevenDaysAgo = new Date();
+          sevenDaysAgo.setDate(ahora.getDate() - 7);
+          if (itemDate < sevenDaysAgo) return false;
+        } else if (filterVal === "Este mes") {
+          if (itemDate.getMonth() !== ahora.getMonth() || itemDate.getFullYear() !== ahora.getFullYear()) return false;
+        }
+      }
+
+      return true;
+    });
+  }, [avistamientos, activeFilters]);
 
   const getStatusBadgeClass = (estado: string) => {
     switch (estado) {
@@ -197,7 +237,9 @@ const Avistamientos = () => {
               Verificar
             </button>
             <button 
-              className="px-4 py-1.5 rounded-full border border-sidebar-separador text-sm text-secondary hover-bg-item transition-colors"
+              onClick={() => handleQuickReject(row.id)}
+              disabled={loading}
+              className="px-4 py-1.5 rounded-full border border-sidebar-separador text-sm text-secondary hover-bg-item transition-colors disabled:opacity-50"
             >
               Rechazar
             </button>
@@ -208,32 +250,40 @@ const Avistamientos = () => {
   ];
 
   return (
-    <div className="space-y-6 pt-2">
+    <div className="space-y-6 pt-2 pb-10">
       {/* Portales para inyectar contenido en el Header global */}
       {badgeContainer && createPortal(
-        <span className="bg-gris-oscuro text-secondary text-xs font-bold px-3 py-1 rounded-full border border-panel ml-4">
-          {data.length} en total
+        <span className="bg-gris text-white text-xs font-bold px-3 py-1 rounded-full whitespace-nowrap">
+          <span className="text-acento-naranja">{avistamientos.length}</span> en total
         </span>,
         badgeContainer
       )}
 
-      <DataTable
-        data={data}
-        columns={columns}
-        searchPlaceholder="Buscar gato o usuario..."
-        filters={filters}
-        rowsPerPage={8}
-        middleContent={
-          <div className="flex justify-end gap-1 text-sm font-bold px-2 mb-2">
-            <span className="text-acento-naranja">{pendientesCount}</span>
-            <span className="text-white">pendientes</span>
-          </div>
-        }
-      />
+      {loading ? (
+        <div className="flex justify-center items-center py-20 text-secondary">
+          Cargando avistamientos...
+        </div>
+      ) : (
+        <DataTable
+          data={filteredAvistamientos}
+          columns={columns}
+          searchPlaceholder="Buscar por animal, colonia o reportador..."
+          filters={filters}
+          onFilterChange={handleFilterChange}
+          rowsPerPage={8}
+          middleContent={
+            <div className="flex justify-end gap-1 text-sm font-bold px-2 mb-2">
+              <span className="text-acento-naranja">{pendientesCount}</span>
+              <span className="text-white">pendientes</span>
+            </div>
+          }
+        />
+      )}
 
       <AvistamientoModal 
         isOpen={isModalOpen}
         onClose={() => setIsModalOpen(false)}
+        onSuccess={fetchDatos}
         avistamiento={selectedAvistamiento}
       />
     </div>

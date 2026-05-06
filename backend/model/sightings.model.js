@@ -1,5 +1,4 @@
-const { PrismaClient } = require('@prisma/client');
-const prisma = new PrismaClient();
+const prisma = require('../db/prisma');
 
 // model Avistamiento {
 //   idAvistamiento Int      @id @default(autoincrement())
@@ -52,6 +51,18 @@ async function getAllSightings(idUsuario) {
   try {
     const sightings = await prisma.avistamiento.findMany({
       where: idUsuario ? { usuarioId: Number(idUsuario) } : undefined,
+      include: {
+        usuario: true, // Incluye el usuario que reportó
+        animal: {
+          include: {
+            colonia: true // Incluye la colonia del animal
+          }
+        },
+        verificador: true // Incluye el usuario que verificó
+      },
+      orderBy: {
+        createdAt: 'desc'
+      }
     });
 
     return sightings;
@@ -65,7 +76,16 @@ async function getAllSightings(idUsuario) {
 async function getSightingById(idAvistamiento) {
   try {
     const sighting = await prisma.avistamiento.findUnique({
-      where:  { idAvistamiento: Number(idAvistamiento) }
+      where:  { idAvistamiento: Number(idAvistamiento) },
+      include: {
+        usuario: true,
+        animal: {
+          include: {
+            colonia: true
+          }
+        },
+        verificador: true
+      }
     });
 
     return sighting;
@@ -93,14 +113,13 @@ async function modifySighting(id, data) {
       updateData.animalId = data.animalId ? Number(data.animalId) : null; 
     }
 
+    if (data.verificado !== undefined) {
+      updateData.verificado = data.verificado === true || data.verificado === 'true';
+    }
+
     if (data.verificadoPor !== undefined) {
-      if (data.verificadoPor === null) {
-        updateData.verificado = false;
-        updateData.verificadoPor = null;
-      } else {
-        updateData.verificado = true;
-        updateData.verificadoPor = Number(data.verificadoPor);
-      }
+      const vId = Number(data.verificadoPor);
+      updateData.verificadoPor = !isNaN(vId) && vId > 0 ? vId : null;
     }
 
     const updatedSighting = await prisma.avistamiento.update({

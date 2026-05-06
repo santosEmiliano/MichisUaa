@@ -1,10 +1,10 @@
-import { useState } from "react";
+import { useState, useEffect, useCallback } from "react";
 import { Link } from "react-router-dom";
 import { MetricCard } from "../components/MetricCard";
 import { AvistamientoModal } from "../components/AvistamientoModal";
 import { DataTable, type ColumnDef } from "../components/DataTable";
 import type { Avistamiento } from "../types/models";
-import { mockAvistamientos } from "./Avistamientos";
+import { avistamientosApi } from "../services/avistamientosApi";
 
 const getInitials = (name: string) => {
   if (name === "No Identificado") return "?";
@@ -12,14 +12,12 @@ const getInitials = (name: string) => {
 };
 
 const getAvatarColorClass = (id: number) => {
-  switch (id) {
-    case 1:
+  switch (id % 4) {
+    case 0:
       return "bg-badge-naranja text-badge-naranja";
-    case 2:
+    case 1:
       return "bg-[#2a7a6a]/20 text-[#4ADE80]";
-    case 3:
-      return "bg-badge-gris text-badge-gris";
-    case 4:
+    case 2:
       return "bg-badge-azul text-badge-azul";
     default:
       return "bg-badge-gris text-badge-gris";
@@ -29,11 +27,50 @@ const getAvatarColorClass = (id: number) => {
 const Dashboard = () => {
   const [selectedAvistamiento, setSelectedAvistamiento] = useState<Avistamiento | null>(null);
   const [isModalOpen, setIsModalOpen] = useState(false);
+  const [pendientes, setPendientes] = useState<Avistamiento[]>([]);
+  const [loading, setLoading] = useState(true);
 
-  // Filtramos solo los pendientes o sin identificar
-  const pendientes = mockAvistamientos.filter(
-    (a) => a.estado === "Pendiente" || a.estado === "Sin identificar"
-  );
+  const fetchDatos = useCallback(async () => {
+    try {
+      const data = await avistamientosApi.getAvistamientos();
+      const mapped: Avistamiento[] = data.map((item) => {
+        let estado: Avistamiento["estado"] = "Pendiente";
+        if (item.verificado) estado = "Verificado";
+        else if (item.verificadoPor !== null) estado = "Rechazado";
+        else if (item.animalId === null) estado = "Sin identificar";
+
+        const fecha = new Date(item.createdAt);
+        const diffMins = Math.floor((new Date().getTime() - fecha.getTime()) / 60000);
+        const haceText = diffMins < 60 ? `${diffMins} min` : diffMins < 1440 ? `${Math.floor(diffMins / 60)} hrs` : `${Math.floor(diffMins / 1440)} días`;
+
+        return {
+          id: item.idAvistamiento,
+          fotoUrl: item.foto_url || undefined,
+          animalName: item.animal?.nombre || "No identificado",
+          animalColonia: item.animal?.colonia?.nombre || "N/A",
+          reportadoPor: item.usuario?.nombre || "Anónimo",
+          ubicacion: `Lat: ${item.latitud}, Lon: ${item.longitud}`,
+          hace: haceText,
+          estado: estado,
+          descripcion: item.descripcion || "Sin descripción proporcionada",
+          coordenadas: `${item.latitud}, ${item.longitud}`,
+          fechaHora: fecha.toLocaleString('es-MX', { dateStyle: 'medium', timeStyle: 'short' })
+        };
+      });
+      
+      // Filtramos solo los pendientes o sin identificar
+      setPendientes(mapped.filter((a) => a.estado === "Pendiente" || a.estado === "Sin identificar"));
+    } catch (error) {
+      console.error(error);
+    } finally {
+      setLoading(false);
+    }
+  }, []);
+
+  useEffect(() => {
+    // eslint-disable-next-line react-hooks/set-state-in-effect
+    fetchDatos();
+  }, [fetchDatos]);
 
   const handleOpenModal = (row: Avistamiento) => {
     setSelectedAvistamiento(row);
@@ -171,17 +208,24 @@ const Dashboard = () => {
       </div>
 
       <div className="mt-4">
-        <DataTable
-          data={pendientes}
-          columns={columns}
-          rowsPerPage={4}
-          hideControls
-        />
+        {loading ? (
+          <div className="flex justify-center items-center py-10 text-secondary text-sm">
+            Cargando avistamientos recientes...
+          </div>
+        ) : (
+          <DataTable
+            data={pendientes}
+            columns={columns}
+            rowsPerPage={4}
+            hideControls
+          />
+        )}
       </div>
 
       <AvistamientoModal
         isOpen={isModalOpen}
         onClose={() => setIsModalOpen(false)}
+        onSuccess={fetchDatos}
         avistamiento={selectedAvistamiento}
       />
     </div>

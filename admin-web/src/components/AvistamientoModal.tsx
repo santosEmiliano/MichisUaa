@@ -1,15 +1,35 @@
 import { useState, useEffect } from "react";
-import type { Avistamiento } from "../types/models";
+import type { Avistamiento, BackendAnimal } from "../types/models";
 import Icons from "./Icons";
+import { avistamientosApi } from "../services/avistamientosApi";
+import { catsApi } from "../services/catsApi";
 
 interface Props {
   isOpen: boolean;
   onClose: () => void;
+  onSuccess?: () => void;
   avistamiento: Avistamiento | null;
 }
 
-export const AvistamientoModal = ({ isOpen, onClose, avistamiento }: Props) => {
+export const AvistamientoModal = ({ isOpen, onClose, onSuccess, avistamiento }: Props) => {
   const [selectedGato, setSelectedGato] = useState("");
+  const [cats, setCats] = useState<BackendAnimal[]>([]);
+  const [isProcessing, setIsProcessing] = useState(false);
+
+  // Cargar lista de gatos para el select
+  useEffect(() => {
+    if (isOpen) {
+      const fetchCats = async () => {
+        try {
+          const data = await catsApi.getCats();
+          setCats(data);
+        } catch (error) {
+          console.error("Error al cargar gatos:", error);
+        }
+      };
+      fetchCats();
+    }
+  }, [isOpen]);
 
   // Cerrar con Escape
   useEffect(() => {
@@ -32,16 +52,37 @@ export const AvistamientoModal = ({ isOpen, onClose, avistamiento }: Props) => {
 
   if (!avistamiento) return null;
 
-  const handleVerificar = () => {
-    // Verificar
-    console.log("Verificando...", avistamiento.id, selectedGato);
-    onClose();
+  const handleVerificar = async () => {
+    if (!selectedGato) {
+      alert("Por favor selecciona un gato para verificar el avistamiento.");
+      return;
+    }
+
+    try {
+      setIsProcessing(true);
+      await avistamientosApi.verificarAvistamiento(avistamiento.id, Number(selectedGato));
+      if (onSuccess) onSuccess();
+      onClose();
+    } catch (error) {
+      console.error(error);
+      alert("Error al verificar el avistamiento.");
+    } finally {
+      setIsProcessing(false);
+    }
   };
 
-  const handleRechazar = () => {
-    // Rechazar
-    console.log("Rechazando...", avistamiento.id);
-    onClose();
+  const handleRechazar = async () => {
+    try {
+      setIsProcessing(true);
+      await avistamientosApi.rechazarAvistamiento(avistamiento.id);
+      if (onSuccess) onSuccess();
+      onClose();
+    } catch (error) {
+      console.error(error);
+      alert("Error al rechazar el avistamiento.");
+    } finally {
+      setIsProcessing(false);
+    }
   };
 
   return (
@@ -137,12 +178,15 @@ export const AvistamientoModal = ({ isOpen, onClose, avistamiento }: Props) => {
                 <select
                   value={selectedGato}
                   onChange={(e) => setSelectedGato(e.target.value)}
-                  className="w-full appearance-none bg-gris border border-sidebar-separador text-main text-sm rounded-xl px-4 py-3 pr-10 focus:outline-none focus:border-acento-naranja transition-colors cursor-pointer"
+                  disabled={isProcessing}
+                  className="w-full appearance-none bg-gris border border-sidebar-separador text-main text-sm rounded-xl px-4 py-3 pr-10 focus:outline-none focus:border-acento-naranja transition-colors cursor-pointer disabled:opacity-50"
                 >
                   <option value="">Seleccione un gato...</option>
-                  <option value="canela-108">Canela - Ed. 108</option>
-                  <option value="manchas-108">Manchas - Ed. 108</option>
-                  <option value="michi-alberca">Michi - Zona alberca</option>
+                  {cats.map((cat) => (
+                    <option key={cat.idAnimal} value={cat.idAnimal}>
+                      {cat.nombre} — {cat.colonia?.nombre || `Colonia ${cat.Colonia_idColonia}`}
+                    </option>
+                  ))}
                   <option value="nuevo">-- Registrar como nuevo gato --</option>
                 </select>
                 <Icons.ChevronDown className="absolute right-4 top-3.5 w-4 h-4 text-secondary pointer-events-none" />
@@ -155,17 +199,19 @@ export const AvistamientoModal = ({ isOpen, onClose, avistamiento }: Props) => {
         <div className="px-8 py-6 border-t border-sidebar-separador flex justify-center gap-4 bg-gris-oscuro shrink-0">
           <button
             onClick={handleVerificar}
-            className="px-8 py-2.5 rounded-xl border border-acento-naranja text-acento-naranja font-bold hover:bg-[rgba(232,137,60,0.1)] transition-all duration-200 flex items-center gap-2"
+            disabled={isProcessing}
+            className="px-8 py-2.5 rounded-xl border border-acento-naranja text-acento-naranja font-bold hover:bg-[rgba(232,137,60,0.1)] transition-all duration-200 flex items-center gap-2 disabled:opacity-50"
           >
             <Icons.CheckCircle className="w-5 h-5" />
-            Verificar
+            {isProcessing ? "Procesando..." : "Verificar"}
           </button>
           <button
             onClick={handleRechazar}
-            className="px-8 py-2.5 rounded-xl border border-sidebar-separador text-secondary font-bold hover:text-main hover:bg-gris transition-all duration-200 flex items-center gap-2"
+            disabled={isProcessing}
+            className="px-8 py-2.5 rounded-xl border border-sidebar-separador text-secondary font-bold hover:text-main hover:bg-gris transition-all duration-200 flex items-center gap-2 disabled:opacity-50"
           >
             <Icons.Close className="w-5 h-5" />
-            Rechazar
+            {isProcessing ? "Cargando..." : "Rechazar"}
           </button>
         </div>
       </div>

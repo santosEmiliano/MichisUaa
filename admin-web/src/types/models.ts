@@ -54,6 +54,42 @@ export interface Avistamiento {
   descripcion?: string;
   coordenadas?: string;
   fechaHora?: string;
+  fechaObjeto?: Date;
+}
+
+export interface BackendAvistamiento {
+  idAvistamiento: number;
+  usuarioId: number;
+  animalId: number | null;
+  verificadoPor: number | null;
+  foto_url: string | null;
+  foto_id: string | null;
+  descripcion: string | null;
+  verificado: boolean;
+  longitud: number | string;
+  latitud: number | string;
+  createdAt: string;
+  usuario: {
+    nombre: string;
+    email: string;
+  };
+  animal: {
+    nombre: string;
+    colonia: {
+      nombre: string;
+    };
+  } | null;
+}
+
+export interface BackendAnimal {
+  idAnimal: number;
+  nombre: string;
+  Colonia_idColonia: number;
+  esterilizado: boolean;
+  estado: string;
+  colonia: {
+    nombre: string;
+  };
 }
 
 /*Alertas */
@@ -73,14 +109,4 @@ export interface Alert {
   title: string;
   message?: string;
   position: AlertPosition;
-}
-
-export interface AlertaLogicaProps {
-  showAlert: (
-    type: AlertType,
-    title: string,
-    message?: string,
-    position?: AlertPosition,
-    duration?: number,
-  ) => void;
 }

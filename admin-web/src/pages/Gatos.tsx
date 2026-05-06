@@ -113,6 +113,18 @@ const columns: ColumnDef<Cat>[] = [
   },
 ];
 
+interface BackendAnimal {
+  idAnimal: number;
+  nombre: string;
+  fecha_nac?: string;
+  createdAt: string;
+  colonia?: { nombre: string };
+  Colonia_idColonia: number;
+  esterilizado: boolean;
+  estado: string;
+  foto_url?: string;
+}
+
 const GatosPage = () => {
   const [cats, setCats] = useState<Cat[]>([]);
   const [loading, setLoading] = useState(true);
@@ -191,7 +203,7 @@ const GatosPage = () => {
         const data = await res.json();
         
         // Mapeamos los datos de la base de datos a la interfaz Cat del frontend
-        const mappedCats: Cat[] = data.map((animal: any) => {
+        const mappedCats: Cat[] = data.map((animal: BackendAnimal) => {
           // Calculamos la edad
           let edadStr = "Desconocida";
           if (animal.fecha_nac) {
@@ -228,6 +240,7 @@ const GatosPage = () => {
     };
 
   useEffect(() => {
+    // eslint-disable-next-line react-hooks/set-state-in-effect
     fetchCats();
   }, []);
 
