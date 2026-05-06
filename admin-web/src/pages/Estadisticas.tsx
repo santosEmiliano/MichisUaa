@@ -14,6 +14,7 @@ const Estadisticas = () => {
   const [esterilizados, setEsterilizados] = useState(0);
   const [desapariciones, setDesapariciones] = useState(0);
   const [avistamientosSemana, setAvistamientosSemana] = useState(0);
+  const [sterilizedState, setSterilizedState] = useState<{ name: string; value: number; color: string }[]>([]);
 
   // Información de gráficas
   const BAR_COLORS = ["#E8893C", "#3B82F6", "#2B9E76", "#E05252", "#84A98C", "#6366F1"];
@@ -78,7 +79,7 @@ const Estadisticas = () => {
       const token = localStorage.getItem("token") || "";
       const headers = { Authorization: `Bearer ${token}` };
 
-      const [resTotalCats, resEsterilizados, resDesapariciones, resAvistamientos, resBarData, sighingsTendencyData, coloniesSummaryData] = await Promise.all([
+      const [resTotalCats, resEsterilizados, resDesapariciones, resAvistamientos, resBarData, sighingsTendencyData, coloniesSummaryData, sterilizedStateData] = await Promise.all([
         fetch("http://localhost:3000/stadistics/totalCats", { headers }),
         fetch("http://localhost:3000/stadistics/sterilizedCount", { headers }),
         fetch("http://localhost:3000/stadistics/missingCats", { headers }),
@@ -86,6 +87,7 @@ const Estadisticas = () => {
         fetch("http://localhost:3000/stadistics/signingsPerColony", { headers }),
         fetch("http://localhost:3000/stadistics/sighingsTendency", { headers }),
         fetch("http://localhost:3000/stadistics/coloniesSummary", { headers }),
+        fetch("http://localhost:3000/stadistics/sterilizedState", { headers }),
       ]);
 
       if (resTotalCats.ok) setTotalGatos(await resTotalCats.json());
@@ -94,7 +96,8 @@ const Estadisticas = () => {
       if (resAvistamientos.ok) setAvistamientosSemana(await resAvistamientos.json());
       if (sighingsTendencyData.ok) setSighingsTendencyData(await sighingsTendencyData.json());
       if (coloniesSummaryData.ok) setColoniesSummaryData(await coloniesSummaryData.json());
-      
+      if (sterilizedStateData.ok) setSterilizedState(await sterilizedStateData.json());
+
       if (resBarData.ok) {
         const rawBarData = await resBarData.json();
         // Ordenar de mayor a menor y asignar colores + anchos
@@ -117,23 +120,6 @@ const Estadisticas = () => {
     fetchData();
   }, []);
 
-  const donutData = [
-    { name: "Esterilizados", value: 78, color: "#2B9E76" },
-    { name: "Sin esterilizar", value: 15, color: "#E8893C" },
-    { name: "Desaparecidos", value: 7, color: "#E05252" },
-  ];
-
-  const lineData = [
-    { name: "Sem 1", value: 10 },
-    { name: "Sem 2", value: 15 },
-    { name: "Sem 3", value: 18 },
-    { name: "Sem 4", value: 25 },
-    { name: "Sem 5", value: 28 },
-    { name: "Sem 6", value: 29 },
-    { name: "Sem 7", value: 35 },
-    { name: "Sem 8", value: 42 },
-    { name: "Sem 9", value: 50 },
-  ];
 
   return (
     <div className="space-y-6 pt-2 pb-10 overflow-x-hidden">
@@ -203,7 +189,7 @@ const Estadisticas = () => {
               <ResponsiveContainer width="100%" height="100%">
                 <PieChart>
                   <Pie
-                    data={donutData}
+                    data={sterilizedState}
                     cx="50%"
                     cy="50%"
                     innerRadius={60}
@@ -211,20 +197,20 @@ const Estadisticas = () => {
                     stroke="none"
                     dataKey="value"
                   >
-                    {donutData.map((entry, index) => (
+                    {sterilizedState.map((entry, index) => (
                       <Cell key={`cell-${index}`} fill={entry.color} />
                     ))}
                   </Pie>
                 </PieChart>
               </ResponsiveContainer>
               <div className="absolute inset-0 flex flex-col items-center justify-center pointer-events-none">
-                <span className="text-3xl font-bold text-white">78%</span>
+                <span className="text-3xl font-bold text-white">{esterilizados}<span className="text-2xl text-secondary">%</span></span>
                 <span className="text-secondary text-sm">esteril</span>
               </div>
             </div>
             
             <div className="flex flex-col gap-3 ml-4">
-              {donutData.map((item, i) => (
+              {sterilizedState.map((item, i) => (
                 <div key={i} className="flex items-center gap-3">
                   <div className="w-4 h-4 rounded-full" style={{ backgroundColor: item.color }}></div>
                   <span className="text-secondary text-sm font-medium">{item.name}</span>
@@ -265,7 +251,7 @@ const Estadisticas = () => {
             </ResponsiveContainer>
 
             <div className="absolute bottom-0 left-0 right-0 flex justify-between px-4">
-              {lineData.map((d, i) => (
+              {sighingsTendencyData.map((d, i) => (
                 <div key={i} className="text-[10px] text-secondary flex flex-col items-center">
                   <span>Sem</span>
                   <span>{i+1}</span>

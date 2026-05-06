@@ -174,6 +174,30 @@ async function getSightingsTendency() {
   }
 }
 
+async function getSterilizedState() {
+  try {
+    const esterilizados = await prisma.animal.count({
+      where: { esterilizado: true }
+    });
+    const noEsterilizados = await prisma.animal.count({
+      where: { esterilizado: false }
+    });
+
+    const desaparecidos = await prisma.animal.count({
+      where: { estado: "Desaparecido" }
+    });
+
+    return [
+      { name: "Esterilizados", value: esterilizados, color: "#2B9E76" },
+      { name: "Sin esterilizar", value: noEsterilizados, color: "#E8893C" },
+      { name: "Desaparecidos", value: desaparecidos, color: "#E05252" }
+    ];
+  } catch (error) {
+    console.error("Error obteniendo estado de esterilización:", error);
+    throw error;
+  } 
+}
+
 module.exports = {
   getAllCats,
   getSterilizedCount,
@@ -181,5 +205,6 @@ module.exports = {
   getSightingsLastWeekCount,
   getSigningsPerColony,
   getColoniesSummary,
-  getSightingsTendency
+  getSightingsTendency,
+  getSterilizedState
 };

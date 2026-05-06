@@ -75,6 +75,16 @@ const sighingsTendency = async (req, res) => {
     }
 }
 
+const sterilizedState = async (req, res) => {
+    try {
+        const estado = await stadisticsModel.getSterilizedState();
+        return res.status(200).json(estado);
+    } catch (error) {
+        console.error("Error al obtener estado de esterilización:", error);
+        return res.status(500).json({ mensaje: "Error al obtener estado de esterilización" });
+    }
+}
+
 module.exports = {
   getTotalCats,
   getSterilizedCount,
@@ -82,5 +92,6 @@ module.exports = {
   sightingsLastWeek,
   signingsPerColony,
   coloniesSummary,
-  sighingsTendency
+  sighingsTendency,
+  sterilizedState
 };

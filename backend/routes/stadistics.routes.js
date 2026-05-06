@@ -59,4 +59,12 @@ router.get(
     stadisticsFunctions.sighingsTendency
 )
 
+// Ruta GET para obtener los datos de la gráfica de pastel
+router.get(
+    "/sterilizedState",
+    token.verifyToken,
+    token.verifyAdmin,
+    stadisticsFunctions.sterilizedState
+)
+
 module.exports = router;
