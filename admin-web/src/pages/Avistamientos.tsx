@@ -1,4 +1,4 @@
-import { useState, useEffect } from "react";
+import { useState, useEffect, useCallback } from "react";
 import { createPortal } from "react-dom";
 import { DataTable } from "../components/DataTable";
 import type { ColumnDef } from "../components/DataTable";
@@ -28,54 +28,55 @@ const Avistamientos = () => {
   // Elementos del DOM para los portales
   const [badgeContainer, setBadgeContainer] = useState<Element | null>(null);
 
-  useEffect(() => {
-    const fetchDatos = async () => {
-      try {
-        setLoading(true);
-        const data = await avistamientosApi.getAvistamientos();
-        const mapped: Avistamiento[] = data.map((item) => {
-          const estado: Avistamiento["estado"] = item.verificado 
-            ? "Verificado" 
-            : item.verificadoPor !== null 
-              ? "Rechazado" 
-              : item.animalId === null 
-                ? "Sin identificar" 
-                : "Pendiente";
-  
-          const fecha = new Date(item.createdAt);
-          const ahora = new Date();
-          const diffMins = Math.floor((ahora.getTime() - fecha.getTime()) / 60000);
-          
-          const haceText = diffMins < 60 
-            ? `${diffMins} min` 
-            : diffMins < 1440 
-              ? `${Math.floor(diffMins / 60)} hrs` 
-              : `${Math.floor(diffMins / 1440)} días`;
-  
-          return {
-            id: item.idAvistamiento,
-            fotoUrl: item.foto_url || undefined,
-            animalName: item.animal?.nombre || "No identificado",
-            animalColonia: item.animal?.colonia?.nombre || "N/A",
-            reportadoPor: item.usuario?.nombre || "Anónimo",
-            ubicacion: `Lat: ${item.latitud}, Lon: ${item.longitud}`,
-            hace: haceText,
-            estado: estado,
-            descripcion: item.descripcion || "Sin descripción proporcionada",
-            coordenadas: `${item.latitud}, ${item.longitud}`,
-            fechaHora: fecha.toLocaleString('es-MX', { dateStyle: 'medium', timeStyle: 'short' })
-          };
-        });
-        setAvistamientos(mapped);
-      } catch (error) {
-        console.error(error);
-      } finally {
-        setLoading(false);
-      }
-    };
+  const fetchDatos = useCallback(async () => {
+    try {
+      setLoading(true);
+      const data = await avistamientosApi.getAvistamientos();
+      const mapped: Avistamiento[] = data.map((item) => {
+        const estado: Avistamiento["estado"] = item.verificado 
+          ? "Verificado" 
+          : item.verificadoPor !== null 
+            ? "Rechazado" 
+            : item.animalId === null 
+              ? "Sin identificar" 
+              : "Pendiente";
 
-    fetchDatos();
+        const fecha = new Date(item.createdAt);
+        const ahora = new Date();
+        const diffMins = Math.floor((ahora.getTime() - fecha.getTime()) / 60000);
+        
+        const haceText = diffMins < 60 
+          ? `${diffMins} min` 
+          : diffMins < 1440 
+            ? `${Math.floor(diffMins / 60)} hrs` 
+            : `${Math.floor(diffMins / 1440)} días`;
+
+        return {
+          id: item.idAvistamiento,
+          fotoUrl: item.foto_url || undefined,
+          animalName: item.animal?.nombre || "No identificado",
+          animalColonia: item.animal?.colonia?.nombre || "N/A",
+          reportadoPor: item.usuario?.nombre || "Anónimo",
+          ubicacion: `Lat: ${item.latitud}, Lon: ${item.longitud}`,
+          hace: haceText,
+          estado: estado,
+          descripcion: item.descripcion || "Sin descripción proporcionada",
+          coordenadas: `${item.latitud}, ${item.longitud}`,
+          fechaHora: fecha.toLocaleString('es-MX', { dateStyle: 'medium', timeStyle: 'short' })
+        };
+      });
+      setAvistamientos(mapped);
+    } catch (error) {
+      console.error(error);
+    } finally {
+      setLoading(false);
+    }
   }, []);
+
+  useEffect(() => {
+    // eslint-disable-next-line react-hooks/set-state-in-effect
+    fetchDatos();
+  }, [fetchDatos]);
 
   useEffect(() => {
     // eslint-disable-next-line react-hooks/set-state-in-effect
@@ -228,6 +229,7 @@ const Avistamientos = () => {
       <AvistamientoModal 
         isOpen={isModalOpen}
         onClose={() => setIsModalOpen(false)}
+        onSuccess={fetchDatos}
         avistamiento={selectedAvistamiento}
       />
     </div>
