@@ -151,6 +151,11 @@ const GatosPage = () => {
       if (activeFilters["Todas las colonias"] && activeFilters["Todas las colonias"] !== "") {
         if (cat.colonia !== activeFilters["Todas las colonias"]) return false;
       }
+      
+      if (activeFilters["Todos los estados"] && activeFilters["Todos los estados"] !== "") {
+        if (cat.estado !== activeFilters["Todos los estados"]) return false;
+      }
+
       return true;
     });
   }, [cats, activeFilters]);
