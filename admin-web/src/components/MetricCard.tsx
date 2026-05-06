@@ -1,4 +1,4 @@
-import React from "react";
+import React, { useState, useEffect } from "react";
 
 export interface MetricCardProps {
   title: string;
@@ -17,6 +17,44 @@ export const MetricCard: React.FC<MetricCardProps> = ({
   trendType = "success",
   borderColor = "#E8893C",
 }) => {
+  const [displayValue, setDisplayValue] = useState<number | string>(
+    typeof value === "number" ? 0 : value
+  );
+
+  useEffect(() => {
+    if (typeof value === "number") {
+      let start = 0;
+      const end = value;
+      if (start === end) {
+        setDisplayValue(end);
+        return;
+      }
+      
+      const duration = 1500; // 1.5 seconds animation
+      const startTime = performance.now();
+
+      const animate = (currentTime: number) => {
+        const elapsed = currentTime - startTime;
+        const progress = Math.min(elapsed / duration, 1);
+        
+        // Easing: easeOutExpo for a nice "slow down at the end" effect
+        const easeProgress = progress === 1 ? 1 : 1 - Math.pow(2, -10 * progress);
+        
+        setDisplayValue(Math.floor(easeProgress * end));
+
+        if (progress < 1) {
+          requestAnimationFrame(animate);
+        } else {
+          setDisplayValue(end);
+        }
+      };
+      
+      requestAnimationFrame(animate);
+    } else {
+      setDisplayValue(value);
+    }
+  }, [value]);
+
   let pillBg = "bg-[#1A3A2C]";
   let pillText = "text-[#4ADE80]";
   let pillBorder = "border-[#4ADE80]/30";
@@ -38,7 +76,7 @@ export const MetricCard: React.FC<MetricCardProps> = ({
     >
       <h3 className="text-white text-lg font-bold mb-2">{title}</h3>
       <p className="text-5xl font-bold text-white mb-4">
-        {value}
+        {displayValue}
         {valueSuffix && <span className="text-3xl text-secondary ml-1">{valueSuffix}</span>}
       </p>
       <span
