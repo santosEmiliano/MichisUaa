@@ -9,12 +9,31 @@ const Estadisticas = () => {
   const [periodo, setPeriodo] = useState("Últimos 3 meses");
   const [headerTarget, setHeaderTarget] = useState<HTMLElement | null>(null);
 
+  const [animatedBarWidths, setAnimatedBarWidths] = useState<string[]>([]);
+
   useEffect(() => {
     const timer = setTimeout(() => {
       const el = document.getElementById("header-actions");
       if (el) setHeaderTarget(el);
     }, 0);
     return () => clearTimeout(timer);
+  }, []);
+
+  useEffect(() => {
+    // Inicializa las barras en 0%
+    setAnimatedBarWidths(barData.map(() => "0%"));
+  
+    const timers = barData.map((item, index) => {
+      return setTimeout(() => {
+        setAnimatedBarWidths((prev) => {
+          const newWidths = [...prev];
+          newWidths[index] = item.width;
+          return newWidths;
+        });
+      }, index * 150 + 100); // Inicia después de 100ms y hay 150ms de delay entre barras
+    });
+
+    return () => timers.forEach(clearTimeout);
   }, []);
 
   const headerFilters = (
@@ -126,8 +145,12 @@ const Estadisticas = () => {
                 <span className="w-24 text-sm text-secondary font-medium truncate">{item.label}</span>
                 <div className="flex-1 bg-black/40 h-8 rounded-lg overflow-hidden relative">
                   <div 
-                    className="h-full flex items-center justify-end pr-3 rounded-lg"
-                    style={{ width: item.width, backgroundColor: item.color }}
+                    className="h-full flex items-center justify-end pr-3 rounded-lg overflow-hidden whitespace-nowrap"
+                    style={{ 
+                      width: animatedBarWidths[i] || "0%", 
+                      backgroundColor: item.color,
+                      transition: "width 1s cubic-bezier(0.16, 1, 0.3, 1)"
+                    }}
                   >
                     <span className="text-white font-bold text-sm">{item.value}</span>
                   </div>
