@@ -42,7 +42,7 @@ const Dashboard = () => {
 
           const fecha = new Date(item.createdAt);
           const diffMins = Math.floor((new Date().getTime() - fecha.getTime()) / 60000);
-          let haceText = diffMins < 60 ? `${diffMins} min` : diffMins < 1440 ? `${Math.floor(diffMins / 60)} hrs` : `${Math.floor(diffMins / 1440)} días`;
+          const haceText = diffMins < 60 ? `${diffMins} min` : diffMins < 1440 ? `${Math.floor(diffMins / 60)} hrs` : `${Math.floor(diffMins / 1440)} días`;
 
           return {
             id: item.idAvistamiento,

@@ -28,55 +28,52 @@ const Avistamientos = () => {
   // Elementos del DOM para los portales
   const [badgeContainer, setBadgeContainer] = useState<Element | null>(null);
 
-  const fetchDatos = async () => {
-    try {
-      setLoading(true);
-      const data = await avistamientosApi.getAvistamientos();
-      const mapped: Avistamiento[] = data.map((item) => {
-        let estado: Avistamiento["estado"] = "Pendiente";
-        
-        if (item.verificado) {
-          estado = "Verificado";
-        } else if (item.verificadoPor !== null) {
-          estado = "Rechazado";
-        } else if (item.animalId === null) {
-          estado = "Sin identificar";
-        } else {
-          estado = "Pendiente";
-        }
-
-        const fecha = new Date(item.createdAt);
-        const ahora = new Date();
-        const diffMs = ahora.getTime() - fecha.getTime();
-        const diffMins = Math.floor(diffMs / 60000);
-        let haceText = "";
-        if (diffMins < 60) haceText = `${diffMins} min`;
-        else if (diffMins < 1440) haceText = `${Math.floor(diffMins / 60)} hrs`;
-        else haceText = `${Math.floor(diffMins / 1440)} días`;
-
-        return {
-          id: item.idAvistamiento,
-          fotoUrl: item.foto_url || undefined,
-          animalName: item.animal?.nombre || "No identificado",
-          animalColonia: item.animal?.colonia?.nombre || "N/A",
-          reportadoPor: item.usuario?.nombre || "Anónimo",
-          ubicacion: `Lat: ${item.latitud}, Lon: ${item.longitud}`,
-          hace: haceText,
-          estado: estado,
-          descripcion: item.descripcion || "Sin descripción proporcionada",
-          coordenadas: `${item.latitud}, ${item.longitud}`,
-          fechaHora: fecha.toLocaleString('es-MX', { dateStyle: 'medium', timeStyle: 'short' })
-        };
-      });
-      setAvistamientos(mapped);
-    } catch (error) {
-      console.error(error);
-    } finally {
-      setLoading(false);
-    }
-  };
-
   useEffect(() => {
+    const fetchDatos = async () => {
+      try {
+        setLoading(true);
+        const data = await avistamientosApi.getAvistamientos();
+        const mapped: Avistamiento[] = data.map((item) => {
+          const estado: Avistamiento["estado"] = item.verificado 
+            ? "Verificado" 
+            : item.verificadoPor !== null 
+              ? "Rechazado" 
+              : item.animalId === null 
+                ? "Sin identificar" 
+                : "Pendiente";
+  
+          const fecha = new Date(item.createdAt);
+          const ahora = new Date();
+          const diffMins = Math.floor((ahora.getTime() - fecha.getTime()) / 60000);
+          
+          const haceText = diffMins < 60 
+            ? `${diffMins} min` 
+            : diffMins < 1440 
+              ? `${Math.floor(diffMins / 60)} hrs` 
+              : `${Math.floor(diffMins / 1440)} días`;
+  
+          return {
+            id: item.idAvistamiento,
+            fotoUrl: item.foto_url || undefined,
+            animalName: item.animal?.nombre || "No identificado",
+            animalColonia: item.animal?.colonia?.nombre || "N/A",
+            reportadoPor: item.usuario?.nombre || "Anónimo",
+            ubicacion: `Lat: ${item.latitud}, Lon: ${item.longitud}`,
+            hace: haceText,
+            estado: estado,
+            descripcion: item.descripcion || "Sin descripción proporcionada",
+            coordenadas: `${item.latitud}, ${item.longitud}`,
+            fechaHora: fecha.toLocaleString('es-MX', { dateStyle: 'medium', timeStyle: 'short' })
+          };
+        });
+        setAvistamientos(mapped);
+      } catch (error) {
+        console.error(error);
+      } finally {
+        setLoading(false);
+      }
+    };
+
     fetchDatos();
   }, []);
 
@@ -86,7 +83,7 @@ const Avistamientos = () => {
   }, []);
 
   // Calcular métricas
-  const pendientesCount = data.filter((d) => d.estado === "Pendiente").length;
+  const pendientesCount = avistamientos.filter((d) => d.estado === "Pendiente" || d.estado === "Sin identificar").length;
 
   const handleOpenModal = (avistamiento: Avistamiento) => {
     setSelectedAvistamiento(avistamiento);
