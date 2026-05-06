@@ -52,6 +52,19 @@ async function getAllSightings(idUsuario) {
   try {
     const sightings = await prisma.avistamiento.findMany({
       where: idUsuario ? { usuarioId: Number(idUsuario) } : undefined,
+      include: {
+        usuario: {
+          select: { nombre: true, email: true }
+        },
+        animal: {
+          include: {
+            colonia: { select: { nombre: true } }
+          }
+        }
+      },
+      orderBy: {
+        createdAt: 'desc'
+      }
     });
 
     return sightings;
@@ -65,7 +78,17 @@ async function getAllSightings(idUsuario) {
 async function getSightingById(idAvistamiento) {
   try {
     const sighting = await prisma.avistamiento.findUnique({
-      where:  { idAvistamiento: Number(idAvistamiento) }
+      where:  { idAvistamiento: Number(idAvistamiento) },
+      include: {
+        usuario: {
+          select: { nombre: true, email: true }
+        },
+        animal: {
+          include: {
+            colonia: { select: { nombre: true } }
+          }
+        }
+      }
     });
 
     return sighting;
@@ -93,14 +116,12 @@ async function modifySighting(id, data) {
       updateData.animalId = data.animalId ? Number(data.animalId) : null; 
     }
 
+    if (data.verificado !== undefined) {
+      updateData.verificado = data.verificado === true || data.verificado === 'true';
+    }
+
     if (data.verificadoPor !== undefined) {
-      if (data.verificadoPor === null) {
-        updateData.verificado = false;
-        updateData.verificadoPor = null;
-      } else {
-        updateData.verificado = true;
-        updateData.verificadoPor = Number(data.verificadoPor);
-      }
+      updateData.verificadoPor = data.verificadoPor ? Number(data.verificadoPor) : null;
     }
 
     const updatedSighting = await prisma.avistamiento.update({
