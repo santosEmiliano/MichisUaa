@@ -1,6 +1,6 @@
 import React, { useState, useEffect } from "react";
 import { createPortal } from "react-dom";
-import { PieChart, Pie, Cell, ResponsiveContainer } from "recharts";
+import { PieChart, Pie, Cell, AreaChart, Area, ResponsiveContainer } from "recharts";
 import Icons from "../components/Icons";
 
 const Estadisticas = () => {
@@ -53,6 +53,18 @@ const Estadisticas = () => {
     { name: "Esterilizados", value: 78, color: "#2B9E76" },
     { name: "Sin esterilizar", value: 15, color: "#E8893C" },
     { name: "Desaparecidos", value: 7, color: "#E05252" },
+  ];
+
+  const lineData = [
+    { name: "Sem 1", value: 10 },
+    { name: "Sem 2", value: 15 },
+    { name: "Sem 3", value: 18 },
+    { name: "Sem 4", value: 25 },
+    { name: "Sem 5", value: 28 },
+    { name: "Sem 6", value: 29 },
+    { name: "Sem 7", value: 35 },
+    { name: "Sem 8", value: 42 },
+    { name: "Sem 9", value: 50 },
   ];
 
   return (
@@ -124,6 +136,49 @@ const Estadisticas = () => {
                 <div key={i} className="flex items-center gap-3">
                   <div className="w-4 h-4 rounded-full" style={{ backgroundColor: item.color }}></div>
                   <span className="text-secondary text-sm font-medium">{item.name}</span>
+                </div>
+              ))}
+            </div>
+          </div>
+        </div>
+      </div>
+
+      {/* Bottom Row */}
+      <div className="grid grid-cols-1 xl:grid-cols-2 gap-6">
+        {/* Line Chart */}
+        <div className="bg-gris-oscuro rounded-3xl p-6 shadow-lg border-t-2 border-t-[#3B82F6] border-x border-b border-sidebar-separador flex flex-col">
+          <div className="flex justify-between items-end mb-6">
+            <h2 className="text-xl font-bold text-white">Tendencia de avistamientos</h2>
+            <span className="text-secondary text-sm">Por semana</span>
+          </div>
+          
+          <div className="flex-1 min-h-[200px] w-full mt-4 relative">
+            <ResponsiveContainer width="100%" height="100%">
+              <AreaChart data={lineData} margin={{ top: 5, right: 10, left: 10, bottom: 20 }}>
+                <defs>
+                  <linearGradient id="colorValue" x1="0" y1="0" x2="0" y2="1">
+                    <stop offset="5%" stopColor="#E8893C" stopOpacity={0.8}/>
+                    <stop offset="95%" stopColor="#E8893C" stopOpacity={0}/>
+                  </linearGradient>
+                </defs>
+                <Area 
+                  type="monotone" 
+                  dataKey="value" 
+                  stroke="#E8893C" 
+                  strokeWidth={2} 
+                  fillOpacity={1}
+                  fill="url(#colorValue)"
+                  dot={false}
+                />
+              </AreaChart>
+            </ResponsiveContainer>
+            
+            {/* X Axis Labels Custom (to match screenshot exactly) */}
+            <div className="absolute bottom-0 left-0 right-0 flex justify-between px-4">
+              {lineData.map((d, i) => (
+                <div key={i} className="text-[10px] text-secondary flex flex-col items-center">
+                  <span>Sem</span>
+                  <span>{i+1}</span>
                 </div>
               ))}
             </div>
