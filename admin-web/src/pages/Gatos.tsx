@@ -156,6 +156,11 @@ const GatosPage = () => {
         if (cat.estado !== activeFilters["Todos los estados"]) return false;
       }
 
+      if (activeFilters["Esterilizados"] && activeFilters["Esterilizados"] !== ""){
+        const isEsterilizadoFilter = activeFilters["Esterilizados"] === "Sí";
+        if (cat.esterilizado !== isEsterilizadoFilter) return false;
+      }
+
       return true;
     });
   }, [cats, activeFilters]);
