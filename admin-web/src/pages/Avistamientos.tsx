@@ -91,6 +91,19 @@ const Avistamientos = () => {
     setIsModalOpen(true);
   };
 
+  const handleQuickReject = async (id: number) => {
+    try {
+      setLoading(true);
+      await avistamientosApi.rechazarAvistamiento(id);
+      await fetchDatos();
+    } catch (error) {
+      console.error(error);
+      alert("Error al rechazar el avistamiento");
+    } finally {
+      setLoading(false);
+    }
+  };
+
   const getStatusBadgeClass = (estado: string) => {
     switch (estado) {
       case "Pendiente":
@@ -186,7 +199,9 @@ const Avistamientos = () => {
               Verificar
             </button>
             <button 
-              className="px-4 py-1.5 rounded-full border border-sidebar-separador text-sm text-secondary hover-bg-item transition-colors"
+              onClick={() => handleQuickReject(row.id)}
+              disabled={loading}
+              className="px-4 py-1.5 rounded-full border border-sidebar-separador text-sm text-secondary hover-bg-item transition-colors disabled:opacity-50"
             >
               Rechazar
             </button>
