@@ -55,11 +55,21 @@ const signingsPerColony = async (req, res) => {
     }
 }
 
+const coloniesSummary = async (req, res) => {
+    try {
+        const coloniasResumen = await stadisticsModel.getColoniesSummary();
+        return res.status(200).json(coloniasResumen);
+    } catch (error) {
+        console.error("Error al obtener resumen de colonias:", error);
+        return res.status(500).json({ mensaje: "Error al obtener resumen de colonias" });
+    }
+}
 
 module.exports = {
   getTotalCats,
   getSterilizedCount,
   getMissingCats,
   sightingsLastWeek,
-  signingsPerColony
+  signingsPerColony,
+  coloniesSummary
 };

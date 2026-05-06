@@ -35,12 +35,20 @@ router.get(
     stadisticsFunctions.sightingsLastWeek
 )
 
-// Ruta GET para obtener el total de avistamientos en la ultima semana
+// Ruta GET para obtener el total de avistamientos por cada colonia
 router.get(
     "/signingsPerColony",
     token.verifyToken,
     token.verifyAdmin,
     stadisticsFunctions.signingsPerColony
+)
+
+// Ruta GET para obtener el resumen de colonias
+router.get(
+    "/coloniesSummary",
+    token.verifyToken,
+    token.verifyAdmin,
+    stadisticsFunctions.coloniesSummary
 )
 
 module.exports = router;

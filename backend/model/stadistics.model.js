@@ -88,10 +88,50 @@ async function getSigningsPerColony() {
   } 
 }
 
+async function getColoniesSummary() {
+  try {
+    const colonias = await prisma.colonia.findMany({
+      select: {
+        idColonia: true,
+        nombre: true
+      }
+    });
+
+    const resumen = [];
+
+    for (const colonia of colonias) {
+      const totalGatos = await prisma.animal.count({
+        where: { Colonia_idColonia: colonia.idColonia }
+      });
+
+      const esterilizados = await prisma.animal.count({
+        where: {
+          Colonia_idColonia: colonia.idColonia,
+          esterilizado: true
+        }
+      });
+
+      const porcentaje = totalGatos > 0 ? Math.round((esterilizados / totalGatos) * 100) : 0;
+
+      resumen.push({
+        nombreColonia: colonia.nombre,
+        totalGatos: totalGatos,
+        porcentajeEsterilizados: porcentaje
+      });
+    }
+
+    return resumen;
+  } catch (error) {
+    console.error("Error obteniendo resumen de colonias:", error);
+    throw error;
+  } 
+}
+
 module.exports = {
   getAllCats,
   getSterilizedCount,
   getMissingCatsCount,
   getSightingsLastWeekCount,
-  getSigningsPerColony
+  getSigningsPerColony,
+  getColoniesSummary
 };
