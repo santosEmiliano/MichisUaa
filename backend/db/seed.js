@@ -133,13 +133,24 @@ async function main() {
     const twoWeeksAgo = new Date(today);
     twoWeeksAgo.setDate(today.getDate() - 14);
 
+    // Obtener un animal de cada colonia para distribuir los avistamientos
+    const animalsPerColony = await Promise.all(
+      createdColonies.map(col => 
+        prisma.animal.findFirst({ where: { Colonia_idColonia: col.idColonia } })
+      )
+    );
+
     await prisma.avistamiento.createMany({
       data: [
-        { usuarioId: firstUser.idUsuario, animalId: firstAnimal?.idAnimal || null, longitud: -102.316, latitud: 21.914, createdAt: today },
-        { usuarioId: firstUser.idUsuario, animalId: firstAnimal?.idAnimal || null, longitud: -102.315, latitud: 21.913, createdAt: threeDaysAgo },
-        { usuarioId: firstUser.idUsuario, animalId: firstAnimal?.idAnimal || null, longitud: -102.314, latitud: 21.912, createdAt: fiveDaysAgo },
-        { usuarioId: firstUser.idUsuario, animalId: firstAnimal?.idAnimal || null, longitud: -102.313, latitud: 21.911, createdAt: tenDaysAgo },
-        { usuarioId: firstUser.idUsuario, animalId: firstAnimal?.idAnimal || null, longitud: -102.312, latitud: 21.910, createdAt: twoWeeksAgo },
+        { usuarioId: firstUser.idUsuario, animalId: animalsPerColony[0]?.idAnimal, longitud: -102.316, latitud: 21.914, createdAt: today },
+        { usuarioId: firstUser.idUsuario, animalId: animalsPerColony[1]?.idAnimal, longitud: -102.315, latitud: 21.913, createdAt: threeDaysAgo },
+        { usuarioId: firstUser.idUsuario, animalId: animalsPerColony[2]?.idAnimal, longitud: -102.314, latitud: 21.912, createdAt: fiveDaysAgo },
+        { usuarioId: firstUser.idUsuario, animalId: animalsPerColony[3]?.idAnimal, longitud: -102.313, latitud: 21.911, createdAt: today },
+        { usuarioId: firstUser.idUsuario, animalId: animalsPerColony[4]?.idAnimal, longitud: -102.312, latitud: 21.910, createdAt: threeDaysAgo },
+        { usuarioId: firstUser.idUsuario, animalId: animalsPerColony[5]?.idAnimal, longitud: -102.311, latitud: 21.909, createdAt: fiveDaysAgo },
+        // Algunos avistamientos viejos para la tendencia
+        { usuarioId: firstUser.idUsuario, animalId: animalsPerColony[0]?.idAnimal, longitud: -102.316, latitud: 21.914, createdAt: tenDaysAgo },
+        { usuarioId: firstUser.idUsuario, animalId: animalsPerColony[1]?.idAnimal, longitud: -102.315, latitud: 21.913, createdAt: twoWeeksAgo },
       ]
     });
   }
