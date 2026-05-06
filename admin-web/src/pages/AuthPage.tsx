@@ -73,7 +73,8 @@ const AuthPage = ({ onLogin }: AuthPageProps) => {
     try {
       const data = await authService.login(email, password);
       localStorage.setItem("token", data.token);
-      localStorage.setItem("usuario", JSON.stringify(data.datos));
+      localStorage.setItem("userId", String(data.datos.idUsuario));
+      localStorage.setItem("userName", data.datos.nombre);
       onLogin();
     } catch (err: unknown) {
       setApiError(

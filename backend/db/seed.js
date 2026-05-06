@@ -101,15 +101,12 @@ async function main() {
       { nombre: 'Michi', Colonia_idColonia: colonia2.idColonia, esterilizado: true, estado: 'Registrado', fecha_nac: new Date('2021-05-10') },
       { nombre: 'Wakanda', Colonia_idColonia: colonia3.idColonia, esterilizado: true, estado: 'Registrado', fecha_nac: new Date('2022-08-22') },
       { nombre: 'Canela', Colonia_idColonia: colonia1.idColonia, esterilizado: false, estado: 'Registrado', fecha_nac: new Date('2020-11-05') },
-      { nombre: 'Julián', Colonia_idColonia: colonia2.idColonia, esterilizado: false, estado: 'NoRegistrado', fecha_nac: new Date('2023-12-01') },
-      { nombre: 'José', Colonia_idColonia: colonia3.idColonia, esterilizado: false, estado: 'Desaparecido', fecha_nac: new Date('2019-03-30') },
-      { nombre: 'Santos', Colonia_idColonia: colonia3.idColonia, esterilizado: true, estado: 'Registrado', fecha_nac: new Date('2022-02-14') },
-      { nombre: 'Harim', Colonia_idColonia: colonia3.idColonia, esterilizado: true, estado: 'Desaparecido', fecha_nac: new Date('2021-09-09') },
+      { nombre: 'Gatillo', Colonia_idColonia: colonia2.idColonia, esterilizado: false, estado: 'NoRegistrado', fecha_nac: new Date('2023-12-01') },
+      { nombre: 'Jose Pablo', Colonia_idColonia: colonia3.idColonia, esterilizado: false, estado: 'Desaparecido', fecha_nac: new Date('2019-03-30') },
+      { nombre: 'Chispas', Colonia_idColonia: colonia3.idColonia, esterilizado: true, estado: 'Registrado', fecha_nac: new Date('2022-02-14') },
+      { nombre: 'Kneecap', Colonia_idColonia: colonia3.idColonia, esterilizado: true, estado: 'Desaparecido', fecha_nac: new Date('2021-09-09') },
       { nombre: 'Luna', Colonia_idColonia: colonia2.idColonia, esterilizado: true, estado: 'Registrado', fecha_nac: new Date('2024-01-01') },
-      { nombre: 'Tigre', Colonia_idColonia: colonia1.idColonia, esterilizado: false, estado: 'Registrado', fecha_nac: new Date('2018-07-20') },
-      { nombre: 'Wakanda', Colonia_idColonia: colonia3.idColonia, esterilizado: true, estado: 'Registrado', fecha_nac: new Date('2022-08-22') },
-      { nombre: 'Canela', Colonia_idColonia: colonia1.idColonia, esterilizado: false, estado: 'Registrado', fecha_nac: new Date('2020-11-05') },
-      { nombre: 'Julián', Colonia_idColonia: colonia2.idColonia, esterilizado: false, estado: 'NoRegistrado', fecha_nac: new Date('2023-12-01') },
+      { nombre: 'Tigre', Colonia_idColonia: colonia1.idColonia, esterilizado: false, estado: 'Registrado', fecha_nac: new Date('2018-07-20') }
     ]
   });
 
@@ -133,6 +130,55 @@ async function main() {
         }
       });
     }
+  }
+
+  // Crear Avistamientos de prueba
+  console.log('Creando avistamientos...');
+  const firstUser = await prisma.usuario.findFirst();
+  const firstAnimal = await prisma.animal.findFirst();
+
+  if (firstUser && firstAnimal) {
+    await prisma.avistamiento.createMany({
+      data: [
+        {
+          usuarioId: firstUser.idUsuario,
+          animalId: firstAnimal.idAnimal,
+          descripcion: 'Lo vi cerca de la entrada del edificio 108, se ve muy tranquilo.',
+          longitud: -102.3126,
+          latitud: 21.9123,
+          verificado: false,
+          createdAt: new Date(Date.now() - 1000 * 60 * 15) // Hace 15 min
+        },
+        {
+          usuarioId: firstUser.idUsuario,
+          animalId: null, // Sin identificar
+          descripcion: 'Un gato naranja con manchas blancas que no reconozco en esta zona.',
+          longitud: -102.3140,
+          latitud: 21.9150,
+          verificado: false,
+          createdAt: new Date(Date.now() - 1000 * 60 * 60 * 2) // Hace 2 hrs
+        },
+        {
+          usuarioId: firstUser.idUsuario,
+          animalId: firstAnimal.idAnimal,
+          descripcion: 'Reporte verificado de prueba para control.',
+          longitud: -102.3150,
+          latitud: 21.9160,
+          verificado: true,
+          verificadoPor: firstUser.idUsuario,
+          createdAt: new Date(Date.now() - 1000 * 60 * 60 * 24) // Hace 1 día
+        },
+        {
+          usuarioId: firstUser.idUsuario,
+          animalId: null,
+          descripcion: 'Gato negro herido cerca de la alberca.',
+          longitud: -102.3160,
+          latitud: 21.9170,
+          verificado: false,
+          createdAt: new Date(Date.now() - 1000 * 60 * 60 * 5) // Hace 5 hrs
+        }
+      ]
+    });
   }
 
   console.log('Seed completado exitosamente.');

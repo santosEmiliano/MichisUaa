@@ -80,6 +80,17 @@ export interface BackendAvistamiento {
   } | null;
 }
 
+export interface BackendAnimal {
+  idAnimal: number;
+  nombre: string;
+  Colonia_idColonia: number;
+  esterilizado: boolean;
+  estado: string;
+  colonia: {
+    nombre: string;
+  };
+}
+
 /*Alertas */
 export type AlertType = "success" | "error" | "warning" | "question";
 
@@ -97,14 +108,4 @@ export interface Alert {
   title: string;
   message?: string;
   position: AlertPosition;
-}
-
-export interface AlertaLogicaProps {
-  showAlert: (
-    type: AlertType,
-    title: string,
-    message?: string,
-    position?: AlertPosition,
-    duration?: number,
-  ) => void;
 }

@@ -1,5 +1,4 @@
-const { PrismaClient } = require('@prisma/client');
-const prisma = new PrismaClient();
+const prisma = require('../db/prisma');
 
 // model Avistamiento {
 //   idAvistamiento Int      @id @default(autoincrement())
@@ -53,14 +52,13 @@ async function getAllSightings(idUsuario) {
     const sightings = await prisma.avistamiento.findMany({
       where: idUsuario ? { usuarioId: Number(idUsuario) } : undefined,
       include: {
-        usuario: {
-          select: { nombre: true, email: true }
-        },
+        usuario: true, // Incluye el usuario que reportó
         animal: {
           include: {
-            colonia: { select: { nombre: true } }
+            colonia: true // Incluye la colonia del animal
           }
-        }
+        },
+        verificador: true // Incluye el usuario que verificó
       },
       orderBy: {
         createdAt: 'desc'
@@ -80,14 +78,13 @@ async function getSightingById(idAvistamiento) {
     const sighting = await prisma.avistamiento.findUnique({
       where:  { idAvistamiento: Number(idAvistamiento) },
       include: {
-        usuario: {
-          select: { nombre: true, email: true }
-        },
+        usuario: true,
         animal: {
           include: {
-            colonia: { select: { nombre: true } }
+            colonia: true
           }
-        }
+        },
+        verificador: true
       }
     });
 
@@ -121,7 +118,8 @@ async function modifySighting(id, data) {
     }
 
     if (data.verificadoPor !== undefined) {
-      updateData.verificadoPor = data.verificadoPor ? Number(data.verificadoPor) : null;
+      const vId = Number(data.verificadoPor);
+      updateData.verificadoPor = !isNaN(vId) && vId > 0 ? vId : null;
     }
 
     const updatedSighting = await prisma.avistamiento.update({

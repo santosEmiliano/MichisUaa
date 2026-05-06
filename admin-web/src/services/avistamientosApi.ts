@@ -10,6 +10,11 @@ const getHeaders = () => {
   };
 };
 
+const getUserId = (): number | null => {
+  const id = localStorage.getItem("userId");
+  return id ? Number(id) : null;
+};
+
 export const avistamientosApi = {
   // Obtener todos los avistamientos
   getAvistamientos: async (): Promise<BackendAvistamiento[]> => {
@@ -28,7 +33,7 @@ export const avistamientosApi = {
       body: JSON.stringify({ 
         animalId: animalId,
         verificado: true,
-        verificadoPor: localStorage.getItem("userId") || 1 // Fallback temporal a 1
+        verificadoPor: getUserId() || 1
       }),
     });
     if (!res.ok) throw new Error("Error al verificar el avistamiento");
@@ -43,7 +48,7 @@ export const avistamientosApi = {
       headers: getHeaders(),
       body: JSON.stringify({ 
         verificado: false,
-        verificadoPor: localStorage.getItem("userId") || 1 // Fallback temporal a 1
+        verificadoPor: getUserId() || 1
       }),
     });
     if (!res.ok) throw new Error("Error al rechazar el avistamiento");

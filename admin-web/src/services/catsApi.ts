@@ -1,4 +1,4 @@
-import type { Cat } from "../types/models";
+import type { BackendAnimal } from "../types/models";
 
 const API_URL = import.meta.env.VITE_API_URL || "http://localhost:3000";
 
@@ -11,14 +11,12 @@ const getHeaders = () => {
 };
 
 export const catsApi = {
-  // Obtener todos los gatos
-  getCats: async (): Promise<any[]> => {
+  // Obtener todos los gatos (animales)
+  getCats: async (): Promise<BackendAnimal[]> => {
     const res = await fetch(`${API_URL}/animal/`, {
       headers: getHeaders(),
     });
     if (!res.ok) throw new Error("Error al obtener los animales");
     return res.json();
   },
-  
-  // Puedes agregar más métodos CRUD aquí si es necesario (create, update, delete)
 };

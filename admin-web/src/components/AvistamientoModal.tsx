@@ -1,5 +1,5 @@
 import { useState, useEffect } from "react";
-import type { Avistamiento } from "../types/models";
+import type { Avistamiento, BackendAnimal } from "../types/models";
 import Icons from "./Icons";
 import { avistamientosApi } from "../services/avistamientosApi";
 import { catsApi } from "../services/catsApi";
@@ -13,7 +13,7 @@ interface Props {
 
 export const AvistamientoModal = ({ isOpen, onClose, onSuccess, avistamiento }: Props) => {
   const [selectedGato, setSelectedGato] = useState("");
-  const [cats, setCats] = useState<any[]>([]);
+  const [cats, setCats] = useState<BackendAnimal[]>([]);
   const [isProcessing, setIsProcessing] = useState(false);
 
   // Cargar lista de gatos para el select
