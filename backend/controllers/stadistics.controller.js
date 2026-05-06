@@ -22,7 +22,18 @@ const getSterilizedCount = async (req, res) => {
     }
 }
 
+const getMissingCats = async (req, res) => {
+    try {
+        const missingCatsCount = await stadisticsModel.getMissingCatsCount(); 
+        return res.status(200).json(missingCatsCount);
+    } catch (error) {
+        console.error("Error al obtener porcentaje de gatos esterilizados:", error);
+        return res.status(500).json({ mensaje: "Error al obtener el total de gatos" });
+    }
+}
+
 module.exports = {
   getTotalCats,
-  getSterilizedCount
+  getSterilizedCount,
+  getMissingCats
 };

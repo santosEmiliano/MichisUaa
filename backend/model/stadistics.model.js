@@ -25,7 +25,22 @@ async function getAllCats() {
   } 
 }
 
+async function getMissingCatsCount() {
+  try {
+    const totalCats = await prisma.animal.count({
+        where: {
+            estado: "Desaparecido",
+        },
+    });
+    return totalCats;
+  } catch (error) {
+    console.error("Error obteniendo total de gatos:", error);
+    throw error;
+  } 
+}
+
 module.exports = {
   getAllCats,
-  getSterilizedCount
+  getSterilizedCount,
+  getMissingCatsCount
 };

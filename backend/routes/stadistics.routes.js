@@ -7,6 +7,7 @@ const stadisticsFunctions = require("../controllers/stadistics.controller");
 router.get(
     "/getTotalCats",
     token.verifyToken,
+    token.verifyAdmin,
     stadisticsFunctions.getTotalCats
 )
 
@@ -14,7 +15,16 @@ router.get(
 router.get(
     "/getSterilizedCount",
     token.verifyToken,
+    token.verifyAdmin,
     stadisticsFunctions.getSterilizedCount
+)
+
+// Ruta GET para obtener el numero de gatos desaparecidos
+router.get(
+    "/getMissingCats",
+    token.verifyToken,
+    token.verifyAdmin,
+    stadisticsFunctions.getMissingCats
 )
 
 module.exports = router;
