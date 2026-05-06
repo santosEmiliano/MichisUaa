@@ -1,70 +1,12 @@
 import { useState, useEffect } from "react";
 import { createPortal } from "react-dom";
-import { DataTable, type ColumnDef } from "../components/DataTable";
+import { DataTable } from "../components/DataTable";
+import type { ColumnDef } from "../components/DataTable";
 import type { Avistamiento, FilterDef } from "../types/models";
 import Icons from "../components/Icons";
 import { AvistamientoModal } from "../components/AvistamientoModal";
 
-// ── Mocks ──
-const mockAvistamientos: Avistamiento[] = [
-  {
-    id: 1,
-    animalName: "Manchas",
-    animalColonia: "Ed. 108",
-    reportadoPor: "Ana Rosales",
-    ubicacion: "Entrada sur Ed. 108",
-    hace: "5 min",
-    estado: "Pendiente",
-    descripcion: "El gato estaba comiendo cerca de la entrada sur, se veía en buen estado",
-    coordenadas: "Entrada sur, Ed. 108 - 21.8842°N, 102.2969°W",
-    fechaHora: "03 May 2026 - 8:14 PM",
-  },
-  {
-    id: 2,
-    animalName: "Michi",
-    animalColonia: "Zona alberca",
-    reportadoPor: "Luis Torres",
-    ubicacion: "Zona alberca norte",
-    hace: "23 min",
-    estado: "Pendiente",
-  },
-  {
-    id: 3,
-    animalName: "No identificado",
-    animalColonia: "UMD",
-    reportadoPor: "Carlos Ríos",
-    ubicacion: "Est. UMD",
-    hace: "1 hr",
-    estado: "Sin identificar",
-  },
-  {
-    id: 4,
-    animalName: "Canela",
-    animalColonia: "Ed. 114",
-    reportadoPor: "Sofia Mendez",
-    ubicacion: "Pasillo B, Ed. 114",
-    hace: "2 hrs",
-    estado: "Pendiente",
-  },
-  {
-    id: 5,
-    animalName: "Wakanda",
-    animalColonia: "Ed. 108",
-    reportadoPor: "Jorge Ramos",
-    ubicacion: "Cafetería central",
-    hace: "3 hrs",
-    estado: "Verificado",
-  },
-  {
-    id: 6,
-    animalName: "Tigre",
-    animalColonia: "UMD",
-    reportadoPor: "M. Rodriguez",
-    ubicacion: "Entrada UMD",
-    hace: "5 hrs",
-    estado: "Rechazado",
-  },
-];
+import { mockAvistamientos } from "../data/mockAvistamientos";
 
 const filters: FilterDef[] = [
   {

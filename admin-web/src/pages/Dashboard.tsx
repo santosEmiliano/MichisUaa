@@ -4,7 +4,7 @@ import { MetricCard } from "../components/MetricCard";
 import { AvistamientoModal } from "../components/AvistamientoModal";
 import { DataTable, type ColumnDef } from "../components/DataTable";
 import type { Avistamiento } from "../types/models";
-import { mockAvistamientos } from "./Avistamientos";
+import { mockAvistamientos } from "../data/mockAvistamientos";
 
 const getInitials = (name: string) => {
   if (name === "No Identificado") return "?";
