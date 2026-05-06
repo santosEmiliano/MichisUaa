@@ -65,11 +65,22 @@ const coloniesSummary = async (req, res) => {
     }
 }
 
+const sighingsTendency = async (req, res) => {
+    try {
+        const tendencia = await stadisticsModel.getSightingsTendency();
+        return res.status(200).json(tendencia);
+    } catch (error) {
+        console.error("Error al obtener tendencia de avistamientos:", error);
+        return res.status(500).json({ mensaje: "Error al obtener tendencia de avistamientos" });
+    }
+}
+
 module.exports = {
   getTotalCats,
   getSterilizedCount,
   getMissingCats,
   sightingsLastWeek,
   signingsPerColony,
-  coloniesSummary
+  coloniesSummary,
+  sighingsTendency
 };

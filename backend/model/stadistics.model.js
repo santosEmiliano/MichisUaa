@@ -127,11 +127,59 @@ async function getColoniesSummary() {
   } 
 }
 
+async function getSightingsTendency() {
+  try {
+    const oldest = await prisma.avistamiento.findFirst({
+      orderBy: { createdAt: 'asc' },
+      select: { createdAt: true }
+    });
+
+    if (!oldest) return [];
+
+    const now = new Date();
+    const start = new Date(oldest.createdAt);
+    start.setHours(0, 0, 0, 0);
+    start.setDate(start.getDate() - start.getDay());
+
+    const semanas = [];
+    let weekStart = new Date(start);
+    let semanaNum = 1;
+
+    while (weekStart <= now) {
+      const weekEnd = new Date(weekStart);
+      weekEnd.setDate(weekEnd.getDate() + 7);
+
+      const count = await prisma.avistamiento.count({
+        where: {
+          createdAt: {
+            gte: weekStart,
+            lt: weekEnd
+          }
+        }
+      });
+
+      semanas.push({
+        name: `Sem ${semanaNum}`,
+        value: count
+      });
+
+      weekStart = weekEnd;
+      semanaNum++;
+    }
+
+    return semanas;
+  } catch (error) {
+    console.error("Error obteniendo tendencia de avistamientos:", error);
+    throw error;
+  }
+}
+
 module.exports = {
   getAllCats,
   getSterilizedCount,
   getMissingCatsCount,
   getSightingsLastWeekCount,
   getSigningsPerColony,
-  getColoniesSummary
+  getColoniesSummary,
+  getSightingsTendency
 };

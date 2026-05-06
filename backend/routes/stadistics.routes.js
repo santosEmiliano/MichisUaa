@@ -51,4 +51,12 @@ router.get(
     stadisticsFunctions.coloniesSummary
 )
 
+// Ruta GET para obtener la tendencia de avistamientos
+router.get(
+    "/sighingsTendency",
+    token.verifyToken,
+    token.verifyAdmin,
+    stadisticsFunctions.sighingsTendency
+)
+
 module.exports = router;
