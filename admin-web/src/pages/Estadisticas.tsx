@@ -2,6 +2,7 @@ import React, { useState, useEffect } from "react";
 import { createPortal } from "react-dom";
 import { PieChart, Pie, Cell, AreaChart, Area, ResponsiveContainer } from "recharts";
 import Icons from "../components/Icons";
+import { MetricCard } from "../components/MetricCard";
 
 const Estadisticas = () => {
   const [colonia, setColonia] = useState("Todas las colonias");
@@ -71,15 +72,42 @@ const Estadisticas = () => {
     <div className="space-y-6 pt-2 pb-10 overflow-x-hidden">
       {headerTarget && createPortal(headerFilters, headerTarget)}
 
-      {/* Tabs */}
       <div className="border-b border-sidebar-separador">
         <button className="px-6 py-2 bg-black text-white rounded-t-lg font-medium text-sm">
           Métricas
         </button>
       </div>
 
+      <div className="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-4 gap-4">
+        <MetricCard
+          title="Total Gatos"
+          value={47}
+          trendText="+3 este mes"
+          borderColor="#E8893C"
+        />
+        <MetricCard
+          title="Esterilizados"
+          value={78}
+          valueSuffix="%"
+          trendText="+5% vs anterior"
+          borderColor="#2B9E76"
+        />
+        <MetricCard
+          title="Desapariciones"
+          value={2}
+          trendText="+1 este mes"
+          trendType="danger"
+          borderColor="#E05252"
+        />
+        <MetricCard
+          title="Avistamientos por semana"
+          value={24}
+          trendText="+8 vs anterior"
+          borderColor="#3B82F6"
+        />
+      </div>
+
       <div className="grid grid-cols-1 xl:grid-cols-[1.5fr_1fr] gap-6">
-        {/* Horizontal Bars Chart */}
         <div className="bg-gris-oscuro rounded-3xl p-6 shadow-lg border border-sidebar-separador">
           <div className="flex justify-between items-end mb-6">
             <h2 className="text-xl font-bold text-white">Avistamientos por colonia</h2>
@@ -103,7 +131,6 @@ const Estadisticas = () => {
           </div>
         </div>
 
-        {/* Donut Chart */}
         <div className="bg-gris-oscuro rounded-3xl p-6 shadow-lg border-t-2 border-t-[#E8893C] border-x border-b border-sidebar-separador">
           <h2 className="text-xl font-bold text-white mb-6">Estado de esterilización</h2>
           <div className="flex items-center">
@@ -143,7 +170,6 @@ const Estadisticas = () => {
         </div>
       </div>
 
-      {/* Bottom Row */}
       <div className="grid grid-cols-1 xl:grid-cols-2 gap-6">
         {/* Line Chart */}
         <div className="bg-gris-oscuro rounded-3xl p-6 shadow-lg border-t-2 border-t-[#3B82F6] border-x border-b border-sidebar-separador flex flex-col">
@@ -172,8 +198,7 @@ const Estadisticas = () => {
                 />
               </AreaChart>
             </ResponsiveContainer>
-            
-            {/* X Axis Labels Custom (to match screenshot exactly) */}
+
             <div className="absolute bottom-0 left-0 right-0 flex justify-between px-4">
               {lineData.map((d, i) => (
                 <div key={i} className="text-[10px] text-secondary flex flex-col items-center">
