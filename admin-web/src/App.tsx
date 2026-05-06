@@ -9,6 +9,7 @@ import Colonias from "./pages/Colonias";
 import Avistamientos from "./pages/Avistamientos";
 import AlertsPrueba from "./pages/AlertsPruebas";
 
+
 function App() {
   const [isAuthenticated, setIsAuthenticated] = useState(false);
 
