@@ -16,6 +16,7 @@ interface DataTableProps<T> {
   rowsPerPage?: number;
   onEdit?: (row: T) => void; 
   onDelete?: (row: T) => void; 
+  onFilterChange?: (label: string, value: string) => void;
   middleContent?: React.ReactNode;
   hideControls?: boolean;
 }
@@ -28,6 +29,7 @@ export const DataTable = <T extends object>({
   rowsPerPage = 8,
   onEdit, 
   onDelete, 
+  onFilterChange,
   middleContent,
   hideControls = false,
 }: DataTableProps<T>) => {
@@ -88,7 +90,10 @@ export const DataTable = <T extends object>({
                 <div key={idx} className="relative min-w-max">
                   <select
                     className="appearance-none bg-gris-oscuro border border-panel text-secondary text-sm rounded-lg px-4 py-2.5 pr-8 focus:outline-none cursor-pointer"
-                    onChange={() => setPage(1)}
+                    onChange={(e) => {
+                      setPage(1);
+                      if (onFilterChange) onFilterChange(f.label, e.target.value);
+                    }}
                   >
                     <option value="">{f.label}</option>
                     {f.options.map((opt) => (

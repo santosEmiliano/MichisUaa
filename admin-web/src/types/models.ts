@@ -54,6 +54,7 @@ export interface Avistamiento {
   descripcion?: string;
   coordenadas?: string;
   fechaHora?: string;
+  fechaObjeto?: Date;
 }
 
 export interface BackendAvistamiento {

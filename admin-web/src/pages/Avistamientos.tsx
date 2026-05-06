@@ -1,4 +1,4 @@
-import { useState, useEffect, useCallback } from "react";
+import { useState, useEffect, useCallback, useMemo } from "react";
 import { createPortal } from "react-dom";
 import { DataTable } from "../components/DataTable";
 import type { ColumnDef } from "../components/DataTable";
@@ -24,6 +24,7 @@ const Avistamientos = () => {
   const [selectedAvistamiento, setSelectedAvistamiento] =
     useState<Avistamiento | null>(null);
   const [isModalOpen, setIsModalOpen] = useState(false);
+  const [activeFilters, setActiveFilters] = useState<Record<string, string>>({});
   
   // Elementos del DOM para los portales
   const [badgeContainer, setBadgeContainer] = useState<Element | null>(null);
@@ -33,13 +34,10 @@ const Avistamientos = () => {
       setLoading(true);
       const data = await avistamientosApi.getAvistamientos();
       const mapped: Avistamiento[] = data.map((item) => {
-        const estado: Avistamiento["estado"] = item.verificado 
-          ? "Verificado" 
-          : item.verificadoPor !== null 
-            ? "Rechazado" 
-            : item.animalId === null 
-              ? "Sin identificar" 
-              : "Pendiente";
+        let estado: Avistamiento["estado"] = "Pendiente";
+        if (item.verificado) estado = "Verificado";
+        else if (item.verificadoPor !== null) estado = "Rechazado";
+        else if (item.animalId === null) estado = "Sin identificar";
 
         const fecha = new Date(item.createdAt);
         const ahora = new Date();
@@ -62,7 +60,8 @@ const Avistamientos = () => {
           estado: estado,
           descripcion: item.descripcion || "Sin descripción proporcionada",
           coordenadas: `${item.latitud}, ${item.longitud}`,
-          fechaHora: fecha.toLocaleString('es-MX', { dateStyle: 'medium', timeStyle: 'short' })
+          fechaHora: fecha.toLocaleString('es-MX', { dateStyle: 'medium', timeStyle: 'short' }),
+          fechaObjeto: fecha // Guardamos el objeto Date real para filtrar
         };
       });
       setAvistamientos(mapped);
@@ -103,6 +102,45 @@ const Avistamientos = () => {
       setLoading(false);
     }
   };
+
+  const handleFilterChange = (label: string, value: string) => {
+    setActiveFilters(prev => ({
+      ...prev,
+      [label]: value
+    }));
+  };
+
+  const filteredAvistamientos = useMemo(() => {
+    return avistamientos.filter(item => {
+      // Filtro de Estado
+      if (activeFilters["Estado"]) {
+        const filterVal = activeFilters["Estado"];
+        if (filterVal === "Pendientes" && item.estado !== "Pendiente") return false;
+        if (filterVal === "Verificados" && item.estado !== "Verificado") return false;
+        if (filterVal === "Rechazados" && item.estado !== "Rechazado") return false;
+        if (filterVal === "Sin identificar" && item.estado !== "Sin identificar") return false;
+      }
+
+      // Filtro de Fechas
+      if (activeFilters["Fechas"] && item.fechaObjeto) {
+        const filterVal = activeFilters["Fechas"];
+        const itemDate = item.fechaObjeto;
+        const ahora = new Date();
+        
+        if (filterVal === "Hoy") {
+          if (itemDate.toDateString() !== ahora.toDateString()) return false;
+        } else if (filterVal === "Últimos 7 días") {
+          const sevenDaysAgo = new Date();
+          sevenDaysAgo.setDate(ahora.getDate() - 7);
+          if (itemDate < sevenDaysAgo) return false;
+        } else if (filterVal === "Este mes") {
+          if (itemDate.getMonth() !== ahora.getMonth() || itemDate.getFullYear() !== ahora.getFullYear()) return false;
+        }
+      }
+
+      return true;
+    });
+  }, [avistamientos, activeFilters]);
 
   const getStatusBadgeClass = (estado: string) => {
     switch (estado) {
@@ -227,10 +265,11 @@ const Avistamientos = () => {
         </div>
       ) : (
         <DataTable
-          data={avistamientos}
+          data={filteredAvistamientos}
           columns={columns}
           searchPlaceholder="Buscar por animal, colonia o reportador..."
           filters={filters}
+          onFilterChange={handleFilterChange}
           rowsPerPage={8}
           middleContent={
             <div className="flex justify-end gap-1 text-sm font-bold px-2 mb-2">
