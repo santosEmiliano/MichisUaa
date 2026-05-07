@@ -34,11 +34,25 @@ const navGroups = [
   },
 ];
 
-import { getUserName } from "../utils/auth";
+import { getUserName, logoutHelper } from "../utils/auth";
+import { authService } from "../services/authApi";
 
 const Sidebar: React.FC<SidebarProps> = ({ isOpen, toggleSidebar }) => {
   const userName = getUserName();
   const initials = userName.substring(0, 2).toUpperCase();
+
+  const handleLogout = async () => {
+    const token = localStorage.getItem("token");
+    if (token) {
+      try {
+        await authService.logout(token);
+      } catch (err) {
+        console.error("Error cerrando sesión en el servidor:", err);
+      }
+    }
+    logoutHelper();
+    window.location.href = "/login";
+  };
 
   return (
     <aside
@@ -121,21 +135,28 @@ const Sidebar: React.FC<SidebarProps> = ({ isOpen, toggleSidebar }) => {
         ))}
       </nav>
 
-      <div className="p-4 border-t border-panel mt-auto">
-        <div className="flex items-center gap-4 p-2">
+      <div className="p-4 border-t border-panel mt-auto flex items-center justify-between">
+        <div className="flex items-center gap-4 p-2 min-w-0">
           <div className="w-12 h-12 rounded-full flex items-center justify-center font-bold text-lg bg-[#D8AA71] text-black relative shrink-0">
             {initials}
             <div className="absolute -top-3 -left-2 bg-black text-white text-[10px] px-1.5 py-0.5 rounded">
               Perfil
             </div>
           </div>
-          <div className="min-w-0">
+          <div className="min-w-0 pr-2">
             <p className="text-[17px] font-bold text-[#EAEAEA] truncate">{userName}</p>
-            <p className="text-[14px] font-semibold text-secondary">
+            <p className="text-[14px] font-semibold text-secondary truncate">
               Administrador
             </p>
           </div>
         </div>
+        <button
+          onClick={handleLogout}
+          className="p-3 mr-1 text-secondary hover:text-red-400 hover:bg-red-400/10 rounded-xl transition-all shrink-0"
+          title="Cerrar sesión"
+        >
+          <Icons.LogOut className="w-5 h-5" />
+        </button>
       </div>
     </aside>
   );

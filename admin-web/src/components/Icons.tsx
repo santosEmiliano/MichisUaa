@@ -24,6 +24,7 @@ import {
   AlertCircle,
   AlertTriangle,
   HelpCircle,
+  LogOut,
 } from "lucide-react";
 
 const Icons = {
@@ -53,6 +54,7 @@ const Icons = {
   ErrorCircle: AlertCircle,
   WarningTriangle: AlertTriangle,
   QuestionCircle: HelpCircle,
+  LogOut: LogOut,
 };
 
 export default Icons;
