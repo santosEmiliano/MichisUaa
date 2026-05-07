@@ -1,5 +1,6 @@
-import { useState } from "react";
 import Icons from "../components/Icons";
+import LoginBackground from "../components/LoginBackground";
+import { useState } from "react";
 import { authService } from "../services/authApi";
 
 interface AuthPageProps {
@@ -87,13 +88,16 @@ const AuthPage = ({ onLogin }: AuthPageProps) => {
   };
 
   const inputBase =
-    "w-full rounded-xl px-4 py-3 text-main focus:outline-none transition-all duration-200 placeholder-secondary";
-  const inputOk = `${inputBase} input-field border-sidebar-separador`;
-  const inputErr = `${inputBase} bg-gris border border-red-500 focus:border-red-500`;
+    "w-full rounded-xl px-4 py-3 text-main focus:outline-none transition-all duration-200 placeholder-white/30";
+  const inputOk = `${inputBase} bg-white/5 border border-white/10 focus:bg-white/10 focus:border-orange/50`;
+  const inputErr = `${inputBase} bg-red-500/10 border border-red-500/50 focus:border-red-500`;
 
   return (
-    <div className="min-h-screen flex items-center justify-center bg-main p-4">
-      <div className="relative w-full max-w-md bg-panel rounded-2xl border border-panel overflow-hidden">
+    <div className="relative min-h-screen flex items-center justify-center p-4 overflow-hidden">
+      <LoginBackground />
+      
+      <div className="relative w-full max-w-md backdrop-blur-xl bg-panel/40 rounded-[2.5rem] border border-white/10 shadow-[0_8px_32px_0_rgba(0,0,0,0.8)] overflow-hidden z-10">
+
         {/* Línea decorativa superior */}
         <div
           className="absolute top-0 left-0 right-0 h-px"
@@ -104,12 +108,12 @@ const AuthPage = ({ onLogin }: AuthPageProps) => {
         />
 
         {/* Logo */}
-        <div className="text-center pt-10 pb-5 px-8">
-          <div className="w-14 h-14 bg-orange rounded-full flex items-center justify-center mx-auto mb-4 border-2 border-panel">
-            <Icons.Paw className="w-7 h-7 text-white" />
+        <div className="text-center pt-12 pb-6 px-8">
+          <div className="w-16 h-16 bg-gradient-to-br from-orange to-red-500 rounded-2xl flex items-center justify-center mx-auto mb-5 shadow-lg rotate-3">
+            <Icons.Paw className="w-8 h-8 text-white" />
           </div>
-          <h2 className="text-2xl font-extrabold text-main">MichisUAA</h2>
-          <p className="text-secondary text-sm mt-1">Panel de administración</p>
+          <h2 className="text-3xl font-black text-main tracking-tight">MichisUAA</h2>
+          <p className="text-white/60 text-sm font-medium mt-1">Panel de administración</p>
         </div>
 
         {/* Formulario */}
@@ -118,7 +122,7 @@ const AuthPage = ({ onLogin }: AuthPageProps) => {
 
             {/* Email */}
             <div>
-              <label className="block text-sidebar-secciones text-xs font-bold mb-2 uppercase tracking-widest">
+              <label className="block text-white/40 text-[10px] font-black mb-2 uppercase tracking-[0.2em]">
                 Correo
               </label>
               <input
@@ -135,7 +139,7 @@ const AuthPage = ({ onLogin }: AuthPageProps) => {
 
             {/* Contraseña */}
             <div>
-              <label className="block text-sidebar-secciones text-xs font-bold mb-2 uppercase tracking-widest">
+              <label className="block text-white/40 text-[10px] font-black mb-2 uppercase tracking-[0.2em]">
                 Contraseña
               </label>
               <div className="relative">
@@ -181,7 +185,7 @@ const AuthPage = ({ onLogin }: AuthPageProps) => {
             <button
               type="submit"
               disabled={loading}
-              className="w-full bg-orange text-white font-bold rounded-xl px-4 py-3.5 mt-1 hover:opacity-90 transition-opacity disabled:opacity-50 disabled:cursor-not-allowed flex items-center justify-center gap-2"
+              className="w-full bg-gradient-to-r from-orange to-[#d8aa71] text-white font-bold rounded-xl px-4 py-4 mt-2 hover:scale-[1.02] active:scale-[0.98] transition-all duration-200 shadow-lg shadow-orange/20 disabled:opacity-50 disabled:cursor-not-allowed flex items-center justify-center gap-2"
             >
               {loading ? (
                 <>
