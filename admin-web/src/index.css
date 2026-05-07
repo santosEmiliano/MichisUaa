@@ -340,3 +340,36 @@ body {
 .animate-panel-out {
   animation: slide-panel-out 0.35s cubic-bezier(0.7, 0, 0.84, 0) both;
 }
+
+/* ===== Animaciones de entrada al login (Layout) ===== */
+@keyframes sidebar-entrance {
+  0% {
+    opacity: 0;
+    transform: translateX(-100%) scale(0.95);
+    filter: blur(8px);
+  }
+  100% {
+    opacity: 1;
+    transform: translateX(0) scale(1);
+    filter: blur(0);
+  }
+}
+
+@keyframes content-entrance {
+  from {
+    opacity: 0;
+    transform: translateY(20px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+.animate-sidebar-entrance {
+  animation: sidebar-entrance 0.8s cubic-bezier(0.16, 1, 0.3, 1) both;
+}
+
+.animate-content-entrance {
+  animation: content-entrance 0.8s cubic-bezier(0.16, 1, 0.3, 1) both;
+}
