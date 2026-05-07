@@ -34,7 +34,12 @@ const navGroups = [
   },
 ];
 
+import { getUserName } from "../utils/auth";
+
 const Sidebar: React.FC<SidebarProps> = ({ isOpen, toggleSidebar }) => {
+  const userName = getUserName();
+  const initials = userName.substring(0, 2).toUpperCase();
+
   return (
     <aside
       className={clsx(
@@ -118,16 +123,16 @@ const Sidebar: React.FC<SidebarProps> = ({ isOpen, toggleSidebar }) => {
 
       <div className="p-4 border-t border-panel mt-auto">
         <div className="flex items-center gap-4 p-2">
-          <div className="w-12 h-12 rounded-full flex items-center justify-center font-bold text-lg bg-[#D8AA71] text-black relative">
-            BO
+          <div className="w-12 h-12 rounded-full flex items-center justify-center font-bold text-lg bg-[#D8AA71] text-black relative shrink-0">
+            {initials}
             <div className="absolute -top-3 -left-2 bg-black text-white text-[10px] px-1.5 py-0.5 rounded">
-              Perfil Usuario
+              Perfil
             </div>
           </div>
-          <div>
-            <p className="text-[17px] font-bold text-[#EAEAEA]">Santos</p>
+          <div className="min-w-0">
+            <p className="text-[17px] font-bold text-[#EAEAEA] truncate">{userName}</p>
             <p className="text-[14px] font-semibold text-secondary">
-              Responsable de colonia
+              Administrador
             </p>
           </div>
         </div>
