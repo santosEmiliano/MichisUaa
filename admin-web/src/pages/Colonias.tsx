@@ -128,6 +128,26 @@ const Colonias = () => {
     return colonias.slice(start, start + itemsPerPage);
   }, [colonias, safePage, itemsPerPage]);
 
+  const getBentoConfig = () => {
+    if (cols === 3) {
+      const patterns: ("tall" | "wide")[][] = [
+        ["tall", "tall", "tall", "wide", "wide", "tall"],
+        ["wide", "wide", "tall", "tall", "tall", "tall"],
+        ["tall", "wide", "wide", "wide", "wide", "tall"],
+      ];
+      return { gridRows: 4, pattern: patterns[(safePage - 1) % patterns.length] };
+    } else if (cols === 2) {
+      const patterns: ("tall" | "wide")[][] = [
+        ["wide", "tall", "tall", "wide"],
+        ["tall", "tall", "wide", "wide"],
+      ];
+      return { gridRows: 4, pattern: patterns[(safePage - 1) % patterns.length] };
+    }
+    return { gridRows: currentColonias.length || 3, pattern: [] };
+  };
+
+  const { gridRows: bentoRows, pattern: bentoPattern } = getBentoConfig();
+
   const [badgeTarget, setBadgeTarget] = useState<HTMLElement | null>(null);
   const [actionsTarget, setActionsTarget] = useState<HTMLElement | null>(null);
   useEffect(() => {
@@ -230,22 +250,33 @@ const Colonias = () => {
       ) : (
 
       <div
-        className="flex-1 min-h-0 grid gap-2.5 auto-rows-[minmax(0,1fr)]"
+        className="flex-1 min-h-0 grid gap-2.5 auto-rows-[minmax(0,1fr)] grid-flow-dense"
         style={{
           gridTemplateColumns: `repeat(${cols}, minmax(0, 1fr))`,
-          gridTemplateRows: `repeat(${rows}, minmax(0, 1fr))`,
+          gridTemplateRows: `repeat(${bentoRows}, minmax(0, 1fr))`,
         }}
       >
         {currentColonias.map((colonia, i) => {
           const { id, ...cardProps } = colonia;
+          
+          let variant: "tall" | "wide" | "standard" = "standard";
+          let spanClass = "col-span-1 row-span-1";
+
+          if (cols > 1 && bentoPattern[i]) {
+            variant = bentoPattern[i];
+            if (variant === "tall") spanClass = "col-span-1 row-span-2";
+            if (variant === "wide") spanClass = "col-span-2 row-span-1";
+          }
+
           return (
             <div
               key={`${id}-${safePage}`}
-              className="animate-row-in h-full"
+              className={`animate-row-in h-full min-h-0 ${spanClass}`}
               style={{ animationDelay: `${i * 60}ms` }}
             >
               <ColoniaCard
                 {...cardProps}
+                variant={variant === "standard" ? "tall" : variant}
                 onEdit={() => openEdit(colonia)}
                 onDelete={() => handleDelete(colonia.id)}
               />
