@@ -46,6 +46,7 @@ export interface Avistamiento {
   id: number;
   fotoUrl?: string;
   animalName: string;
+  animalId?: number;
   animalColonia: string;
   reportadoPor: string;
   ubicacion: string;
