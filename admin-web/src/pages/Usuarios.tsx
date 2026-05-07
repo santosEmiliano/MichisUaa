@@ -11,6 +11,7 @@ import { DeleteConfirmModal } from "../components/DeleteConfirmModal";
 
 type RolUser = User["rol"];
 
+
 const rolBadge: Record<RolUser, React.CSSProperties> = {
   Administrador: {
     background: "var(--badge-naranja-fondo)",
@@ -83,6 +84,7 @@ const UsuariosPage = () => {
   const [badgeTarget, setBadgeTarget] = useState<HTMLElement | null>(null);
   const [actionsTarget, setActionsTarget] = useState<HTMLElement | null>(null);
   const [activeFilters, setActiveFilters] = useState<Record<string, string>>({});
+  const [rowsPerPage, setRowsPerPage] = useState(8);
 
   useEffect(() => {
     // Simular carga para mostrar el componente LoadingScreen
@@ -151,6 +153,19 @@ const UsuariosPage = () => {
     </span>
   );
 
+  useEffect(() => {
+    const updateRows = () => {
+      const h = window.innerHeight;
+      if (h < 700) setRowsPerPage(3);
+      else if (h < 850) setRowsPerPage(4);
+      else if (h < 1000) setRowsPerPage(6);
+      else setRowsPerPage(8);
+    };
+    updateRows();
+    window.addEventListener("resize", updateRows);
+    return () => window.removeEventListener("resize", updateRows);
+  }, []);
+
   const headerAction = (
     <button
       onClick={() => {
@@ -176,6 +191,7 @@ const UsuariosPage = () => {
           data={filteredUsers}
           columns={columns}
           searchPlaceholder="Buscar por nombre o email..."
+          rowsPerPage={rowsPerPage}
           onEdit={(user) => {
             setUserToEdit(user);
             setModalOpen(true);
