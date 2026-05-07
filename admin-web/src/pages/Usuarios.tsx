@@ -1,4 +1,4 @@
-import { useState, useEffect } from "react";
+import { useState, useEffect, useMemo } from "react";
 import { createPortal } from "react-dom";
 import Icons from "../components/Icons";
 import { DataTable, type ColumnDef } from "../components/DataTable";
@@ -82,6 +82,7 @@ const UsuariosPage = () => {
   const [userToDelete, setUserToDelete] = useState<User | null>(null);
   const [badgeTarget, setBadgeTarget] = useState<HTMLElement | null>(null);
   const [actionsTarget, setActionsTarget] = useState<HTMLElement | null>(null);
+  const [activeFilters, setActiveFilters] = useState<Record<string, string>>({});
 
   useEffect(() => {
     // Simular carga para mostrar el componente LoadingScreen
@@ -132,6 +133,18 @@ const UsuariosPage = () => {
     }
   };
 
+  const handleFilterChange = (label: string, value: string) => {
+    setActiveFilters(prev => ({ ...prev, [label]: value }));
+  };
+
+  const filteredUsers = useMemo(() => {
+    return users.filter(user => {
+      const roleFilter = activeFilters["Todos los roles"];
+      if (roleFilter && user.rol !== roleFilter) return false;
+      return true;
+    });
+  }, [users, activeFilters]);
+
   const headerBadge = (
     <span className="text-sm font-semibold px-3 py-1 rounded-full border border-sidebar-separador bg-gris-oscuro text-secondary">
       {users.length} registrados
@@ -160,7 +173,7 @@ const UsuariosPage = () => {
         <LoadingScreen message="Cargando Usuarios" />
       ) : (
         <DataTable
-          data={users}
+          data={filteredUsers}
           columns={columns}
           searchPlaceholder="Buscar por nombre o email..."
           onEdit={(user) => {
@@ -168,6 +181,7 @@ const UsuariosPage = () => {
             setModalOpen(true);
           }}
           onDelete={confirmDelete}
+          onFilterChange={handleFilterChange}
           filters={[
             {
               label: "Todos los roles",
