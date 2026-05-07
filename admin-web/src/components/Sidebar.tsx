@@ -1,5 +1,6 @@
 import { NavLink } from "react-router-dom";
 import clsx from "clsx";
+import Icons from "./Icons";
 
 type NavItem = {
   label: string;

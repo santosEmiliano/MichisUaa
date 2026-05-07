@@ -138,6 +138,16 @@ export const ColoniaCard = ({
               >
                 <Icons.Edit className="w-4 h-4" />
               </button>
+              {onDelete && (
+                <button
+                  type="button"
+                  onClick={onDelete}
+                  title="Eliminar colonia"
+                  className="p-2 rounded-lg border border-red-500/50 text-red-500 hover:bg-red-500/10 transition-colors shrink-0"
+                >
+                  <Icons.Trash2 className="w-4 h-4" />
+                </button>
+              )}
             </div>
           </div>
         </div>
@@ -184,13 +194,25 @@ export const ColoniaCard = ({
               </div>
             </div>
 
-            <button
-              type="button"
-              onClick={onEdit}
-              className="w-full flex items-center justify-center gap-2 py-2 px-3 rounded-lg border border-white/[0.35] text-main hover:bg-white/[0.06] transition-colors text-xs font-bold"
-            >
-              Editar <Icons.Edit className="w-3.5 h-3.5" />
-            </button>
+            <div className="flex w-full gap-2">
+              <button
+                type="button"
+                onClick={onEdit}
+                className="flex-1 flex items-center justify-center gap-2 py-2 px-3 rounded-lg border border-white/[0.35] text-main hover:bg-white/[0.06] transition-colors text-xs font-bold"
+              >
+                Editar <Icons.Edit className="w-3.5 h-3.5" />
+              </button>
+              {onDelete && (
+                <button
+                  type="button"
+                  onClick={onDelete}
+                  className="flex items-center justify-center p-2 rounded-lg border border-red-500/50 text-red-500 hover:bg-red-500/10 transition-colors shrink-0"
+                  title="Eliminar colonia"
+                >
+                  <Icons.Trash2 className="w-4 h-4" />
+                </button>
+              )}
+            </div>
           </div>
         </div>
       )}

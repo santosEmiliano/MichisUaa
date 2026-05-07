@@ -48,8 +48,7 @@ export const avistamientosApi = {
       headers: getHeaders(),
       body: JSON.stringify({ 
         verificado: false,
-        verificadoPor: getUserId() || 1,
-        animalId: null
+        verificadoPor: getUserId() || 1
       }),
     });
     if (!res.ok) throw new Error("Error al rechazar el avistamiento");

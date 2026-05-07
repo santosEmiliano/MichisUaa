@@ -3,8 +3,6 @@ export const checkSession = (): boolean => {
   if (!token) return false;
 
   try {
-    // El token JWT tiene 3 partes separadas por punto: header.payload.signature
-    // Decodificamos el payload (la segunda parte) para leer los datos
     const base64Url = token.split('.')[1];
     const base64 = base64Url.replace(/-/g, '+').replace(/_/g, '/');
     const jsonPayload = decodeURIComponent(
@@ -22,7 +20,13 @@ export const checkSession = (): boolean => {
       return false;
     }
 
-    return payload.admin === true || payload.admin === 1;
+    const isAdmin = 
+      payload.admin === true || 
+      payload.admin === 1 || 
+      payload.admin === "1" || 
+      (payload.admin && payload.admin.type === "Buffer" && payload.admin.data && payload.admin.data[0] === 1);
+
+    return !!isAdmin;
   } catch (error) {
     console.error("Error al decodificar el token:", error);
     return false;

@@ -31,15 +31,6 @@ export const AvistamientoModal = ({ isOpen, onClose, onSuccess, avistamiento }: 
     }
   }, [isOpen]);
 
-  // Pre-seleccionar el gato si ya tiene uno asignado, o limpiar si es nuevo
-  useEffect(() => {
-    if (isOpen && avistamiento?.animalId) {
-      setSelectedGato(avistamiento.animalId.toString());
-    } else if (isOpen) {
-      setSelectedGato("");
-    }
-  }, [isOpen, avistamiento]);
-
   // Cerrar con Escape
   useEffect(() => {
     if (!isOpen) return;
