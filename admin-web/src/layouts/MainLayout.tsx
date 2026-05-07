@@ -1,12 +1,42 @@
-import { useState } from "react";
-import { Outlet } from "react-router-dom";
+import { useState, useEffect } from "react";
+import { Outlet, useNavigate } from "react-router-dom";
 import Sidebar from "../components/Sidebar";
 import Header from "../components/Header";
 import Icons from "../components/Icons";
+import { checkSession } from "../utils/auth";
 
 const MainLayout = () => {
   const [isSidebarOpen, setIsSidebarOpen] = useState(false);
   const toggleSidebar = () => setIsSidebarOpen((prev) => !prev);
+  const navigate = useNavigate();
+
+  useEffect(() => {
+    // Chequeo periódico (cada minuto) para asegurar que el token no haya expirado
+    const interval = setInterval(() => {
+      if (!checkSession()) {
+        navigate("/login");
+      }
+    }, 60000);
+
+    // Chequeo por si el usuario borra los datos en otra pestaña o los altera
+    const handleStorageChange = () => {
+      if (!checkSession()) {
+        navigate("/login");
+      }
+    };
+    
+    // Verificación inmediata al montar
+    if (!checkSession()) {
+      navigate("/login");
+    }
+
+    window.addEventListener("storage", handleStorageChange);
+
+    return () => {
+      clearInterval(interval);
+      window.removeEventListener("storage", handleStorageChange);
+    };
+  }, [navigate]);
 
   return (
     <div className="h-screen flex overflow-hidden bg-main text-main">
