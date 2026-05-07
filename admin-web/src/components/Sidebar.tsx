@@ -140,9 +140,6 @@ const Sidebar: React.FC<SidebarProps> = ({ isOpen, toggleSidebar }) => {
         <div className="flex items-center gap-4 p-2 min-w-0">
           <div className="w-12 h-12 rounded-full flex items-center justify-center font-bold text-lg bg-[#D8AA71] text-black relative shrink-0">
             {initials}
-            <div className="absolute -top-3 -left-2 bg-black text-white text-[10px] px-1.5 py-0.5 rounded">
-              Perfil
-            </div>
           </div>
           <div className="min-w-0 pr-2">
             <p className="text-[17px] font-bold text-[#EAEAEA] truncate">{userName}</p>
