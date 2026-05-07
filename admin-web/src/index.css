@@ -322,3 +322,21 @@ body {
 .animate-title-reverse {
   animation: title-fade-in-reverse 0.6s cubic-bezier(0.22, 1, 0.36, 1) both;
 }
+
+@keyframes slide-panel-in {
+  from { transform: translateX(100%); }
+  to   { transform: translateX(0); }
+}
+
+@keyframes slide-panel-out {
+  from { transform: translateX(0); }
+  to   { transform: translateX(100%); }
+}
+
+.animate-panel-in {
+  animation: slide-panel-in 0.45s cubic-bezier(0.16, 1, 0.3, 1) both;
+}
+
+.animate-panel-out {
+  animation: slide-panel-out 0.35s cubic-bezier(0.7, 0, 0.84, 0) both;
+}
