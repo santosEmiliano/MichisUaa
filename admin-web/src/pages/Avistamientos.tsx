@@ -54,6 +54,7 @@ const Avistamientos = () => {
           id: item.idAvistamiento,
           fotoUrl: item.foto_url || undefined,
           animalName: item.animal?.nombre || "No identificado",
+          animalId: item.animalId || undefined,
           animalColonia: item.animal?.colonia?.nombre || "N/A",
           reportadoPor: item.usuario?.nombre || "Anónimo",
           ubicacion: `Lat: ${item.latitud}, Lon: ${item.longitud}`,
