@@ -26,9 +26,23 @@ const Avistamientos = () => {
     useState<Avistamiento | null>(null);
   const [isModalOpen, setIsModalOpen] = useState(false);
   const [activeFilters, setActiveFilters] = useState<Record<string, string>>({});
+  const [rowsPerPage, setRowsPerPage] = useState(8);
   
   // Elementos del DOM para los portales
   const [badgeContainer, setBadgeContainer] = useState<Element | null>(null);
+
+  useEffect(() => {
+    const updateRows = () => {
+      const h = window.innerHeight;
+      if (h < 700) setRowsPerPage(3);
+      else if (h < 850) setRowsPerPage(4);
+      else if (h < 1000) setRowsPerPage(6);
+      else setRowsPerPage(8);
+    };
+    updateRows();
+    window.addEventListener("resize", updateRows);
+    return () => window.removeEventListener("resize", updateRows);
+  }, []);
 
   const fetchDatos = useCallback(async () => {
     try {
@@ -270,7 +284,7 @@ const Avistamientos = () => {
           searchPlaceholder="Buscar por animal, colonia o reportador..."
           filters={filters}
           onFilterChange={handleFilterChange}
-          rowsPerPage={8}
+          rowsPerPage={rowsPerPage}
           middleContent={
             <div className="flex justify-end gap-1 text-sm font-bold px-2 mb-2">
               <span className="text-acento-naranja">{pendientesCount}</span>
