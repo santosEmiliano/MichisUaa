@@ -10,9 +10,10 @@ import Avistamientos from "./pages/Avistamientos";
 import Estadisticas from "./pages/Estadisticas";
 import AlertsPrueba from "./pages/AlertsPruebas";
 
+import { checkSession } from "./utils/auth";
 
 function App() {
-  const [isAuthenticated, setIsAuthenticated] = useState(false);
+  const [isAuthenticated, setIsAuthenticated] = useState(() => checkSession());
 
   return (
     <Routes>
