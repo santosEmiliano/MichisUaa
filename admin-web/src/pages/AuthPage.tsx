@@ -75,6 +75,7 @@ const AuthPage = ({ onLogin }: AuthPageProps) => {
       localStorage.setItem("token", data.token);
       localStorage.setItem("userId", String(data.datos.idUsuario));
       localStorage.setItem("userName", data.datos.nombre);
+      localStorage.setItem("isAdmin", String(data.datos.admin));
       onLogin();
     } catch (err: unknown) {
       setApiError(
