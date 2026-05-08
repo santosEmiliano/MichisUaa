@@ -288,3 +288,98 @@ body {
 .animate-pop-in {
   animation: popIn 0.3s cubic-bezier(0.16, 1, 0.3, 1) forwards;
 }
+
+@keyframes title-fade-in {
+  from {
+    opacity: 0;
+    transform: translateX(-12px);
+    filter: blur(4px);
+  }
+  to {
+    opacity: 1;
+    transform: translateX(0);
+    filter: blur(0);
+  }
+}
+
+.animate-title {
+  animation: title-fade-in 0.6s cubic-bezier(0.22, 1, 0.36, 1) both;
+}
+
+@keyframes title-fade-in-reverse {
+  from {
+    opacity: 0;
+    transform: translateX(12px);
+    filter: blur(4px);
+  }
+  to {
+    opacity: 1;
+    transform: translateX(0);
+    filter: blur(0);
+  }
+}
+
+.animate-title-reverse {
+  animation: title-fade-in-reverse 0.6s cubic-bezier(0.22, 1, 0.36, 1) both;
+}
+
+@keyframes slide-panel-in {
+  from { transform: translateX(100%); }
+  to   { transform: translateX(0); }
+}
+
+@keyframes slide-panel-out {
+  from { transform: translateX(0); }
+  to   { transform: translateX(100%); }
+}
+
+.animate-panel-in {
+  animation: slide-panel-in 0.45s cubic-bezier(0.16, 1, 0.3, 1) both;
+}
+
+.animate-panel-out {
+  animation: slide-panel-out 0.35s cubic-bezier(0.7, 0, 0.84, 0) both;
+}
+
+/* ===== Animaciones de entrada al login (Layout) ===== */
+@keyframes sidebar-entrance {
+  0% {
+    opacity: 0;
+    transform: translateX(-100%) scale(0.95);
+    filter: blur(8px);
+  }
+  100% {
+    opacity: 1;
+    transform: translateX(0) scale(1);
+    filter: blur(0);
+  }
+}
+
+@keyframes content-entrance {
+  from {
+    opacity: 0;
+    transform: translateY(20px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+.animate-sidebar-entrance {
+  animation: sidebar-entrance 0.8s cubic-bezier(0.16, 1, 0.3, 1) both;
+}
+
+.animate-content-entrance {
+  animation: content-entrance 0.8s cubic-bezier(0.16, 1, 0.3, 1) both;
+}
+
+@keyframes float {
+  0%, 100% { transform: translate(0, 0) scale(1); }
+  33% { transform: translate(30px, -50px) scale(1.05); }
+  66% { transform: translate(-20px, 20px) scale(0.95); }
+}
+
+.animate-float {
+  animation: float 20s infinite ease-in-out;
+}

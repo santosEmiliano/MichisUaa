@@ -43,16 +43,26 @@ const Header = () => {
   return (
     <header className="sticky top-0 z-20 px-6 py-5 md:px-10 flex items-center justify-between border-b border-panel bg-gris">
       <div className="flex items-center gap-3 min-w-0">
-        <h1 className="text-4xl font-extrabold text-main shrink-0">
+        <h1 
+          key={currentTitle}
+          className="text-4xl font-extrabold text-main shrink-0 animate-title"
+        >
           {currentTitle}
         </h1>
 
         {isDashboard ? (
-          <span className="text-base px-5 py-1.5 rounded-full font-bold bg-badge-naranja text-badge-naranja">
+          <span 
+            key={currentTitle + "-badge"}
+            className="text-base px-5 py-1.5 rounded-full font-bold bg-badge-naranja text-badge-naranja animate-title [animation-delay:100ms]"
+          >
             Colonia Central
           </span>
         ) : (
-          <div id="header-badge" className="flex items-center shrink-0" />
+          <div 
+            id="header-badge" 
+            key={currentTitle + "-badge"}
+            className="flex items-center shrink-0 animate-title [animation-delay:100ms]" 
+          />
         )}
       </div>
 
@@ -109,7 +119,11 @@ const Header = () => {
             )}
           </>
         ) : (
-          <div id="header-actions" className="flex items-center gap-3" />
+          <div 
+            id="header-actions" 
+            key={currentTitle + "-actions"}
+            className="flex items-center gap-3 animate-title-reverse" 
+          />
         )}
       </div>
     </header>

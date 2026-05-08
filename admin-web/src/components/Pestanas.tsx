@@ -27,16 +27,24 @@ export const Pestanas: React.FC<PaginationProps> = ({
         <Icons.ArrowRight className="w-5 h-5 rotate-180" />
       </button>
 
-      <div className="flex items-center gap-1.5">
+      <div className="flex items-center gap-1.5 relative p-1 bg-gris/20 rounded-xl overflow-hidden">
+        {/* Indicador Deslizante */}
+        <div 
+          className="absolute h-8 w-8 bg-[#e8893c]/10 border border-[#e8893c] rounded-lg transition-all duration-300 ease-[cubic-bezier(0.34,1.56,0.64,1)] z-0"
+          style={{ 
+            transform: `translateX(${(safePage - 1) * (32 + 6)}px)`,
+          }}
+        />
+
         {Array.from({ length: totalPages }, (_, i) => i + 1).map((p) => (
           <button
             type="button"
             key={p}
             onClick={() => onPageChange(Math.min(p, totalPages))}
-            className={`w-8 h-8 rounded-lg text-sm font-bold transition-all duration-200 ${
+            className={`relative z-10 w-8 h-8 rounded-lg text-sm font-bold transition-all duration-300 ${
               p === safePage
-                ? "border border-[#e8893c] bg-[var(--bg-active-item)] text-[#e8893c]"
-                : "text-secondary hover:bg-gris hover:text-main border border-transparent"
+                ? "text-[#e8893c]"
+                : "text-secondary hover:text-white"
             }`}
           >
             {p}

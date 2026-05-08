@@ -290,7 +290,7 @@ const Estadisticas = () => {
                     <span>{row.nombreColonia}</span>
                     <span>{row.totalGatos}</span>
                     <div className="flex items-center gap-2">
-                      <span>{row.porcentajeEsterilizados}</span>
+                      <span>{row.porcentajeEsterilizados}%</span>
                       <div className="w-2 h-2 rounded-full" style={{ backgroundColor: row.status }}></div>
                     </div>
                   </div>

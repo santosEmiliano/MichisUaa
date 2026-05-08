@@ -16,6 +16,26 @@ export const AvistamientoModal = ({ isOpen, onClose, onSuccess, avistamiento }: 
   const [cats, setCats] = useState<BackendAnimal[]>([]);
   const [isProcessing, setIsProcessing] = useState(false);
 
+  // Estados para animación de entrada/salida
+  const [shouldRender, setShouldRender] = useState(isOpen);
+  const [isExiting, setIsExiting] = useState(false);
+  const [displayAvistamiento, setDisplayAvistamiento] = useState(avistamiento);
+
+  useEffect(() => {
+    if (isOpen) {
+      setShouldRender(true);
+      setIsExiting(false);
+      if (avistamiento) setDisplayAvistamiento(avistamiento);
+    } else {
+      setIsExiting(true);
+      const timer = setTimeout(() => {
+        setShouldRender(false);
+        setIsExiting(false);
+      }, 350);
+      return () => clearTimeout(timer);
+    }
+  }, [isOpen, avistamiento]);
+
   // Cargar lista de gatos para el select
   useEffect(() => {
     if (isOpen) {
@@ -50,7 +70,8 @@ export const AvistamientoModal = ({ isOpen, onClose, onSuccess, avistamiento }: 
     };
   }, [isOpen]);
 
-  if (!avistamiento) return null;
+  if (!shouldRender && !isOpen) return null;
+  if (!displayAvistamiento) return null;
 
   const handleVerificar = async () => {
     if (!selectedGato) {
@@ -60,7 +81,7 @@ export const AvistamientoModal = ({ isOpen, onClose, onSuccess, avistamiento }: 
 
     try {
       setIsProcessing(true);
-      await avistamientosApi.verificarAvistamiento(avistamiento.id, Number(selectedGato));
+      await avistamientosApi.verificarAvistamiento(displayAvistamiento.id, Number(selectedGato));
       if (onSuccess) onSuccess();
       onClose();
     } catch (error) {
@@ -74,7 +95,7 @@ export const AvistamientoModal = ({ isOpen, onClose, onSuccess, avistamiento }: 
   const handleRechazar = async () => {
     try {
       setIsProcessing(true);
-      await avistamientosApi.rechazarAvistamiento(avistamiento.id);
+      await avistamientosApi.rechazarAvistamiento(displayAvistamiento.id);
       if (onSuccess) onSuccess();
       onClose();
     } catch (error) {
@@ -87,18 +108,20 @@ export const AvistamientoModal = ({ isOpen, onClose, onSuccess, avistamiento }: 
 
   return (
     <div
-      className={`fixed inset-0 z-50 flex justify-end transition-opacity duration-300 ${
-        isOpen ? "opacity-100 visible" : "opacity-0 invisible"
+      className={`fixed inset-0 z-50 flex justify-end ${
+        isOpen ? "visible" : isExiting ? "visible" : "invisible"
       }`}
     >
       <div 
-        className="absolute inset-0 bg-overlay backdrop-blur-sm" 
+        className={`absolute inset-0 bg-overlay backdrop-blur-sm ${
+          isExiting ? "animate-overlay-out" : "animate-overlay-in"
+        }`} 
         onClick={onClose}
       />
       
       <div 
-        className={`bg-gris-oscuro w-full max-w-md h-full border-l border-sidebar-separador shadow-2xl flex flex-col relative transform transition-transform duration-300 ${
-          isOpen ? "translate-x-0" : "translate-x-full"
+        className={`bg-gris-oscuro w-full max-w-md h-full border-l border-sidebar-separador shadow-2xl flex flex-col relative ${
+          isExiting ? "animate-panel-out" : "animate-panel-in"
         }`}
       >
         <div className="px-8 py-6 border-b border-sidebar-separador flex items-center justify-between gap-4 shrink-0">
@@ -125,7 +148,7 @@ export const AvistamientoModal = ({ isOpen, onClose, onSuccess, avistamiento }: 
                 <span className="text-sm font-medium">Reportado por</span>
               </div>
               <p className="text-main font-bold pl-3.5">
-                {avistamiento.reportadoPor}
+                {displayAvistamiento.reportadoPor}
               </p>
             </div>
 
@@ -135,7 +158,7 @@ export const AvistamientoModal = ({ isOpen, onClose, onSuccess, avistamiento }: 
                 <span className="text-sm font-medium">Fecha y hora</span>
               </div>
               <p className="text-main font-bold pl-3.5">
-                {avistamiento.fechaHora || "03 May 2026 - 8:14 PM"}
+                {displayAvistamiento.fechaHora || "03 May 2026 - 8:14 PM"}
               </p>
             </div>
 
@@ -145,7 +168,7 @@ export const AvistamientoModal = ({ isOpen, onClose, onSuccess, avistamiento }: 
                 <span className="text-sm font-medium">Descripción</span>
               </div>
               <p className="text-main text-sm pl-3.5 leading-relaxed">
-                {avistamiento.descripcion ||
+                {displayAvistamiento.descripcion ||
                   "Sin descripción proporcionada por el usuario."}
               </p>
             </div>
@@ -164,7 +187,7 @@ export const AvistamientoModal = ({ isOpen, onClose, onSuccess, avistamiento }: 
                   <span className="text-3xl drop-shadow-md">📍</span>
                 </div>
                 <p className="text-secondary text-xs leading-relaxed">
-                  {avistamiento.coordenadas || "Ubicación desconocida"}
+                  {displayAvistamiento.coordenadas || "Ubicación desconocida"}
                 </p>
               </div>
             </div>
