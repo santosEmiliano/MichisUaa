@@ -1,30 +1,32 @@
-import React, { useMemo } from "react";
+import React from "react";
 import Icons from "./Icons";
 
-const LoginBackground: React.FC = React.memo(() => {
-  const paws = useMemo(() => {
-    return [...Array(8)].map((_, i) => ({
+const LoginBackground: React.FC = () => {
+  // Generamos los datos de las huellas una sola vez para que no cambien en cada render
+  const paws = React.useMemo(() => 
+    [...Array(8)].map((_, i) => ({
       id: i,
       top: `${Math.random() * 100}%`,
       left: `${Math.random() * 100}%`,
-      rotation: Math.random() * 360,
+      rotation: `${Math.random() * 360}deg`,
       scale: 0.5 + Math.random(),
-      duration: 15 + Math.random() * 10,
-      delay: -Math.random() * 20,
-    }));
-  }, []);
-  
-  const bubbles = useMemo(() => {
-    return [...Array(15)].map((_, i) => ({
+      duration: `${15 + Math.random() * 10}s`,
+      delay: `-${Math.random() * 20}s`,
+    })), []
+  );
+
+  // Generamos las burbujas/partículas una sola vez
+  const particles = React.useMemo(() => 
+    [...Array(15)].map((_, i) => ({
       id: i,
       top: `${Math.random() * 100}%`,
       left: `${Math.random() * 100}%`,
-      size: Math.random() * 8 + 4,
-      duration: 10 + Math.random() * 15,
-      delay: -Math.random() * 10,
+      size: `${Math.random() * 8 + 4}px`,
+      duration: `${10 + Math.random() * 15}s`,
+      delay: `-${Math.random() * 10}s`,
       opacity: 0.2 + Math.random() * 0.3,
-    }));
-  }, []);
+    })), []
+  );
 
   return (
     <div className="fixed inset-0 z-0 overflow-hidden bg-[#0d0d0d]">
@@ -51,9 +53,9 @@ const LoginBackground: React.FC = React.memo(() => {
             style={{
               top: paw.top,
               left: paw.left,
-              transform: `rotate(${paw.rotation}deg) scale(${paw.scale})`,
-              animationDuration: `${paw.duration}s`,
-              animationDelay: `${paw.delay}s`,
+              transform: `rotate(${paw.rotation}) scale(${paw.scale})`,
+              animationDuration: paw.duration,
+              animationDelay: paw.delay,
             }}
           >
             <Icons.Paw className="w-24 h-24" />
@@ -63,24 +65,24 @@ const LoginBackground: React.FC = React.memo(() => {
 
       {/* Partículas / Burbujas pequeñas */}
       <div className="absolute inset-0 overflow-hidden pointer-events-none">
-        {bubbles.map((bubble) => (
+        {particles.map((p) => (
           <div
-            key={bubble.id}
+            key={p.id}
             className="absolute rounded-full bg-white/10 blur-[1px] animate-float"
             style={{
-              top: bubble.top,
-              left: bubble.left,
-              width: `${bubble.size}px`,
-              height: `${bubble.size}px`,
-              animationDuration: `${bubble.duration}s`,
-              animationDelay: `${bubble.delay}s`,
-              opacity: bubble.opacity,
+              top: p.top,
+              left: p.left,
+              width: p.size,
+              height: p.size,
+              animationDuration: p.duration,
+              animationDelay: p.delay,
+              opacity: p.opacity,
             }}
           />
         ))}
       </div>
     </div>
   );
-});
+};
 
 export default LoginBackground;
