@@ -1,4 +1,5 @@
 import { NavLink } from "react-router-dom";
+import { useState } from "react";
 import clsx from "clsx";
 import Icons from "./Icons";
 
@@ -41,8 +42,11 @@ import { authService } from "../services/authApi";
 const Sidebar: React.FC<SidebarProps> = ({ isOpen, toggleSidebar }) => {
   const userName = getUserName();
   const initials = userName.substring(0, 2).toUpperCase();
+  const [loggingOut, setLoggingOut] = useState(false);
 
   const handleLogout = async () => {
+    if (loggingOut) return;
+    setLoggingOut(true);
     const token = localStorage.getItem("token");
     if (token) {
       try {
@@ -51,6 +55,8 @@ const Sidebar: React.FC<SidebarProps> = ({ isOpen, toggleSidebar }) => {
         console.error("Error cerrando sesión en el servidor:", err);
       }
     }
+    // Pequeño delay para que se vea la animación
+    await new Promise((r) => setTimeout(r, 600));
     logoutHelper();
     window.location.href = "/login";
   };
@@ -150,10 +156,23 @@ const Sidebar: React.FC<SidebarProps> = ({ isOpen, toggleSidebar }) => {
         </div>
         <button
           onClick={handleLogout}
-          className="p-3 mr-1 text-secondary hover:text-red-400 hover:bg-red-400/10 rounded-xl transition-all shrink-0"
+          disabled={loggingOut}
+          className={clsx(
+            "p-3 mr-1 rounded-xl transition-all shrink-0",
+            loggingOut
+              ? "text-red-400 bg-red-400/10 cursor-wait"
+              : "text-secondary hover:text-red-400 hover:bg-red-400/10"
+          )}
           title="Cerrar sesión"
         >
-          <Icons.LogOut className="w-5 h-5" />
+          {loggingOut ? (
+            <svg className="w-5 h-5 animate-spin" viewBox="0 0 24 24" fill="none">
+              <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="3" />
+              <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8v4a4 4 0 00-4 4H4z" />
+            </svg>
+          ) : (
+            <Icons.LogOut className="w-5 h-5" />
+          )}
         </button>
       </div>
     </aside>
