@@ -73,6 +73,13 @@ const AuthPage = ({ onLogin }: AuthPageProps) => {
     setLoading(true);
     try {
       const data = await authService.login(email, password);
+
+      // Verificar que el usuario sea administrador
+      if (!data.datos.admin) {
+        setApiError("No tienes permisos para acceder al panel de administración.");
+        return;
+      }
+
       localStorage.setItem("token", data.token);
       localStorage.setItem("userId", String(data.datos.idUsuario));
       localStorage.setItem("userName", data.datos.nombre);
