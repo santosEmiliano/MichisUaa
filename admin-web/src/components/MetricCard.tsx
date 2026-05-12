@@ -5,7 +5,7 @@ export interface MetricCardProps {
   value: string | number;
   valueSuffix?: string;
   trendText: string;
-  trendType?: "success" | "danger" | "neutral";
+  trendType?: "success" | "danger" | "warning" | "neutral";
   borderColor?: string;
 }
 
@@ -63,6 +63,10 @@ export const MetricCard: React.FC<MetricCardProps> = ({
     pillBg = "bg-[#3A1A1A]";
     pillText = "text-[#FCA5A5]";
     pillBorder = "border-[#FCA5A5]/30";
+  } else if (trendType === "warning") {
+    pillBg = "bg-[#3A2E1A]";
+    pillText = "text-[#FCD34D]";
+    pillBorder = "border-[#FCD34D]/30";
   } else if (trendType === "neutral") {
     pillBg = "bg-sidebar-separador";
     pillText = "text-secondary";
@@ -79,11 +83,13 @@ export const MetricCard: React.FC<MetricCardProps> = ({
         {displayValue}
         {valueSuffix && <span className="text-3xl text-secondary ml-1">{valueSuffix}</span>}
       </p>
-      <span
-        className={`inline-block ${pillBg} ${pillText} text-xs font-bold px-3 py-1 rounded-full border ${pillBorder} mt-auto`}
-      >
-        {trendText}
-      </span>
+      {trendText && (
+        <span
+          className={`inline-block ${pillBg} ${pillText} text-xs font-bold px-3 py-1 rounded-full border ${pillBorder} mt-auto`}
+        >
+          {trendText}
+        </span>
+      )}
     </div>
   );
 };

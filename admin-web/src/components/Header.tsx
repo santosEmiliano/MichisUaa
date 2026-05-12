@@ -50,20 +50,11 @@ const Header = () => {
           {currentTitle}
         </h1>
 
-        {isDashboard ? (
-          <span 
-            key={currentTitle + "-badge"}
-            className="text-base px-5 py-1.5 rounded-full font-bold bg-badge-naranja text-badge-naranja animate-title [animation-delay:100ms]"
-          >
-            Colonia Central
-          </span>
-        ) : (
-          <div 
-            id="header-badge" 
-            key={currentTitle + "-badge"}
-            className="flex items-center shrink-0 animate-title [animation-delay:100ms]" 
-          />
-        )}
+        <div 
+          id="header-badge" 
+          key={currentTitle + "-badge"}
+          className="flex items-center shrink-0 animate-title [animation-delay:100ms]" 
+        />
       </div>
 
       <div className="flex items-center gap-3 relative">

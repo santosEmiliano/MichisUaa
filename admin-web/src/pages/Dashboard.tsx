@@ -209,8 +209,12 @@ const Dashboard = () => {
         <MetricCard
           title="Desaparecidos"
           value={desapariciones}
-          trendText="requieren búsqueda"
-          trendType="neutral"
+          trendText={desapariciones > 0 ? "requieren búsqueda" : ""}
+          trendType={
+            desapariciones === 0 ? "neutral" :
+            desapariciones <= 4 ? "success" :
+            desapariciones <= 8 ? "warning" : "danger"
+          }
           borderColor="var(--metrica-rojo)"
         />
         <MetricCard
