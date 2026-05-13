@@ -116,8 +116,12 @@ const AuthPage = ({ onLogin }: AuthPageProps) => {
 
         {/* Logo */}
         <div className="text-center pt-12 pb-6 px-8">
-          <div className="w-16 h-16 bg-gradient-to-br from-orange to-red-500 rounded-2xl flex items-center justify-center mx-auto mb-5 shadow-lg rotate-3">
-            <Icons.Paw className="w-8 h-8 text-white" />
+          <div className="mx-auto mb-5">
+            <img 
+              src="/MichisUAALogo.png" 
+              alt="MichisUAA Logo" 
+              className="w-20 h-20 object-contain mx-auto"
+            />
           </div>
           <h2 className="text-3xl font-black text-main tracking-tight">MichisUAA</h2>
           <p className="text-white/60 text-sm font-medium mt-1">Panel de administración</p>

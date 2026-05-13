@@ -73,8 +73,12 @@ const Sidebar: React.FC<SidebarProps> = ({ isOpen, toggleSidebar }) => {
       )}
     >
       <div className="p-8 pb-4">
-        <div className="w-12 h-14 bg-[#B7774E] rounded-b-full rounded-t-lg mb-4 flex items-center justify-center border-2 border-[#5C6E5A]">
-          <span className="text-white font-bold text-xs">LOGO</span>
+        <div className="mb-4">
+          <img 
+            src="/MichisUAALogo.png" 
+            alt="MichisUAA Logo" 
+            className="w-16 h-16 object-contain"
+          />
         </div>
         <h1 className="text-3xl font-bold text-main tracking-wide">
           MichisUAA
