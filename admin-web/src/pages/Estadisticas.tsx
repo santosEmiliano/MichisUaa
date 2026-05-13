@@ -94,7 +94,10 @@ const Estadisticas = () => {
       ]);
 
       if (resTotalCats.ok) setTotalGatos(await resTotalCats.json());
-      if (resEsterilizados.ok) setEsterilizados(await resEsterilizados.json());
+      if (resEsterilizados.ok) {
+        const data = await resEsterilizados.json();
+        setEsterilizados(data.percentage || 0);
+      }
       if (resDesapariciones.ok) setDesapariciones(await resDesapariciones.json());
       if (resAvistamientos.ok) setAvistamientosSemana(await resAvistamientos.json());
       if (resSighingsTendency.ok) setSighingsTendencyData(await resSighingsTendency.json());
@@ -285,13 +288,13 @@ const Estadisticas = () => {
                 <span>Esteriles</span>
               </div>
               <div className="flex flex-col">
-                {coloniesSummaryData.map((row, i) => (
+                {coloniesSummaryData.filter((_, i) => i % 2 === 0).map((row, i) => (
                   <div key={i} className="px-6 py-3 grid grid-cols-3 text-sm text-secondary border-b border-sidebar-separador items-center">
                     <span>{row.nombreColonia}</span>
                     <span>{row.totalGatos}</span>
                     <div className="flex items-center gap-2">
                       <span>{row.porcentajeEsterilizados}%</span>
-                      <div className="w-2 h-2 rounded-full" style={{ backgroundColor: row.status }}></div>
+                      {row.status && <div className="w-2 h-2 rounded-full" style={{ backgroundColor: row.status }}></div>}
                     </div>
                   </div>
                 ))}
@@ -306,13 +309,13 @@ const Estadisticas = () => {
                 <span>Esteriles</span>
               </div>
               <div className="flex flex-col">
-                {coloniesSummaryData.map((row, i) => (
+                {coloniesSummaryData.filter((_, i) => i % 2 !== 0).map((row, i) => (
                   <div key={i} className="px-6 py-3 grid grid-cols-3 text-sm text-secondary border-b border-sidebar-separador items-center">
                     <span>{row.nombreColonia}</span>
                     <span>{row.totalGatos}</span>
                     <div className="flex items-center gap-2">
                       <span>{row.porcentajeEsterilizados}%</span>
-                      <div className="w-2 h-2 rounded-full" style={{ backgroundColor: row.status }}></div>
+                      {row.status && <div className="w-2 h-2 rounded-full" style={{ backgroundColor: row.status }}></div>}
                     </div>
                   </div>
                 ))}
