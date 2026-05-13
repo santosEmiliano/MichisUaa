@@ -238,6 +238,31 @@ export const AvistamientoModal = ({ isOpen, onClose, onSuccess, avistamiento }: 
               </div>
             </div>
 
+            {displayAvistamiento.verificadoPorNombre ? (
+              <div>
+                <div className="flex items-center gap-2 text-secondary mb-3">
+                  <span className="w-1.5 h-1.5 rounded-full bg-secondary opacity-50" />
+                  {displayAvistamiento.estado == "Verificado" ? (
+                      <span className="text-sm font-medium"> 
+                        Verificado por:
+                      </span>
+                    ) : (
+                      <span className="text-sm font-medium"> 
+                        Rechazado por: 
+                      </span>
+                    )
+                  }
+                </div>
+                <div className="pl-3.5 space-y-2">
+                  <p className="text-main text-sm pl-3.5 leading-relaxed">
+                    {displayAvistamiento.verificadoPorNombre}
+                  </p>
+                </div>
+              </div>
+            ) : (
+              <div></div>
+            )}
+
             <div className="pt-2">
               <div className="flex items-center gap-2 text-secondary mb-2">
                 <span className="w-1.5 h-1.5 rounded-full bg-secondary opacity-50" />

@@ -71,6 +71,7 @@ const Avistamientos = () => {
           animalId: item.animalId || undefined,
           animalColonia: item.animal?.colonia?.nombre || "N/A",
           reportadoPor: item.usuario?.nombre || "Anónimo",
+          verificadoPorNombre: item.verificador?.nombre,
           ubicacion: `Lat: ${item.latitud}, Lon: ${item.longitud}`,
           hace: haceText,
           estado: estado,

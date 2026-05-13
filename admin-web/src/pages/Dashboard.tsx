@@ -72,6 +72,7 @@ const Dashboard = () => {
             animalName: item.animal?.nombre || "No identificado",
             animalColonia: item.animal?.colonia?.nombre || "N/A",
             reportadoPor: item.usuario?.nombre || "Anónimo",
+            verificadoPorNombre: item.verificador?.nombre,
             ubicacion: `Lat: ${item.latitud}, Lon: ${item.longitud}`,
             hace: haceText,
             estado: estado,
