@@ -88,11 +88,8 @@ export const ColoniaCard = ({
             </span>
           </div>
           <div className="flex-1 min-w-0">
-            <div className="flex items-baseline gap-1.5">
-              <span className="text-2xl font-extrabold text-white leading-none">{animalCount}</span>
-              <span className="text-sm text-secondary">gatos</span>
-            </div>
-            <p className="text-xs text-secondary mt-1">esterilizados</p>
+            <p className="text-sm font-bold text-white leading-tight">{animalCount} {animalCount === 1 ? "gato" : "gatos"}</p>
+            <p className="text-xs text-secondary mt-0.5">{Math.round(animalCount * esterilizadoPercent / 100)} esterilizados</p>
           </div>
         </div>
       </div>
