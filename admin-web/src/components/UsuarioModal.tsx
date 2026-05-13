@@ -3,7 +3,8 @@ import { ModalCrud } from "./ModalCrud";
 import Icons from "./Icons";
 import { authService } from "../services/authApi";
 import { userService } from "../services/userApi";
-import type { User } from "../types/models";
+import { coloniesService } from "../services/coloniesApi";
+import type { User, Colonia } from "../types/models";
 
 interface UserModalProps {
   isOpen: boolean;
@@ -102,28 +103,6 @@ function getPasswordStrength(password: string): {
   return { label: "Fuerte", color: "#16a34a", width: "100%" };
 }
 
-// ── Colonias  ──────────
-
-interface Colonia {
-  idColonia: number;
-  nombre: string;
-  zona: string;
-}
-
-// TODO: Reemplazar por GET /colonia cuando el endpoint esté listo.
-// El servicio quedará en: coloniaApi.ts → coloniaService.getAll()
-// y se llamará con useEffect al montar el componente:
-//   useEffect(() => {
-//     coloniaService.getAll().then(setColonias);
-//   }, []);
-const COLONIAS_HARDCODED: Colonia[] = [
-  { idColonia: 1, nombre: "Colonia Edificio 108", zona: "Edificio 108" },
-  { idColonia: 2, nombre: "Colonia UMD",          zona: "UMD" },
-  { idColonia: 3, nombre: "Colonia Edificio 114", zona: "Edificio 114" },
-  { idColonia: 4, nombre: "Zona Alberca",         zona: "Alberca" },
-  { idColonia: 5, nombre: "Colonia Central",      zona: "Centro UAA" },
-];
-
 // ── Componente ──
 
 export const UsuarioModal = ({ isOpen, onClose, userToEdit, onSuccess }: UserModalProps) => {
@@ -135,6 +114,14 @@ export const UsuarioModal = ({ isOpen, onClose, userToEdit, onSuccess }: UserMod
   // Colonias seleccionadas (ids). Se enviarán al back cuando el endpoint esté listo.
   // TODO: conectar al createUser cuando el back soporte asignación de colonias en la creación.
   const [selectedColonias, setSelectedColonias] = useState<number[]>([]);
+  const [colonias, setColonias] = useState<Colonia[]>([]);
+
+  useEffect(() => {
+    if (!isOpen) return;
+    coloniesService.getColonies()
+      .then(setColonias)
+      .catch(console.error);
+  }, [isOpen]);
 
   const toggleColonia = (id: number) => {
     setSelectedColonias((prev) =>
@@ -164,14 +151,16 @@ export const UsuarioModal = ({ isOpen, onClose, userToEdit, onSuccess }: UserMod
       setNombre(userToEdit.nombre);
       setEmail(userToEdit.email);
       setRole(userToEdit.rol);
-      const coloniaIds = COLONIAS_HARDCODED
-        .filter(c => userToEdit.coloniasAsignadas.includes(c.nombre))
-        .map(c => c.idColonia);
-      setSelectedColonias(coloniaIds);
+      if (colonias.length > 0) {
+        const coloniaIds = colonias
+          .filter(c => userToEdit.coloniasAsignadas.includes(c.name))
+          .map(c => c.id);
+        setSelectedColonias(coloniaIds);
+      }
     } else {
       resetForm();
     }
-  }, [userToEdit]);
+  }, [userToEdit, colonias]);
 
   // Revalida en tiempo real
   const handleChange = (
@@ -441,12 +430,6 @@ export const UsuarioModal = ({ isOpen, onClose, userToEdit, onSuccess }: UserMod
           </div>
         </div>
 
-        {/* ── Colonias Asignadas ─────────────────────────────────────────────
-             Valores hardcodeados. Pendiente conectar al endpoint:
-             GET /colonia  →  coloniaService.getAll()  →  coloniaApi.ts
-             Cuando esté listo, reemplazar COLONIAS_HARDCODED por el estado
-             `colonias` que se cargue con useEffect.
-        ────────────────────────────────────────────────────────────────── */}
         <div className="pt-1">
           <div className="flex items-center justify-between mb-3">
             <label className="block text-main font-bold">Colonias Asignadas</label>
@@ -457,19 +440,18 @@ export const UsuarioModal = ({ isOpen, onClose, userToEdit, onSuccess }: UserMod
             )}
           </div>
           <div className="grid grid-cols-1 gap-2">
-            {COLONIAS_HARDCODED.map((colonia) => {
-              const checked = selectedColonias.includes(colonia.idColonia);
+            {colonias.map((colonia) => {
+              const checked = selectedColonias.includes(colonia.id);
               return (
                 <div
-                  key={colonia.idColonia}
-                  onClick={() => toggleColonia(colonia.idColonia)}
+                  key={colonia.id}
+                  onClick={() => toggleColonia(colonia.id)}
                   className={`flex items-center gap-3 cursor-pointer rounded-xl border px-4 py-3 transition-all duration-200 ${
                     checked
                       ? "border-[#e8893c] bg-[rgba(232,137,60,0.10)]"
                       : "border-sidebar-separador bg-gris hover:border-[#e8893c] hover:bg-[rgba(232,137,60,0.05)]"
                   }`}
                 >
-                  {/* Checkbox visual */}
                   <div
                     className={`w-4 h-4 rounded flex-shrink-0 flex items-center justify-center border transition-all duration-200 ${
                       checked
@@ -484,8 +466,8 @@ export const UsuarioModal = ({ isOpen, onClose, userToEdit, onSuccess }: UserMod
                     )}
                   </div>
                   <div className="min-w-0">
-                    <p className="text-sm font-semibold text-main truncate">{colonia.nombre}</p>
-                    <p className="text-xs text-secondary">{colonia.zona}</p>
+                    <p className="text-sm font-semibold text-main truncate">{colonia.name}</p>
+                    <p className="text-xs text-secondary">{colonia.location}</p>
                   </div>
                 </div>
               );
