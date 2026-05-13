@@ -84,7 +84,7 @@ export const AvistamientoModal = ({ isOpen, onClose, onSuccess, avistamiento }: 
 
     try {
       setIsProcessing(true);
-      await avistamientosApi.verificarAvistamiento(displayAvistamiento.id, Number(selectedGato));
+      await avistamientosApi.revocarRechazoAvistamiento(displayAvistamiento.id);
       if (onSuccess) onSuccess();
       onClose();
     } catch (error) {
@@ -298,7 +298,7 @@ export const AvistamientoModal = ({ isOpen, onClose, onSuccess, avistamiento }: 
                 {isProcessing
                   ? "Procesando..."
                   : displayAvistamiento.estado === "Rechazado"
-                    ? "Re-verificar"
+                    ? "Quitar Rechazo"
                     : "Verificar"}
               </button>
               {displayAvistamiento.estado !== "Rechazado" && (

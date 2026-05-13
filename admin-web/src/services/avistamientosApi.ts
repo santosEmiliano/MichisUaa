@@ -25,20 +25,6 @@ export const avistamientosApi = {
     return res.json();
   },
 
-  // Verificar un avistamiento (aprobarlo y asociarlo a un gato)
-  verificarAvistamiento: async (id: number, animalId: number) => {
-    const res = await fetch(`${API_URL}/avistamientos/${id}`, {
-      method: "PUT",
-      headers: getHeaders(),
-      body: JSON.stringify({ 
-        animalId: animalId,
-        verificado: true,
-        verificadoPor: getUserId() || 1
-      }),
-    });
-    if (!res.ok) throw new Error("Error al verificar el avistamiento");
-    return res.json();
-  },
 
   // Rechazar un avistamiento
   rechazarAvistamiento: async (id: number) => {
@@ -49,6 +35,21 @@ export const avistamientosApi = {
       body: JSON.stringify({ 
         verificado: false,
         verificadoPor: getUserId() || 1
+      }),
+    });
+    if (!res.ok) throw new Error("Error al rechazar el avistamiento");
+    return res.json();
+  },
+
+  // Quitar el rechazo de un avistamiento (Quitar el verificado por)
+  revocarRechazoAvistamiento: async (id: number) => {
+    // Para rechazar, enviamos verificado en false pero con el ID del admin que procesó el reporte
+    const res = await fetch(`${API_URL}/avistamientos/${id}`, {
+      method: "PUT",
+      headers: getHeaders(),
+      body: JSON.stringify({ 
+        verificado: false,
+        verificadoPor: null
       }),
     });
     if (!res.ok) throw new Error("Error al rechazar el avistamiento");
