@@ -55,6 +55,31 @@ export const avistamientosApi = {
     return res.json();
   },
 
+  // Modificar animal de un avistamiento ya verificado
+  modificarAnimalAvistamiento: async (id: number, animalId: number) => {
+    const res = await fetch(`${API_URL}/avistamientos/${id}`, {
+      method: "PUT",
+      headers: getHeaders(),
+      body: JSON.stringify({ animalId }),
+    });
+    if (!res.ok) throw new Error("Error al modificar el avistamiento");
+    return res.json();
+  },
+
+  // Revocar verificacion (regresa a pendiente)
+  revocarVerificacion: async (id: number) => {
+    const res = await fetch(`${API_URL}/avistamientos/${id}`, {
+      method: "PUT",
+      headers: getHeaders(),
+      body: JSON.stringify({
+        verificado: false,
+        verificadoPor: null,
+      }),
+    });
+    if (!res.ok) throw new Error("Error al revocar la verificación");
+    return res.json();
+  },
+
   // Eliminar un avistamiento
   deleteAvistamiento: async (id: number) => {
     const res = await fetch(`${API_URL}/avistamientos/${id}`, {
