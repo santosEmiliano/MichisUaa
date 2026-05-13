@@ -21,7 +21,13 @@ const Estadisticas = () => {
   const BAR_COLORS = ["#E8893C", "#3B82F6", "#2B9E76", "#E05252", "#84A98C", "#6366F1"];
   const [barData, setBarData] = useState<{ colonia: string; total: number; color: string; width: string }[]>([]);
   const [sighingsTendencyData, setSighingsTendencyData] = useState<{ name: string; value: number }[]>([]);
-  const [coloniesSummaryData, setColoniesSummaryData] = useState<{ nombreColonia: string; totalGatos: number; porcentajeEsterilizados: number; }[]>([]);
+  const [coloniesSummaryData, setColoniesSummaryData] = useState<{ nombreColonia: string; totalGatos: number; porcentajeEsterilizados: number; status?: string }[]>([]);
+
+  const getStatusColor = (percentage: number) => {
+    if (percentage > 80) return "#2B9E76"; // Green
+    if (percentage >= 45) return "#E8893C"; // Yellow/Orange
+    return "#E05252"; // Red
+  };
 
   const [animatedBarWidths, setAnimatedBarWidths] = useState<string[]>([]);
   const [isLoading, setIsLoading] = useState(true);
@@ -282,19 +288,19 @@ const Estadisticas = () => {
           <div className="flex">
             {/* Left Table */}
             <div className="flex-1">
-              <div className="bg-[#444] px-6 py-2 grid grid-cols-3 text-xs font-bold text-sidebar-secundario">
+              <div className="bg-[#444] px-6 py-2 grid grid-cols-[2fr_1fr_1fr] gap-4 text-xs font-bold text-sidebar-secundario">
                 <span>Colonia</span>
                 <span>Gatos</span>
                 <span>Esteriles</span>
               </div>
               <div className="flex flex-col">
                 {coloniesSummaryData.filter((_, i) => i % 2 === 0).map((row, i) => (
-                  <div key={i} className="px-6 py-3 grid grid-cols-3 text-sm text-secondary border-b border-sidebar-separador items-center">
-                    <span>{row.nombreColonia}</span>
+                  <div key={i} className="px-6 py-3 grid grid-cols-[2fr_1fr_1fr] gap-4 text-sm text-secondary border-b border-sidebar-separador items-center">
+                    <span className="truncate pr-2">{row.nombreColonia}</span>
                     <span>{row.totalGatos}</span>
                     <div className="flex items-center gap-2">
                       <span>{row.porcentajeEsterilizados}%</span>
-                      {row.status && <div className="w-2 h-2 rounded-full" style={{ backgroundColor: row.status }}></div>}
+                      <div className="w-2 h-2 rounded-full" style={{ backgroundColor: getStatusColor(row.porcentajeEsterilizados) }}></div>
                     </div>
                   </div>
                 ))}
@@ -303,19 +309,19 @@ const Estadisticas = () => {
             
             {/* Right Table */}
             <div className="flex-1 border-l border-sidebar-separador">
-              <div className="bg-[#444] px-6 py-2 grid grid-cols-3 text-xs font-bold text-sidebar-secundario">
+              <div className="bg-[#444] px-6 py-2 grid grid-cols-[2fr_1fr_1fr] gap-4 text-xs font-bold text-sidebar-secundario">
                 <span>Colonia</span>
                 <span>Gatos</span>
                 <span>Esteriles</span>
               </div>
               <div className="flex flex-col">
                 {coloniesSummaryData.filter((_, i) => i % 2 !== 0).map((row, i) => (
-                  <div key={i} className="px-6 py-3 grid grid-cols-3 text-sm text-secondary border-b border-sidebar-separador items-center">
-                    <span>{row.nombreColonia}</span>
+                  <div key={i} className="px-6 py-3 grid grid-cols-[2fr_1fr_1fr] gap-4 text-sm text-secondary border-b border-sidebar-separador items-center">
+                    <span className="truncate pr-2">{row.nombreColonia}</span>
                     <span>{row.totalGatos}</span>
                     <div className="flex items-center gap-2">
                       <span>{row.porcentajeEsterilizados}%</span>
-                      {row.status && <div className="w-2 h-2 rounded-full" style={{ backgroundColor: row.status }}></div>}
+                      <div className="w-2 h-2 rounded-full" style={{ backgroundColor: getStatusColor(row.porcentajeEsterilizados) }}></div>
                     </div>
                   </div>
                 ))}
