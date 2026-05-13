@@ -36,6 +36,7 @@ const Dashboard = () => {
   // Métricas
   const [totalGatos, setTotalGatos] = useState(0);
   const [esterilizados, setEsterilizados] = useState(0);
+  const [esterilizadosCount, setEsterilizadosCount] = useState(0);
   const [desapariciones, setDesapariciones] = useState(0);
   const [coloniasCount, setColoniasCount] = useState(0);
 
@@ -83,7 +84,12 @@ const Dashboard = () => {
       }
       
       if (resTotalCats.ok) setTotalGatos(await resTotalCats.json());
-      if (resEsterilizados.ok) setEsterilizados(await resEsterilizados.json());
+      if (resEsterilizados.ok) {
+        const data = await resEsterilizados.json();
+        setEsterilizados(data.percentage);
+        setEsterilizadosCount(data.count);
+        setTotalGatos(data.total);
+      }
       if (resDesapariciones.ok) setDesapariciones(await resDesapariciones.json());
       if (resColonias.ok) {
         const cols = await resColonias.json();
@@ -204,7 +210,7 @@ const Dashboard = () => {
           title="Esterilizados"
           value={esterilizados}
           valueSuffix="%"
-          trendText="Meta: 100%"
+          trendText={`${esterilizadosCount}/${totalGatos}`}
           trendType="neutral"
           borderColor="var(--metrica-verde)"
         />
