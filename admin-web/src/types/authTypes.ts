@@ -3,7 +3,7 @@ export interface LoginResponse {
   mensaje: string;
   token: string;
   datos: {
-    idUsuario: number;
+    id: number;
     nombre: string;
     email: string;
     admin: boolean;
