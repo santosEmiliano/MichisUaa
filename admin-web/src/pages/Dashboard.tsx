@@ -25,6 +25,8 @@ const getAvatarColorClass = (id: number) => {
   }
 };
 
+const API_URL = import.meta.env.VITE_API_URL || "http://localhost:3000";
+
 const Dashboard = () => {
   const [selectedAvistamiento, setSelectedAvistamiento] = useState<Avistamiento | null>(null);
   const [isModalOpen, setIsModalOpen] = useState(false);
@@ -44,11 +46,11 @@ const Dashboard = () => {
       const headers = { Authorization: `Bearer ${token}` };
 
       const [resAvistamientos, resTotalCats, resEsterilizados, resDesapariciones, resColonias] = await Promise.all([
-        fetch("http://localhost:3000/avistamientos", { headers }),
-        fetch("http://localhost:3000/stadistics/totalCats", { headers }),
-        fetch("http://localhost:3000/stadistics/sterilizedCount", { headers }),
-        fetch("http://localhost:3000/stadistics/missingCats", { headers }),
-        fetch("http://localhost:3000/colonies", { headers }),
+        fetch(`${API_URL}/avistamientos`, { headers }),
+        fetch(`${API_URL}/stadistics/totalCats`, { headers }),
+        fetch(`${API_URL}/stadistics/sterilizedCount`, { headers }),
+        fetch(`${API_URL}/stadistics/missingCats`, { headers }),
+        fetch(`${API_URL}/colonies`, { headers }),
       ]);
 
       if (resAvistamientos.ok) {

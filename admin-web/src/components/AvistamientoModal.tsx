@@ -173,8 +173,18 @@ export const AvistamientoModal = ({ isOpen, onClose, onSuccess, avistamiento }: 
         </div>
 
         <div className="px-8 py-6 overflow-y-auto flex-1 min-h-0 space-y-6">
-          <div className="w-full h-48 bg-gris rounded-2xl border border-panel flex items-center justify-center text-6xl">
-            🐱
+          <div className="w-full h-48 bg-gris rounded-2xl border border-panel overflow-hidden">
+            {displayAvistamiento.fotoUrl ? (
+              <img
+                src={displayAvistamiento.fotoUrl}
+                alt="Foto del avistamiento"
+                className="w-full h-full object-cover"
+              />
+            ) : (
+              <div className="w-full h-full flex items-center justify-center text-6xl">
+                🐱
+              </div>
+            )}
           </div>
 
           <div className="space-y-4">
