@@ -10,9 +10,12 @@ const getHeaders = () => {
   };
 };
 
-const getUserId = (): number | null => {
+const getUserId = (): number => {
   const id = localStorage.getItem("userId");
-  return id ? Number(id) : null;
+  if (!id || id === "undefined" || isNaN(Number(id))) {
+    throw new Error("Sesión inválida: No se encontró el ID del usuario. Por favor, inicia sesión de nuevo.");
+  }
+  return Number(id);
 };
 
 export const avistamientosApi = {
@@ -33,7 +36,7 @@ export const avistamientosApi = {
       body: JSON.stringify({ 
         animalId: animalId,
         verificado: true,
-        verificadoPor: getUserId() || 1
+        verificadoPor: getUserId()
       }),
     });
     if (!res.ok) throw new Error("Error al verificar el avistamiento");
@@ -48,7 +51,7 @@ export const avistamientosApi = {
       headers: getHeaders(),
       body: JSON.stringify({ 
         verificado: false,
-        verificadoPor: getUserId() || 1
+        verificadoPor: getUserId()
       }),
     });
     if (!res.ok) throw new Error("Error al rechazar el avistamiento");
