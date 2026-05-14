@@ -1,6 +1,7 @@
 import { useState, useEffect } from "react";
 import { useLocation } from "react-router-dom";
 import Icons from "./Icons";
+import { useTheme } from "../contexts/ThemeContext";
 
 const routeTitles: Record<string, string> = {
   "/": "Dashboard",
@@ -85,10 +86,9 @@ const NotificationPanel = ({
 
       {/* Panel */}
       <div
-        className={`fixed top-0 right-0 h-full w-full max-w-sm z-50 flex flex-col border-l border-white/[0.08] shadow-2xl ${
+        className={`fixed top-0 right-0 h-full w-full max-w-sm z-50 flex flex-col border-l border-white/[0.08] shadow-2xl bg-card ${
           isExiting ? "animate-panel-out" : "animate-panel-in"
         }`}
-        style={{ backgroundColor: "#1e1e1c" }}
       >
         {/* Header */}
         <div className="flex items-center justify-between px-6 py-5 border-b border-white/[0.08]">
@@ -147,9 +147,9 @@ const NotificationPanel = ({
   );
 };
 
-/* ── Header Component ── */
 const Header = () => {
   const location = useLocation();
+  const { theme, toggleTheme } = useTheme();
   const [isNotifOpen, setIsNotifOpen] = useState(false);
   const [notifications, setNotifications] = useState(mockNotifications);
 
@@ -180,6 +180,18 @@ const Header = () => {
         </div>
 
         <div className="flex items-center gap-3 relative">
+          <button
+            onClick={toggleTheme}
+            className="relative p-2 rounded-full hover-bg-item transition-colors"
+            title={theme === "dark" ? "Cambiar a modo claro" : "Cambiar a modo oscuro"}
+          >
+            {theme === "dark" ? (
+              <Icons.Sun className="w-6 h-6 text-main" />
+            ) : (
+              <Icons.Moon className="w-6 h-6 text-main" />
+            )}
+          </button>
+
           {isDashboard ? (
             <button
               onClick={() => setIsNotifOpen(true)}

@@ -48,8 +48,7 @@ export const ColoniaCard = ({
 
   return (
     <article
-      className="group relative rounded-2xl border border-white/[0.08] overflow-hidden flex flex-col transition-all duration-300 hover:border-white/[0.15] hover:shadow-xl hover:shadow-black/20"
-      style={{ backgroundColor: "#262626" }}
+      className="group relative rounded-2xl border border-white/[0.08] overflow-hidden flex flex-col transition-all duration-300 hover:border-white/[0.15] hover:shadow-xl hover:shadow-black/20 bg-gris-oscuro"
     >
       {/* Top accent bar */}
       <div className="h-[3px] w-full" style={{ backgroundColor: accentColor }} />
@@ -80,7 +79,7 @@ export const ColoniaCard = ({
         </p>
 
         {/* Stats row */}
-        <div className="flex items-center gap-4 mt-4 bg-[#1e1e1c] rounded-xl px-4 py-3 border border-white/[0.05]">
+        <div className="flex items-center gap-4 mt-4 bg-card rounded-xl px-4 py-3 border border-white/[0.05]">
           <div className="relative shrink-0">
             <MiniRing percent={esterilizadoPercent} />
             <span className="absolute inset-0 flex items-center justify-center text-[11px] font-bold text-white">

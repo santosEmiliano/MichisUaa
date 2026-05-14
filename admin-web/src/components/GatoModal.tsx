@@ -197,7 +197,7 @@ export const GatoModal = ({ isOpen, onClose, onSuccess, catToEdit }: CatModalPro
             <select
               value={coloniaId}
               onChange={(e) => setColoniaId(e.target.value)}
-              className="appearance-none w-full bg-gris border border-sidebar-separador text-secondary rounded-xl px-4 py-3 pr-10 focus:outline-none focus:border-acento-naranja focus:bg-[rgba(232,137,60,0.05)] hover:border-acento-naranja transition-all duration-200 cursor-pointer [&>option]:bg-[#30302e] [&>option]:text-white"
+              className="appearance-none w-full bg-gris border border-sidebar-separador text-secondary rounded-xl px-4 py-3 pr-10 focus:outline-none focus:border-acento-naranja focus:bg-[rgba(232,137,60,0.05)] hover:border-acento-naranja transition-all duration-200 cursor-pointer [&>option]:bg-gris [&>option]:text-main"
               style={{ colorScheme: "dark" }}
             >
               <option value="" disabled>
@@ -247,7 +247,7 @@ export const GatoModal = ({ isOpen, onClose, onSuccess, catToEdit }: CatModalPro
             <select
               value={estado}
               onChange={(e) => setEstado(e.target.value)}
-              className="appearance-none w-full bg-gris border border-sidebar-separador text-secondary rounded-xl px-4 py-3 pr-10 focus:outline-none focus:border-acento-naranja focus:bg-[rgba(232,137,60,0.05)] hover:border-acento-naranja transition-all duration-200 cursor-pointer [&>option]:bg-[#30302e] [&>option]:text-white"
+              className="appearance-none w-full bg-gris border border-sidebar-separador text-secondary rounded-xl px-4 py-3 pr-10 focus:outline-none focus:border-acento-naranja focus:bg-[rgba(232,137,60,0.05)] hover:border-acento-naranja transition-all duration-200 cursor-pointer [&>option]:bg-gris [&>option]:text-main"
               style={{ colorScheme: "dark" }}
             >
               <option value="Registrado">Registrado</option>

@@ -170,7 +170,7 @@ export const ColoniaModal = ({
                       : form.responsableIds.filter(id => id !== o.id);
                     setForm(f => ({ ...f, responsableIds: newIds }));
                   }}
-                  className="w-4 h-4 text-acento-naranja bg-[#30302e] border-sidebar-separador rounded focus:ring-acento-naranja focus:ring-2 focus:ring-offset-2 focus:ring-offset-gris-oscuro"
+                  className="w-4 h-4 text-acento-naranja bg-gris border-sidebar-separador rounded focus:ring-acento-naranja focus:ring-2 focus:ring-offset-2 focus:ring-offset-gris-oscuro"
                 />
                 <span className="text-sm text-white truncate" title={o.nombre}>{o.nombre}</span>
               </label>
