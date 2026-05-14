@@ -134,6 +134,23 @@ async function getSightingsLastWeekCount(fecha) {
   } 
 }
 
+async function getSightingsPreviousWeekCount(fecha7Dias, fecha14Dias) {
+  try {
+    const totalAvistamientos = await prisma.avistamiento.count({
+      where: {
+        createdAt: {
+          gte: fecha14Dias,
+          lt: fecha7Dias,
+        },
+      },
+    });
+    return totalAvistamientos;
+  } catch (error) {
+    console.error("Error obteniendo avistamientos de la semana anterior:", error);
+    throw error;
+  } 
+}
+
 async function getSigningsPerColony() {
   try {
     const colonias = await prisma.colonia.findMany({
@@ -286,6 +303,7 @@ module.exports = {
   getMissingCatsCount,
   getMissingCatsAddedThisWeek,
   getSightingsLastWeekCount,
+  getSightingsPreviousWeekCount,
   getSigningsPerColony,
   getColoniesSummary,
   getSightingsTendency,

@@ -12,6 +12,7 @@ const Estadisticas = () => {
   const [desapariciones, setDesapariciones] = useState(0);
   const [desaparicionesTrend, setDesaparicionesTrend] = useState(0);
   const [avistamientosSemana, setAvistamientosSemana] = useState(0);
+  const [avistamientosTrend, setAvistamientosTrend] = useState(0);
   const [sterilizedState, setSterilizedState] = useState<{ name: string; value: number; color: string }[]>([]);
 
   // Información de gráficas
@@ -89,7 +90,16 @@ const Estadisticas = () => {
           setDesaparicionesTrend(data.addedThisWeek);
         }
       }
-      if (resAvistamientos.ok) setAvistamientosSemana(await resAvistamientos.json());
+      if (resAvistamientos.ok) {
+        const data = await resAvistamientos.json();
+        if (typeof data === 'number') {
+          setAvistamientosSemana(data);
+          setAvistamientosTrend(0);
+        } else {
+          setAvistamientosSemana(data.count);
+          setAvistamientosTrend(data.trend);
+        }
+      }
       if (resSighingsTendency.ok) setSighingsTendencyData(await resSighingsTendency.json());
       if (resColoniesSummary.ok) setColoniesSummaryData(await resColoniesSummary.json());
       if (resSterilizedState.ok) setSterilizedState(await resSterilizedState.json());
@@ -151,7 +161,8 @@ const Estadisticas = () => {
         <MetricCard
           title="Avistamientos por semana"
           value={avistamientosSemana}
-          trendText="+8 vs anterior"
+          trendText={`${avistamientosTrend > 0 ? '+' : ''}${avistamientosTrend} vs semana pasada`}
+          trendType={avistamientosTrend >= 0 ? "success" : "danger"}
           borderColor="#3B82F6"
         />
       </div>
