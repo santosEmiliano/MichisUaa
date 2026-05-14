@@ -25,6 +25,25 @@ async function getAllCats() {
   } 
 }
 
+async function getCatsAddedThisWeek() {
+  try {
+    const fecha = new Date();
+    fecha.setDate(fecha.getDate() - 7);
+    
+    const count = await prisma.animal.count({
+      where: {
+        createdAt: {
+          gte: fecha,
+        },
+      },
+    });
+    return count;
+  } catch (error) {
+    console.error("Error obteniendo gatos agregados esta semana:", error);
+    throw error;
+  }
+}
+
 async function getMissingCatsCount() {
   try {
     const totalCats = await prisma.animal.count({
@@ -200,6 +219,7 @@ async function getSterilizedState() {
 
 module.exports = {
   getAllCats,
+  getCatsAddedThisWeek,
   getSterilizedCount,
   getMissingCatsCount,
   getSightingsLastWeekCount,

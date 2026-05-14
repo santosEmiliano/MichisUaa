@@ -6,6 +6,7 @@ import { LoadingScreen } from "../components/LoadingScreen";
 const Estadisticas = () => {
   // Información de estadísticas
   const [totalGatos, setTotalGatos] = useState(0);
+  const [gatosAddedWeek, setGatosAddedWeek] = useState(0);
   const [esterilizados, setEsterilizados] = useState(0);
   const [desapariciones, setDesapariciones] = useState(0);
   const [avistamientosSemana, setAvistamientosSemana] = useState(0);
@@ -61,7 +62,16 @@ const Estadisticas = () => {
         fetch("http://localhost:3000/stadistics/sterilizedState", { headers }),
       ]);
 
-      if (resTotalCats.ok) setTotalGatos(await resTotalCats.json());
+      if (resTotalCats.ok) {
+        const dataTotal = await resTotalCats.json();
+        if (typeof dataTotal === 'number') {
+          setTotalGatos(dataTotal);
+          setGatosAddedWeek(0); // fallback if backend hasn't restarted
+        } else {
+          setTotalGatos(dataTotal.total);
+          setGatosAddedWeek(dataTotal.addedThisWeek);
+        }
+      }
       if (resEsterilizados.ok) {
         const data = await resEsterilizados.json();
         setEsterilizados(data.percentage || 0);
@@ -107,7 +117,8 @@ const Estadisticas = () => {
         <MetricCard
           title="Total Gatos"
           value={totalGatos}
-          trendText="+3 este mes"
+          trendText={`+${gatosAddedWeek} esta semana`}
+          trendType="success"
           borderColor="#E8893C"
         />
         <MetricCard

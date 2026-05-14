@@ -84,7 +84,10 @@ const Dashboard = () => {
         setPendientes(mapped.filter((a: any) => a.estado === "Pendiente" || a.estado === "Sin identificar"));
       }
       
-      if (resTotalCats.ok) setTotalGatos(await resTotalCats.json());
+      if (resTotalCats.ok) {
+        const res = await resTotalCats.json();
+        setTotalGatos(typeof res === 'number' ? res : res.total);
+      }
       if (resEsterilizados.ok) {
         const data = await resEsterilizados.json();
         setEsterilizados(data.percentage);

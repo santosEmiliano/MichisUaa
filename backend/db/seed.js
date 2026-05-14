@@ -105,6 +105,17 @@ async function main() {
         fechaEsterilizacion = new Date(estYear, birthMonth, 10);
       }
 
+      // Generar una fecha de creación variada (80% antiguos, 20% recientes)
+      const isReciente = Math.random() < 0.2;
+      const createdAt = new Date();
+      if (isReciente) {
+        // En los últimos 6 días
+        createdAt.setDate(createdAt.getDate() - Math.floor(Math.random() * 6));
+      } else {
+        // Hace 10 a 300 días
+        createdAt.setDate(createdAt.getDate() - (10 + Math.floor(Math.random() * 290)));
+      }
+
       const animal = await prisma.animal.create({
         data: {
           nombre: catNames[nameIndex],
@@ -113,7 +124,8 @@ async function main() {
           estado: estado,
           fecha_nac: fechaNac,
           fecha_esterilizacion: fechaEsterilizacion,
-          descripcion: `Un gato muy peculiar llamado ${catNames[nameIndex]}, visto frecuentemente en la colonia.`
+          descripcion: `Un gato muy peculiar llamado ${catNames[nameIndex]}, visto frecuentemente en la colonia.`,
+          createdAt: createdAt
         }
       });
       createdAnimals.push(animal);
