@@ -1,4 +1,4 @@
-const prisma = require('./prisma')
+const prisma = require('./prisma');
 const bcrypt = require('bcryptjs');
 
 async function main() {
@@ -9,18 +9,18 @@ async function main() {
   await prisma.colonia.deleteMany();
   await prisma.usuario.deleteMany();
 
-  // Crear usuario admin
-  const saltos = await bcrypt.genSalt(10);
-  const hashPassword = await bcrypt.hash('1234', saltos);
-
   console.log('Creando colonias...');
   const coloniesData = [
-    { nombre: 'Edificio 108', zona: 'Zona central - Ed. 108', descripcion: 'Colonia principal del área central, frente a la entrada a la biblioteca central.' },
-    { nombre: 'Zona alberca', zona: 'Area deportiva - Alberca', descripcion: 'Colonia ubicada en los jardines alrededor de la alberca universitaria.' },
-    { nombre: 'UMD', zona: 'Unidad médico-didáctica', descripcion: 'Colonia en zona de estacionamiento y entrada principal de UMD.' },
-    { nombre: 'Edificio 114', zona: 'Zona noreste - Ed. 114', descripcion: 'Colonia en pasillo B y área de jardines del edificio 114 cercano a la cafeteria norte.' },
-    { nombre: 'Edificio 117', zona: 'Zona sur - Ed. 117', descripcion: 'Colonia en jardines exteriores del edificio 117, límite del campus contra plaza universidad.' },
-    { nombre: 'Edificio 59', zona: 'Zona este - Ed. 59', descripcion: 'Colonia en zona de los laboratorios de electrónica y edificio de sistemas.' },
+    { nombre: 'Edificio 108', zona: 'Zona central', descripcion: 'Colonia principal frente a la biblioteca central.' },
+    { nombre: 'Zona alberca', zona: 'Area deportiva', descripcion: 'Jardines alrededor de la alberca universitaria.' },
+    { nombre: 'UMD', zona: 'Unidad médico-didáctica', descripcion: 'Estacionamiento y entrada principal de UMD.' },
+    { nombre: 'Edificio 114', zona: 'Zona noreste', descripcion: 'Pasillo B y área de jardines cercanos a la cafetería norte.' },
+    { nombre: 'Edificio 117', zona: 'Zona sur', descripcion: 'Jardines exteriores del edificio 117, límite contra plaza universidad.' },
+    { nombre: 'Edificio 59', zona: 'Zona este', descripcion: 'Zona de los laboratorios de electrónica y sistemas.' },
+    { nombre: 'Jardín Botánico', zona: 'Zona oeste', descripcion: 'Área protegida con abundante vegetación y refugios naturales.' },
+    { nombre: 'Velaria', zona: 'Explanada', descripcion: 'Zona techada donde se realizan eventos masivos.' },
+    { nombre: 'Edificio 20', zona: 'Zona antigua', descripcion: 'Cerca de los primeros edificios de la universidad.' },
+    { nombre: 'Biblioteca Norte', zona: 'Zona norte', descripcion: 'Jardines traseros de la biblioteca norte.' },
   ];
 
   const createdColonies = [];
@@ -29,177 +29,157 @@ async function main() {
     createdColonies.push(col);
   }
 
+  console.log('Creando usuarios...');
+  const saltos = await bcrypt.genSalt(10);
+  const hashPassword = await bcrypt.hash('1234', saltos);
 
-  const colonia1 = createdColonies[0];
-  const colonia2 = createdColonies[1];
-  const colonia3 = createdColonies[5];
-
-  console.log('Creando usuarios y asignando colonias...');
   const usersData = [
-    { nombre: 'M. Rodriguez', email: 'mrodriguez@michis.uaa.mx', colIndex: 0 },
-    { nombre: 'E. Santos', email: 'esantos@michis.uaa.mx', colIndex: 1 },
-    { nombre: 'H. Dueñas', email: 'hduenas@michis.uaa.mx', colIndex: 2 },
-    { nombre: 'J. Hernandez', email: 'jhernandez@michis.uaa.mx', colIndex: 3 },
-    { nombre: 'J. Narvaez', email: 'jnarvaez@michis.uaa.mx', colIndex: 4 },
-    { nombre: 'B. Osorio', email: 'bosorio@michis.uaa.mx', colIndex: 5 },
+    { nombre: 'Admin MichisUAA', email: 'admin@michis.uaa.mx', admin: true },
+    { nombre: 'Emiliano Santos', email: 'esantos@michis.uaa.mx', admin: true },
+    { nombre: 'Mario Rodriguez', email: 'mrodriguez@michis.uaa.mx', admin: true },
+    { nombre: 'Héctor Dueñas', email: 'hduenas@michis.uaa.mx', admin: false },
+    { nombre: 'Juan Hernandez', email: 'jhernandez@michis.uaa.mx', admin: false },
+    { nombre: 'Javier Narvaez', email: 'jnarvaez@michis.uaa.mx', admin: false },
+    { nombre: 'Brenda Osorio', email: 'bosorio@michis.uaa.mx', admin: false },
+    { nombre: 'Ana Gomez', email: 'agomez@michis.uaa.mx', admin: false },
+    { nombre: 'Carlos Lopez', email: 'clopez@michis.uaa.mx', admin: false },
+    { nombre: 'Laura Martinez', email: 'lmartinez@michis.uaa.mx', admin: false },
   ];
 
-  for (const u of usersData) {
-    await prisma.usuario.create({
+  const createdUsers = [];
+  for (let i = 0; i < usersData.length; i++) {
+    const u = usersData[i];
+    // Asignar a 2 colonias aleatorias a cada usuario
+    const col1 = createdColonies[i % createdColonies.length].idColonia;
+    const col2 = createdColonies[(i + 3) % createdColonies.length].idColonia;
+
+    const user = await prisma.usuario.create({
       data: {
         nombre: u.nombre,
         email: u.email,
         password: hashPassword,
-        admin: false,
+        admin: u.admin,
         usuariosCols: {
-          create: { Colonia_idColonia: createdColonies[u.colIndex].idColonia }
+          create: [
+            { Colonia_idColonia: col1 },
+            { Colonia_idColonia: col2 }
+          ]
         }
       }
     });
+    createdUsers.push(user);
   }
 
-  // Admin User
-  await prisma.usuario.create({
-    data: {
-      nombre: 'Admin MichisUAA',
-      email: 'admin@michis.uaa.mx',
-      password: hashPassword,
-      admin: true,
-      usuariosCols: {
-        create: [
-          { Colonia_idColonia: colonia1.idColonia },
-          { Colonia_idColonia: colonia2.idColonia }
-        ]
-      }
-    }
-  });
+  const adminUsers = createdUsers.filter(u => u.admin);
 
-  // Crear Animales
-  await prisma.animal.createMany({
-    data: [
-      { nombre: 'Manchas', Colonia_idColonia: colonia1.idColonia, esterilizado: true, estado: 'Registrado', fecha_nac: new Date('2023-01-15') },
-      { nombre: 'Michi', Colonia_idColonia: colonia2.idColonia, esterilizado: true, estado: 'Registrado', fecha_nac: new Date('2021-05-10') },
-      { nombre: 'Wakanda', Colonia_idColonia: colonia3.idColonia, esterilizado: true, estado: 'Registrado', fecha_nac: new Date('2022-08-22') },
-      { nombre: 'Canela', Colonia_idColonia: colonia1.idColonia, esterilizado: false, estado: 'Registrado', fecha_nac: new Date('2020-11-05') },
-      { nombre: 'Gatillo', Colonia_idColonia: colonia2.idColonia, esterilizado: false, estado: 'NoRegistrado', fecha_nac: new Date('2023-12-01') },
-      { nombre: 'Jose Pablo', Colonia_idColonia: colonia3.idColonia, esterilizado: false, estado: 'Desaparecido', fecha_nac: new Date('2019-03-30') },
-      { nombre: 'Chispas', Colonia_idColonia: colonia3.idColonia, esterilizado: true, estado: 'Registrado', fecha_nac: new Date('2022-02-14') },
-      { nombre: 'Kneecap', Colonia_idColonia: colonia3.idColonia, esterilizado: true, estado: 'Desaparecido', fecha_nac: new Date('2021-09-09') },
-      { nombre: 'Luna', Colonia_idColonia: colonia2.idColonia, esterilizado: true, estado: 'Registrado', fecha_nac: new Date('2024-01-01') },
-      { nombre: 'Tigre', Colonia_idColonia: colonia1.idColonia, esterilizado: false, estado: 'Registrado', fecha_nac: new Date('2018-07-20') }
-    ]
-  });
+  console.log('Creando animales variados...');
+  const catNames = [
+    'Manchas', 'Michi', 'Wakanda', 'Canela', 'Gatillo', 'Jose Pablo', 'Chispas', 'Kneecap', 'Luna', 'Tigre',
+    'Garfield', 'Felix', 'Salem', 'Pelusa', 'Tom', 'Silvestre', 'Bola de Nieve', 'Botas', 'Simba', 'Nala',
+    'Oreo', 'Pantera', 'Romeo', 'Benito', 'Cucho', 'Demostenes', 'Espanto', 'Don Gato', 'Copito', 'Misifu',
+    'Mish', 'Zeus', 'Apolo', 'Loki', 'Thor', 'Mia', 'Kira', 'Coco', 'Milo', 'Leo'
+  ];
 
-  // Adding some random animals to populate the stats
-  console.log('Creando animales...');
-  const animalCounts = [12, 8, 8, 5, 9, 10]; // From the image
-  const esterilizadoCounts = [10, 6, 6, 2, 8, 5]; // Calculated roughly from the percentages in the image
+  const createdAnimals = [];
+  let nameIndex = 0;
 
   for (let i = 0; i < createdColonies.length; i++) {
     const colonyId = createdColonies[i].idColonia;
-    const total = animalCounts[i];
-    const esterilizados = esterilizadoCounts[i];
+    // Crear entre 3 y 5 gatos por colonia
+    const numCats = Math.floor(Math.random() * 3) + 3; 
 
-    for (let j = 0; j < total; j++) {
-      await prisma.animal.create({
+    for (let j = 0; j < numCats; j++) {
+      if (nameIndex >= catNames.length) nameIndex = 0;
+      
+      const isEsterilizado = Math.random() > 0.3; // 70% esterilizados
+      const estadoOptions = ['Registrado', 'Registrado', 'Registrado', 'Desaparecido', 'NoRegistrado'];
+      const estado = estadoOptions[Math.floor(Math.random() * estadoOptions.length)];
+      
+      const birthYear = 2018 + Math.floor(Math.random() * 6);
+      const birthMonth = Math.floor(Math.random() * 12);
+      const fechaNac = new Date(birthYear, birthMonth, 15);
+      
+      let fechaEsterilizacion = null;
+      if (isEsterilizado) {
+        const estYear = birthYear + 1 + Math.floor(Math.random() * 2);
+        fechaEsterilizacion = new Date(estYear, birthMonth, 10);
+      }
+
+      const animal = await prisma.animal.create({
         data: {
-          nombre: `Gato ${i+1}-${j+1}`,
+          nombre: catNames[nameIndex],
           Colonia_idColonia: colonyId,
-          esterilizado: j < esterilizados,
-          estado: 'Registrado'
+          esterilizado: isEsterilizado,
+          estado: estado,
+          fecha_nac: fechaNac,
+          fecha_esterilizacion: fechaEsterilizacion,
+          descripcion: `Un gato muy peculiar llamado ${catNames[nameIndex]}, visto frecuentemente en la colonia.`
         }
       });
+      createdAnimals.push(animal);
+      nameIndex++;
     }
   }
-  
-  const firstUser = await prisma.usuario.findFirst();
-  const firstAnimal = await prisma.animal.findFirst();
 
-  if (firstUser) {
-    const today = new Date();
-    
-    const threeDaysAgo = new Date(today);
-    threeDaysAgo.setDate(today.getDate() - 3);
-    
-    const fiveDaysAgo = new Date(today);
-    fiveDaysAgo.setDate(today.getDate() - 5);
-    
-    const tenDaysAgo = new Date(today);
-    tenDaysAgo.setDate(today.getDate() - 10);
-    
-    const twoWeeksAgo = new Date(today);
-    twoWeeksAgo.setDate(today.getDate() - 14);
-
-    // Obtener un animal de cada colonia para distribuir los avistamientos
-    const animalsPerColony = await Promise.all(
-      createdColonies.map(col => 
-        prisma.animal.findFirst({ where: { Colonia_idColonia: col.idColonia } })
-      )
-    );
-
-    await prisma.avistamiento.createMany({
-      data: [
-        { usuarioId: firstUser.idUsuario, animalId: animalsPerColony[0]?.idAnimal, longitud: -102.316, latitud: 21.914, createdAt: today },
-        { usuarioId: firstUser.idUsuario, animalId: animalsPerColony[1]?.idAnimal, longitud: -102.315, latitud: 21.913, createdAt: threeDaysAgo },
-        { usuarioId: firstUser.idUsuario, animalId: animalsPerColony[2]?.idAnimal, longitud: -102.314, latitud: 21.912, createdAt: fiveDaysAgo },
-        { usuarioId: firstUser.idUsuario, animalId: animalsPerColony[3]?.idAnimal, longitud: -102.313, latitud: 21.911, createdAt: today },
-        { usuarioId: firstUser.idUsuario, animalId: animalsPerColony[4]?.idAnimal, longitud: -102.312, latitud: 21.910, createdAt: threeDaysAgo },
-        { usuarioId: firstUser.idUsuario, animalId: animalsPerColony[5]?.idAnimal, longitud: -102.311, latitud: 21.909, createdAt: fiveDaysAgo },
-        // Algunos avistamientos viejos para la tendencia
-        { usuarioId: firstUser.idUsuario, animalId: animalsPerColony[0]?.idAnimal, longitud: -102.316, latitud: 21.914, createdAt: tenDaysAgo },
-        { usuarioId: firstUser.idUsuario, animalId: animalsPerColony[1]?.idAnimal, longitud: -102.315, latitud: 21.913, createdAt: twoWeeksAgo },
-      ]
-    });
-  }
-
-  // Crear Avistamientos de prueba
   console.log('Creando avistamientos...');
+  const baseLat = 21.913;
+  const baseLng = -102.314;
 
-  if (firstUser && firstAnimal) {
-    await prisma.avistamiento.createMany({
-      data: [
-        {
-          usuarioId: firstUser.idUsuario,
-          animalId: firstAnimal.idAnimal,
-          descripcion: 'Lo vi cerca de la entrada del edificio 108, se ve muy tranquilo.',
-          longitud: -102.3126,
-          latitud: 21.9123,
-          verificado: false,
-          createdAt: new Date(Date.now() - 1000 * 60 * 15) // Hace 15 min
-        },
-        {
-          usuarioId: firstUser.idUsuario,
-          animalId: null, // Sin identificar
-          descripcion: 'Un gato naranja con manchas blancas que no reconozco en esta zona.',
-          longitud: -102.3140,
-          latitud: 21.9150,
-          verificado: false,
-          createdAt: new Date(Date.now() - 1000 * 60 * 60 * 2) // Hace 2 hrs
-        },
-        {
-          usuarioId: firstUser.idUsuario,
-          animalId: firstAnimal.idAnimal,
-          descripcion: 'Reporte verificado de prueba para control.',
-          longitud: -102.3150,
-          latitud: 21.9160,
-          verificado: true,
-          verificadoPor: firstUser.idUsuario,
-          createdAt: new Date(Date.now() - 1000 * 60 * 60 * 24) // Hace 1 día
-        },
-        {
-          usuarioId: firstUser.idUsuario,
-          animalId: null,
-          descripcion: 'Gato negro herido cerca de la alberca.',
-          longitud: -102.3160,
-          latitud: 21.9170,
-          verificado: false,
-          createdAt: new Date(Date.now() - 1000 * 60 * 60 * 5) // Hace 5 hrs
-        }
-      ]
+  for (let i = 0; i < 30; i++) {
+    const randomUser = createdUsers[Math.floor(Math.random() * createdUsers.length)];
+    const randomAnimal = Math.random() > 0.2 ? createdAnimals[Math.floor(Math.random() * createdAnimals.length)] : null; // 20% sin identificar
+    const randomAdmin = adminUsers[Math.floor(Math.random() * adminUsers.length)];
+
+    const latOffset = (Math.random() - 0.5) * 0.005;
+    const lngOffset = (Math.random() - 0.5) * 0.005;
+    
+    const daysAgo = Math.floor(Math.random() * 60); // Hace 0 a 60 días
+    const createdAt = new Date();
+    createdAt.setDate(createdAt.getDate() - daysAgo);
+
+    // Tipos de estado: Pendiente, Verificado, Rechazado
+    const statusRand = Math.random();
+    let verificado = false;
+    let verificadoPor = null;
+    let desc = '';
+
+    if (randomAnimal === null) {
+       desc = 'Vi un gato que no parece estar en la base de datos, cerca de los árboles.';
+       // Algunos sin identificar quedan pendientes, otros son rechazados
+       if (statusRand > 0.7) {
+          verificadoPor = randomAdmin.idUsuario; // Rechazado
+       }
+    } else {
+       if (statusRand < 0.4) {
+         // Verificado
+         verificado = true;
+         verificadoPor = randomAdmin.idUsuario;
+         desc = `Confirmado, vi a ${randomAnimal.nombre} descansando.`;
+       } else if (statusRand < 0.6) {
+         // Rechazado
+         verificadoPor = randomAdmin.idUsuario;
+         desc = `Creo que vi a ${randomAnimal.nombre}, aunque estaba un poco lejos.`;
+       } else {
+         // Pendiente
+         desc = `Reporte de ${randomAnimal.nombre} en la zona.`;
+       }
+    }
+
+    await prisma.avistamiento.create({
+      data: {
+        usuarioId: randomUser.idUsuario,
+        animalId: randomAnimal ? randomAnimal.idAnimal : null,
+        descripcion: desc,
+        longitud: baseLng + lngOffset,
+        latitud: baseLat + latOffset,
+        verificado: verificado,
+        verificadoPor: verificadoPor,
+        createdAt: createdAt
+      }
     });
   }
 
-  console.log('Seed completado exitosamente.');
+  console.log('Seed completado exitosamente con datos variados y completos.');
 }
 
 main()
