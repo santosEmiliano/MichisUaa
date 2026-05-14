@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { Routes, Route, Navigate } from "react-router-dom";
 import AuthPage from "./pages/AuthPage";
 import MainLayout from "./layouts/MainLayout";
@@ -14,6 +14,24 @@ import { checkSession } from "./utils/auth";
 
 function App() {
   const [isAuthenticated, setIsAuthenticated] = useState(() => checkSession());
+
+  useEffect(() => {
+    const originalFetch = window.fetch;
+    window.fetch = async (...args) => {
+      const response = await originalFetch(...args);
+      // Si el token es inválido, expiró o no hay permisos
+      if (response.status === 401 || response.status === 403) {
+        localStorage.removeItem("token");
+        localStorage.removeItem("userId");
+        setIsAuthenticated(false);
+      }
+      return response;
+    };
+    
+    return () => {
+      window.fetch = originalFetch;
+    };
+  }, []);
 
   return (
     <Routes>
