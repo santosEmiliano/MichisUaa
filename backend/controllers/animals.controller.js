@@ -41,6 +41,14 @@ const createAnimal = async (req, res) => {
       });
     }
 
+    if (req.body.fecha_nac) {
+      const birthDate = new Date(req.body.fecha_nac);
+      const today = new Date();
+      if (birthDate > today) {
+        return res.status(400).json({ mensaje: "La fecha de nacimiento no puede ser en el futuro" });
+      }
+    }
+
     req.body.Colonia_idColonia = Number(req.body.Colonia_idColonia);
     if (req.body.esterilizado !== undefined) {
         req.body.esterilizado = req.body.esterilizado === 'true' || req.body.esterilizado === true; 
@@ -80,6 +88,14 @@ const updateAnimal = async (req, res) => {
     const existingAnimal = await animalModel.getAnimalById(id);
     if (!existingAnimal) {
       return res.status(404).json({ mensaje: "Animal no encontrado para actualizar" });
+    }
+
+    if (req.body.fecha_nac) {
+      const birthDate = new Date(req.body.fecha_nac);
+      const today = new Date();
+      if (birthDate > today) {
+        return res.status(400).json({ mensaje: "La fecha de nacimiento no puede ser en el futuro" });
+      }
     }
 
     if (req.body.Colonia_idColonia !== undefined)
