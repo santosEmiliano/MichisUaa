@@ -159,7 +159,7 @@ const Estadisticas = () => {
           borderColor="#E05252"
         />
         <MetricCard
-          title="Avistamientos por semana"
+          title="Avistamientos esta semana"
           value={avistamientosSemana}
           trendText={`${avistamientosTrend > 0 ? '+' : ''}${avistamientosTrend} vs semana pasada`}
           trendType={avistamientosTrend >= 0 ? "success" : "danger"}
@@ -171,7 +171,6 @@ const Estadisticas = () => {
         <div className="bg-gris-oscuro rounded-3xl p-6 shadow-lg border border-sidebar-separador">
           <div className="flex justify-between items-end mb-6">
             <h2 className="text-xl font-bold text-white">Avistamientos por colonia</h2>
-            <span className="text-secondary text-sm">Últimos 3 meses</span>
           </div>
           
           <div className="grid grid-cols-1 md:grid-cols-2 gap-x-8 gap-y-4">

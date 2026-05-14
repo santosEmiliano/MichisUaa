@@ -217,7 +217,7 @@ const Dashboard = () => {
           title="Esterilizados"
           value={esterilizados}
           valueSuffix="%"
-          trendText={`${esterilizadosCount}/${totalGatos}`}
+          trendText={`${esterilizadosCount} esterilizados de ${totalGatos}`}
           trendType="neutral"
           borderColor="var(--metrica-verde)"
         />

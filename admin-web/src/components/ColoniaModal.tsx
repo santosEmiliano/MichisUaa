@@ -16,7 +16,6 @@ export interface ColoniaFormSave {
   name: string;
   location: string;
   description: string;
-  alerta: boolean;
   responsableIds: string[];
 }
 
@@ -24,7 +23,6 @@ const defaultForm = (): ColoniaFormSave => ({
   name: "",
   location: "",
   description: "",
-  alerta: false,
   responsableIds: [],
 });
 
@@ -37,7 +35,6 @@ function formFromProps(
       name: initial.name,
       location: initial.location,
       description: initial.description,
-      alerta: initial.alerta ?? false,
       responsableIds: initial.responsableIds || [],
     };
   }
@@ -182,32 +179,6 @@ export const ColoniaModal = ({
           {form.responsableIds.length === 0 && (
             <p className="text-xs text-red-400 mt-1">Debes seleccionar al menos un encargado.</p>
           )}
-        </div>
-
-        <div className="flex items-center justify-between rounded-xl border border-sidebar-separador bg-gris px-4 py-3">
-          <div>
-            <p className="font-bold text-main text-sm">Alerta</p>
-            <p className="text-xs text-secondary mt-0.5">
-              Activa badge y acentos en rojo en la tarjeta
-            </p>
-          </div>
-          <button
-            type="button"
-            role="switch"
-            aria-checked={form.alerta}
-            onClick={() => setForm((f) => ({ ...f, alerta: !f.alerta }))}
-            className={`relative w-11 h-6 rounded-full transition-colors shrink-0 ${
-              form.alerta
-                ? "bg-[#c84b4b]"
-                : "bg-gris-oscuro border border-sidebar-separador"
-            }`}
-          >
-            <span
-              className={`absolute top-0.5 w-5 h-5 rounded-full bg-white shadow transition-transform ${
-                form.alerta ? "left-5" : "left-0.5"
-              }`}
-            />
-          </button>
         </div>
       </form>
     </ModalCrud>
