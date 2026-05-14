@@ -219,7 +219,7 @@ const Avistamientos = () => {
       searchKey: "estado",
       render: (row) => (
         <span
-          className={`px-3 py-1 rounded-full text-xs font-bold ${getStatusBadgeClass(
+          className={`px-3 py-1 rounded-full text-xs font-bold whitespace-nowrap text-center ${getStatusBadgeClass(
             row.estado
           )}`}
         >

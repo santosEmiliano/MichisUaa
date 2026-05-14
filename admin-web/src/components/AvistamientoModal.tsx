@@ -271,9 +271,10 @@ export const AvistamientoModal = ({ isOpen, onClose, onSuccess, avistamiento }: 
               <div className="flex items-center gap-2 text-secondary mb-2">
                 <span className="w-1.5 h-1.5 rounded-full bg-secondary opacity-50" />
                 <span className="text-sm font-medium">
-                  {displayAvistamiento.estado === "Verificado" ? "Gato asociado" : "Asociar a Gato"}
+                  {displayAvistamiento.estado === "Verificado" ? "Gato asociado" : "Gato asociado"}
                 </span>
               </div>
+              {displayAvistamiento.estado !== "Rechazado" ? (
               <div className="pl-3.5 relative">
                 <select
                   value={selectedGato}
@@ -291,6 +292,11 @@ export const AvistamientoModal = ({ isOpen, onClose, onSuccess, avistamiento }: 
                 </select>
                 <Icons.ChevronDown className="absolute right-4 top-3.5 w-4 h-4 text-secondary pointer-events-none" />
               </div>
+              ) : (<div className="pl-3.5 space-y-2">
+                  <p className="text-main text-sm pl-3.5 leading-relaxed">
+                    {displayAvistamiento.animalName}
+                  </p>
+                </div>)}
             </div>
           </div>
         </div>
