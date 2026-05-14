@@ -131,7 +131,7 @@ const Dashboard = () => {
             {getInitials(row.animalName)}
           </div>
           <div>
-            <p className="font-bold text-white text-[15px]">{row.animalName}</p>
+            <p className="font-bold text-main text-[15px]">{row.animalName}</p>
             <p className="text-xs text-secondary">{row.animalColonia}</p>
           </div>
         </div>
@@ -139,7 +139,7 @@ const Dashboard = () => {
     },
     {
       header: "Reportó",
-      render: (row) => <p className="font-bold text-white text-[15px]">{row.reportadoPor}</p>,
+      render: (row) => <p className="font-bold text-main text-[15px]">{row.reportadoPor}</p>,
     },
     {
       header: "Ubicación",
