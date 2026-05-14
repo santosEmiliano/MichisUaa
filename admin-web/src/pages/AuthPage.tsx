@@ -95,15 +95,15 @@ const AuthPage = ({ onLogin }: AuthPageProps) => {
   };
 
   const inputBase =
-    "w-full rounded-xl px-4 py-3 text-main focus:outline-none transition-all duration-200 placeholder-white/30";
-  const inputOk = `${inputBase} bg-white/5 border border-white/10 focus:bg-white/10 focus:border-orange/50`;
+    "w-full rounded-xl px-4 py-3 text-main focus:outline-none transition-all duration-200 placeholder:text-secondary";
+  const inputOk = `${inputBase} bg-[var(--fondo-gris)] border-[var(--border-color)] focus:bg-[var(--bg-hover)] focus:border-[var(--accent-orange)]`;
   const inputErr = `${inputBase} bg-red-500/10 border border-red-500/50 focus:border-red-500`;
 
   return (
     <div className="relative min-h-screen flex items-center justify-center p-4 overflow-hidden">
       <LoginBackground />
       
-      <div className="relative w-full max-w-md backdrop-blur-xl bg-panel/40 rounded-[2.5rem] border border-white/10 shadow-[0_8px_32px_0_rgba(0,0,0,0.8)] overflow-hidden z-10">
+      <div className="relative w-full max-w-md backdrop-blur-xl bg-panel rounded-[2.5rem] border border-[var(--border-color)] shadow-[0_8px_32px_0_rgba(0,0,0,0.2)] overflow-hidden z-10">
 
         {/* Línea decorativa superior */}
         <div
@@ -124,7 +124,7 @@ const AuthPage = ({ onLogin }: AuthPageProps) => {
             />
           </div>
           <h2 className="text-3xl font-black text-main tracking-tight">MichisUAA</h2>
-          <p className="text-white/60 text-sm font-medium mt-1">Panel de administración</p>
+          <p className="text-secondary text-sm font-medium mt-1">Panel de administración</p>
         </div>
 
         {/* Formulario */}
@@ -133,7 +133,7 @@ const AuthPage = ({ onLogin }: AuthPageProps) => {
 
             {/* Email */}
             <div>
-              <label className="block text-white/40 text-[10px] font-black mb-2 uppercase tracking-[0.2em]">
+              <label className="block text-secondary text-[10px] font-black mb-2 uppercase tracking-[0.2em]">
                 Correo
               </label>
               <input
@@ -150,7 +150,7 @@ const AuthPage = ({ onLogin }: AuthPageProps) => {
 
             {/* Contraseña */}
             <div>
-              <label className="block text-white/40 text-[10px] font-black mb-2 uppercase tracking-[0.2em]">
+              <label className="block text-secondary text-[10px] font-black mb-2 uppercase tracking-[0.2em]">
                 Contraseña
               </label>
               <div className="relative">

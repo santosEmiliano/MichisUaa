@@ -243,7 +243,7 @@ const Dashboard = () => {
 
       <div className="flex items-center justify-between mt-10">
         <div className="flex items-center gap-4">
-          <h2 className="text-3xl font-extrabold text-white">
+          <h2 className="text-3xl font-extrabold text-main">
             Avistamientos pendientes
           </h2>
           <span className="bg-gris-oscuro text-secondary text-xs font-bold px-4 py-1.5 rounded-full border border-panel">

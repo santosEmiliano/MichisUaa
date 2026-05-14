@@ -170,7 +170,7 @@ const Estadisticas = () => {
       <div className="grid grid-cols-1 xl:grid-cols-[1.5fr_1fr] gap-6">
         <div className="bg-gris-oscuro rounded-3xl p-6 shadow-lg border border-sidebar-separador">
           <div className="flex justify-between items-end mb-6">
-            <h2 className="text-xl font-bold text-white">Avistamientos por colonia</h2>
+            <h2 className="text-xl font-bold text-main">Avistamientos por colonia</h2>
           </div>
           
           <div className="grid grid-cols-1 md:grid-cols-2 gap-x-8 gap-y-4">
@@ -186,7 +186,7 @@ const Estadisticas = () => {
                       transition: "width 1s cubic-bezier(0.16, 1, 0.3, 1)"
                     }}
                   >
-                    <span className="text-white font-bold text-sm">{item.total}</span>
+                    <span className="text-main font-bold text-sm">{item.total}</span>
                   </div>
                 </div>
               </div>
@@ -195,7 +195,7 @@ const Estadisticas = () => {
         </div>
 
         <div className="bg-gris-oscuro rounded-3xl p-6 shadow-lg border-t-2 border-t-[#E8893C] border-x border-b border-sidebar-separador">
-          <h2 className="text-xl font-bold text-white mb-6">Estado de esterilización</h2>
+          <h2 className="text-xl font-bold text-main mb-6">Estado de esterilización</h2>
           <div className="flex items-center">
             <div className="w-48 h-48 relative">
               <ResponsiveContainer width="100%" height="100%">
@@ -216,7 +216,7 @@ const Estadisticas = () => {
                 </PieChart>
               </ResponsiveContainer>
               <div className="absolute inset-0 flex flex-col items-center justify-center pointer-events-none">
-                <span className="text-3xl font-bold text-white">{esterilizados}<span className="text-2xl text-secondary">%</span></span>
+                <span className="text-3xl font-bold text-main">{esterilizados}<span className="text-2xl text-secondary">%</span></span>
                 <span className="text-secondary text-sm">esteril</span>
               </div>
             </div>
@@ -237,7 +237,7 @@ const Estadisticas = () => {
         {/* Line Chart */}
         <div className="bg-gris-oscuro rounded-3xl p-6 shadow-lg border-t-2 border-t-[#3B82F6] border-x border-b border-sidebar-separador flex flex-col">
           <div className="flex justify-between items-end mb-6">
-            <h2 className="text-xl font-bold text-white">Tendencia de avistamientos</h2>
+            <h2 className="text-xl font-bold text-main">Tendencia de avistamientos</h2>
             <span className="text-secondary text-sm">Por semana</span>
           </div>
           
@@ -276,13 +276,13 @@ const Estadisticas = () => {
         {/* Table */}
         <div className="bg-gris-oscuro rounded-3xl p-0 shadow-lg border-t-2 border-t-[#8B5CF6] border-x border-b border-sidebar-separador overflow-hidden">
           <div className="p-6 pb-4">
-            <h2 className="text-xl font-bold text-white">Resumen por colonia</h2>
+            <h2 className="text-xl font-bold text-main">Resumen por colonia</h2>
           </div>
           
           <div className="flex">
             {/* Left Table */}
             <div className="flex-1">
-              <div className="bg-[#444] px-6 py-2 grid grid-cols-[2fr_1fr_1fr] gap-4 text-xs font-bold text-sidebar-secundario">
+              <div className="bg-gris px-6 py-2 grid grid-cols-[2fr_1fr_1fr] gap-4 text-xs font-bold text-sidebar-secundario border-b border-sidebar-separador">
                 <span>Colonia</span>
                 <span>Gatos</span>
                 <span>Esteriles</span>
@@ -303,7 +303,7 @@ const Estadisticas = () => {
             
             {/* Right Table */}
             <div className="flex-1 border-l border-sidebar-separador">
-              <div className="bg-[#444] px-6 py-2 grid grid-cols-[2fr_1fr_1fr] gap-4 text-xs font-bold text-sidebar-secundario">
+              <div className="bg-gris px-6 py-2 grid grid-cols-[2fr_1fr_1fr] gap-4 text-xs font-bold text-sidebar-secundario border-b border-sidebar-separador">
                 <span>Colonia</span>
                 <span>Gatos</span>
                 <span>Esteriles</span>

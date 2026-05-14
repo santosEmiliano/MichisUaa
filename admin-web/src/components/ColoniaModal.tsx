@@ -172,7 +172,7 @@ export const ColoniaModal = ({
                   }}
                   className="w-4 h-4 text-acento-naranja bg-gris border-sidebar-separador rounded focus:ring-acento-naranja focus:ring-2 focus:ring-offset-2 focus:ring-offset-gris-oscuro"
                 />
-                <span className="text-sm text-white truncate" title={o.nombre}>{o.nombre}</span>
+                <span className="text-sm text-main truncate" title={o.nombre}>{o.nombre}</span>
               </label>
             ))}
           </div>

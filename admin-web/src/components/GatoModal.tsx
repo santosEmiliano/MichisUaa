@@ -198,7 +198,6 @@ export const GatoModal = ({ isOpen, onClose, onSuccess, catToEdit }: CatModalPro
               value={coloniaId}
               onChange={(e) => setColoniaId(e.target.value)}
               className="appearance-none w-full bg-gris border border-sidebar-separador text-secondary rounded-xl px-4 py-3 pr-10 focus:outline-none focus:border-acento-naranja focus:bg-[rgba(232,137,60,0.05)] hover:border-acento-naranja transition-all duration-200 cursor-pointer [&>option]:bg-gris [&>option]:text-main"
-              style={{ colorScheme: "dark" }}
             >
               <option value="" disabled>
                 Seleccionar colonia
@@ -248,7 +247,6 @@ export const GatoModal = ({ isOpen, onClose, onSuccess, catToEdit }: CatModalPro
               value={estado}
               onChange={(e) => setEstado(e.target.value)}
               className="appearance-none w-full bg-gris border border-sidebar-separador text-secondary rounded-xl px-4 py-3 pr-10 focus:outline-none focus:border-acento-naranja focus:bg-[rgba(232,137,60,0.05)] hover:border-acento-naranja transition-all duration-200 cursor-pointer [&>option]:bg-gris [&>option]:text-main"
-              style={{ colorScheme: "dark" }}
             >
               <option value="Registrado">Registrado</option>
               <option value="Desaparecido">Desaparecido</option>
@@ -265,7 +263,6 @@ export const GatoModal = ({ isOpen, onClose, onSuccess, catToEdit }: CatModalPro
             value={fechaNac}
             onChange={(e) => setFechaNac(e.target.value)}
             className="w-56 bg-gris border border-sidebar-separador rounded-xl px-4 py-3 text-secondary focus:outline-none focus:border-acento-naranja focus:bg-[rgba(232,137,60,0.05)] hover:border-acento-naranja transition-all duration-200"
-            style={{ colorScheme: "dark" }}
           />
         </div>
       </form>

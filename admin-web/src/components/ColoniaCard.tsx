@@ -66,7 +66,7 @@ export const ColoniaCard = ({
       <div className="px-5 pt-5 pb-4 flex-1 flex flex-col">
         {/* Title + Location */}
         <div>
-          <h3 className="text-lg font-bold text-white leading-tight">{name}</h3>
+          <h3 className="text-lg font-bold text-main leading-tight">{name}</h3>
           <p className="text-[13px] text-secondary mt-1 flex items-center gap-1.5">
             <Icons.Colonies className="w-3.5 h-3.5 shrink-0 opacity-60" />
             {location}
@@ -79,26 +79,25 @@ export const ColoniaCard = ({
         </p>
 
         {/* Stats row */}
-        <div className="flex items-center gap-4 mt-4 bg-card rounded-xl px-4 py-3 border border-white/[0.05]">
+        <div className="flex items-center gap-4 mt-4 bg-card rounded-xl px-4 py-3 border border-sidebar-separador">
           <div className="relative shrink-0">
             <MiniRing percent={esterilizadoPercent} />
-            <span className="absolute inset-0 flex items-center justify-center text-[11px] font-bold text-white">
+            <span className="absolute inset-0 flex items-center justify-center text-[11px] font-bold text-main">
               {esterilizadoPercent}%
             </span>
           </div>
           <div className="flex-1 min-w-0">
-            <p className="text-sm font-bold text-white leading-tight">{animalCount} {animalCount === 1 ? "gato" : "gatos"}</p>
+            <p className="text-sm font-bold text-main leading-tight">{animalCount} {animalCount === 1 ? "gato" : "gatos"}</p>
             <p className="text-xs text-secondary mt-0.5">{Math.round(animalCount * esterilizadoPercent / 100)} esterilizados</p>
           </div>
         </div>
       </div>
 
       {/* Footer */}
-      <div className="px-5 py-3.5 border-t border-white/[0.06] flex items-center justify-between bg-[#222220]">
+      <div className="px-5 py-3.5 border-t border-sidebar-separador flex items-center justify-between bg-gris">
         <div className="flex items-center gap-2.5 min-w-0">
           <div
-            className="w-8 h-8 rounded-full flex items-center justify-center text-[11px] font-bold shrink-0 text-white border border-white/15"
-            style={{ backgroundColor: "#333" }}
+            className="w-8 h-8 rounded-full flex items-center justify-center text-[11px] font-bold shrink-0 text-main border border-sidebar-separador bg-gris-oscuro"
           >
             {responsableInitials}
           </div>
@@ -115,7 +114,7 @@ export const ColoniaCard = ({
             type="button"
             onClick={onEdit}
             title="Editar colonia"
-            className="p-2 rounded-lg border border-white/[0.15] text-secondary hover:text-white hover:bg-white/[0.06] hover:border-white/25 transition-all"
+            className="p-2 rounded-lg border border-sidebar-separador text-secondary hover:text-main hover:bg-hover hover:border-acento-naranja transition-all"
           >
             <Icons.Edit className="w-4 h-4" />
           </button>

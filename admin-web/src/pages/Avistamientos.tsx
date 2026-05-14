@@ -270,7 +270,7 @@ const Avistamientos = () => {
     <div className="space-y-6 pt-2 pb-10">
       {/* Portales para inyectar contenido en el Header global */}
       {badgeContainer && createPortal(
-        <span className="bg-gris text-white text-xs font-bold px-3 py-1 rounded-full whitespace-nowrap">
+        <span className="bg-gris text-main text-xs font-bold px-3 py-1 rounded-full whitespace-nowrap">
           <span className="text-acento-naranja">{avistamientos.length}</span> en total
         </span>,
         badgeContainer
@@ -289,7 +289,7 @@ const Avistamientos = () => {
           middleContent={
             <div className="flex justify-end gap-1 text-sm font-bold px-2 mb-2">
               <span className="text-acento-naranja">{pendientesCount}</span>
-              <span className="text-white">pendientes</span>
+              <span className="text-main">pendientes</span>
             </div>
           }
         />

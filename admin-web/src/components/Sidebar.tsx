@@ -126,7 +126,7 @@ const Sidebar: React.FC<SidebarProps> = ({ isOpen, toggleSidebar }) => {
                           "flex-1 transition-all duration-200",
                           isActive
                             ? "translate-x-3 text-orange"
-                            : "translate-x-0 text-secondary group-hover:text-white",
+                            : "translate-x-0 text-secondary group-hover:text-main",
                         )}
                       >
                         {item.label}
@@ -152,7 +152,7 @@ const Sidebar: React.FC<SidebarProps> = ({ isOpen, toggleSidebar }) => {
             {initials}
           </div>
           <div className="min-w-0 pr-2">
-            <p className="text-[17px] font-bold text-[#EAEAEA] truncate">{userName}</p>
+            <p className="text-[17px] font-bold text-main truncate">{userName}</p>
             <p className="text-[14px] font-semibold text-secondary truncate">
               Administrador
             </p>

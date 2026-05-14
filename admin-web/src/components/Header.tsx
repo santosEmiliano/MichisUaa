@@ -23,11 +23,11 @@ interface Notification {
   unread: boolean;
 }
 
-const NOTIF_COLORS: Record<NotifType, { bg: string; border: string }> = {
-  sighting: { bg: "#C2742F", border: "#C2742F" },   // orange
-  alert:    { bg: "#C84B4B", border: "#C84B4B" },    // red
-  info:     { bg: "#3a3a38", border: "#4a4a48" },     // dark gray
-  report:   { bg: "#3a3a38", border: "#4a4a48" },     // dark gray (old reports turn red below)
+const NOTIF_COLORS: Record<NotifType, string> = {
+  sighting: "bg-badge-naranja text-badge-naranja border-badge-naranja",
+  alert:    "bg-badge-rojo text-badge-rojo border-badge-rojo",
+  info:     "bg-badge-gris text-badge-gris border-badge-gris",
+  report:   "bg-badge-gris text-badge-gris border-badge-gris",
 };
 
 const mockNotifications: Notification[] = [
@@ -91,11 +91,11 @@ const NotificationPanel = ({
         }`}
       >
         {/* Header */}
-        <div className="flex items-center justify-between px-6 py-5 border-b border-white/[0.08]">
-          <h2 className="text-xl font-bold text-white">Notificaciones</h2>
+        <div className="flex items-center justify-between px-6 py-5 border-b border-sidebar-separador">
+          <h2 className="text-xl font-bold text-main">Notificaciones</h2>
           <button
             onClick={handleClose}
-            className="p-2 rounded-lg text-secondary hover:text-white hover:bg-white/[0.06] transition-colors"
+            className="p-2 rounded-lg text-secondary hover:text-main hover:bg-hover transition-colors"
           >
             <Icons.Close className="w-5 h-5" />
           </button>
@@ -104,20 +104,19 @@ const NotificationPanel = ({
         {/* Notification list */}
         <div className="flex-1 overflow-y-auto px-4 py-4 space-y-2.5">
           {notifications.map((notif, i) => {
-            const colors = NOTIF_COLORS[notif.type];
+            const colorClass = NOTIF_COLORS[notif.type];
             return (
               <div
                 key={notif.id}
-                className="rounded-xl px-5 py-3.5 cursor-pointer transition-all duration-200 hover:brightness-110 hover:scale-[1.01] animate-row-in"
+                className={`rounded-xl px-5 py-3.5 cursor-pointer transition-all duration-200 hover:brightness-110 hover:scale-[1.01] animate-row-in border ${colorClass}`}
                 style={{
-                  backgroundColor: colors.bg,
                   animationDelay: `${i * 60}ms`,
                 }}
               >
-                <p className="text-[15px] font-bold text-white leading-snug">
+                <p className="text-[15px] font-bold leading-snug">
                   {notif.text}
                 </p>
-                <p className="text-[12px] text-white/60 font-medium mt-1">
+                <p className="text-[12px] opacity-80 font-medium mt-1">
                   {notif.time}
                 </p>
               </div>
@@ -133,7 +132,7 @@ const NotificationPanel = ({
 
         {/* Footer */}
         {notifications.length > 0 && (
-          <div className="px-6 py-4 border-t border-white/[0.08]">
+          <div className="px-6 py-4 border-t border-sidebar-separador">
             <button
               onClick={onMarkAllRead}
               className="w-full text-center text-acento-naranja text-sm font-bold hover:underline transition-colors"
