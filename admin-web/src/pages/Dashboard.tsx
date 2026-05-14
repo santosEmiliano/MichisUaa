@@ -25,6 +25,8 @@ const getAvatarColorClass = (id: number) => {
   }
 };
 
+const API_URL = import.meta.env.VITE_API_URL || "http://localhost:3000";
+
 const Dashboard = () => {
   const [selectedAvistamiento, setSelectedAvistamiento] = useState<Avistamiento | null>(null);
   const [isModalOpen, setIsModalOpen] = useState(false);
@@ -34,6 +36,7 @@ const Dashboard = () => {
   // Métricas
   const [totalGatos, setTotalGatos] = useState(0);
   const [esterilizados, setEsterilizados] = useState(0);
+  const [esterilizadosCount, setEsterilizadosCount] = useState(0);
   const [desapariciones, setDesapariciones] = useState(0);
   const [coloniasCount, setColoniasCount] = useState(0);
 
@@ -44,11 +47,11 @@ const Dashboard = () => {
       const headers = { Authorization: `Bearer ${token}` };
 
       const [resAvistamientos, resTotalCats, resEsterilizados, resDesapariciones, resColonias] = await Promise.all([
-        fetch("http://localhost:3000/avistamientos", { headers }),
-        fetch("http://localhost:3000/stadistics/totalCats", { headers }),
-        fetch("http://localhost:3000/stadistics/sterilizedCount", { headers }),
-        fetch("http://localhost:3000/stadistics/missingCats", { headers }),
-        fetch("http://localhost:3000/colonies", { headers }),
+        fetch(`${API_URL}/avistamientos`, { headers }),
+        fetch(`${API_URL}/stadistics/totalCats`, { headers }),
+        fetch(`${API_URL}/stadistics/sterilizedCount`, { headers }),
+        fetch(`${API_URL}/stadistics/missingCats`, { headers }),
+        fetch(`${API_URL}/colonies`, { headers }),
       ]);
 
       if (resAvistamientos.ok) {
@@ -69,6 +72,7 @@ const Dashboard = () => {
             animalName: item.animal?.nombre || "No identificado",
             animalColonia: item.animal?.colonia?.nombre || "N/A",
             reportadoPor: item.usuario?.nombre || "Anónimo",
+            verificadoPorNombre: item.verificador?.nombre,
             ubicacion: `Lat: ${item.latitud}, Lon: ${item.longitud}`,
             hace: haceText,
             estado: estado,
@@ -80,9 +84,20 @@ const Dashboard = () => {
         setPendientes(mapped.filter((a: any) => a.estado === "Pendiente" || a.estado === "Sin identificar"));
       }
       
-      if (resTotalCats.ok) setTotalGatos(await resTotalCats.json());
-      if (resEsterilizados.ok) setEsterilizados(await resEsterilizados.json());
-      if (resDesapariciones.ok) setDesapariciones(await resDesapariciones.json());
+      if (resTotalCats.ok) {
+        const res = await resTotalCats.json();
+        setTotalGatos(typeof res === 'number' ? res : res.total);
+      }
+      if (resEsterilizados.ok) {
+        const data = await resEsterilizados.json();
+        setEsterilizados(data.percentage);
+        setEsterilizadosCount(data.count);
+        setTotalGatos(data.total);
+      }
+      if (resDesapariciones.ok) {
+        const res = await resDesapariciones.json();
+        setDesapariciones(typeof res === 'number' ? res : res.total);
+      }
       if (resColonias.ok) {
         const cols = await resColonias.json();
         setColoniasCount(cols.length);
@@ -116,7 +131,7 @@ const Dashboard = () => {
             {getInitials(row.animalName)}
           </div>
           <div>
-            <p className="font-bold text-white text-[15px]">{row.animalName}</p>
+            <p className="font-bold text-main text-[15px]">{row.animalName}</p>
             <p className="text-xs text-secondary">{row.animalColonia}</p>
           </div>
         </div>
@@ -124,7 +139,7 @@ const Dashboard = () => {
     },
     {
       header: "Reportó",
-      render: (row) => <p className="font-bold text-white text-[15px]">{row.reportadoPor}</p>,
+      render: (row) => <p className="font-bold text-main text-[15px]">{row.reportadoPor}</p>,
     },
     {
       header: "Ubicación",
@@ -202,15 +217,19 @@ const Dashboard = () => {
           title="Esterilizados"
           value={esterilizados}
           valueSuffix="%"
-          trendText="Meta: 100%"
+          trendText={`${esterilizadosCount} esterilizados de ${totalGatos}`}
           trendType="neutral"
           borderColor="var(--metrica-verde)"
         />
         <MetricCard
           title="Desaparecidos"
           value={desapariciones}
-          trendText="requieren búsqueda"
-          trendType="neutral"
+          trendText={desapariciones > 0 ? "requieren búsqueda" : ""}
+          trendType={
+            desapariciones === 0 ? "neutral" :
+            desapariciones <= 4 ? "success" :
+            desapariciones <= 8 ? "warning" : "danger"
+          }
           borderColor="var(--metrica-rojo)"
         />
         <MetricCard
@@ -224,7 +243,7 @@ const Dashboard = () => {
 
       <div className="flex items-center justify-between mt-10">
         <div className="flex items-center gap-4">
-          <h2 className="text-3xl font-extrabold text-white">
+          <h2 className="text-3xl font-extrabold text-main">
             Avistamientos pendientes
           </h2>
           <span className="bg-gris-oscuro text-secondary text-xs font-bold px-4 py-1.5 rounded-full border border-panel">

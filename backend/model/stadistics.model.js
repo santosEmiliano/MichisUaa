@@ -25,6 +25,68 @@ async function getAllCats() {
   } 
 }
 
+async function getCatsAddedThisWeek() {
+  try {
+    const fecha = new Date();
+    fecha.setDate(fecha.getDate() - 7);
+    
+    const count = await prisma.animal.count({
+      where: {
+        createdAt: {
+          gte: fecha,
+        },
+      },
+    });
+    return count;
+  } catch (error) {
+    console.error("Error obteniendo gatos agregados esta semana:", error);
+    throw error;
+  }
+}
+
+async function getAllCatsLastWeek() {
+  try {
+    const fecha = new Date();
+    fecha.setDate(fecha.getDate() - 7);
+    const count = await prisma.animal.count({
+      where: {
+        createdAt: {
+          lt: fecha,
+        },
+      },
+    });
+    return count;
+  } catch (error) {
+    console.error("Error obteniendo total de gatos de la semana pasada:", error);
+    throw error;
+  }
+}
+
+async function getSterilizedCountLastWeek() {
+  try {
+    const fecha = new Date();
+    fecha.setDate(fecha.getDate() - 7);
+    const count = await prisma.animal.count({
+      where: {
+        createdAt: { lt: fecha },
+        OR: [
+          { 
+            fecha_esterilizacion: { lt: fecha } 
+          },
+          { 
+            fecha_esterilizacion: null, 
+            esterilizado: true 
+          }
+        ]
+      },
+    });
+    return count;
+  } catch (error) {
+    console.error("Error obteniendo gatos esterilizados de la semana pasada:", error);
+    throw error;
+  }
+}
+
 async function getMissingCatsCount() {
   try {
     const totalCats = await prisma.animal.count({
@@ -34,7 +96,24 @@ async function getMissingCatsCount() {
     });
     return totalCats;
   } catch (error) {
-    console.error("Error obteniendo total de gatos:", error);
+    console.error("Error obteniendo total de gatos desaparecidos:", error);
+    throw error;
+  } 
+}
+
+async function getMissingCatsAddedThisWeek() {
+  try {
+    const fecha = new Date();
+    fecha.setDate(fecha.getDate() - 7);
+    const count = await prisma.animal.count({
+        where: {
+            estado: "Desaparecido",
+            fecha_desaparicion: { gte: fecha }
+        },
+    });
+    return count;
+  } catch (error) {
+    console.error("Error obteniendo gatos desaparecidos esta semana:", error);
     throw error;
   } 
 }
@@ -51,6 +130,23 @@ async function getSightingsLastWeekCount(fecha) {
     return totalAvistamientos;
   } catch (error) {
     console.error("Error obteniendo total de avistamientos:", error);
+    throw error;
+  } 
+}
+
+async function getSightingsPreviousWeekCount(fecha7Dias, fecha14Dias) {
+  try {
+    const totalAvistamientos = await prisma.avistamiento.count({
+      where: {
+        createdAt: {
+          gte: fecha14Dias,
+          lt: fecha7Dias,
+        },
+      },
+    });
+    return totalAvistamientos;
+  } catch (error) {
+    console.error("Error obteniendo avistamientos de la semana anterior:", error);
     throw error;
   } 
 }
@@ -200,9 +296,14 @@ async function getSterilizedState() {
 
 module.exports = {
   getAllCats,
+  getCatsAddedThisWeek,
+  getAllCatsLastWeek,
+  getSterilizedCountLastWeek,
   getSterilizedCount,
   getMissingCatsCount,
+  getMissingCatsAddedThisWeek,
   getSightingsLastWeekCount,
+  getSightingsPreviousWeekCount,
   getSigningsPerColony,
   getColoniesSummary,
   getSightingsTendency,

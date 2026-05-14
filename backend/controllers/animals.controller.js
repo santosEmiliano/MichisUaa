@@ -41,9 +41,24 @@ const createAnimal = async (req, res) => {
       });
     }
 
+    if (req.body.fecha_nac) {
+      const birthDate = new Date(req.body.fecha_nac);
+      const today = new Date();
+      if (birthDate > today) {
+        return res.status(400).json({ mensaje: "La fecha de nacimiento no puede ser en el futuro" });
+      }
+    }
+
     req.body.Colonia_idColonia = Number(req.body.Colonia_idColonia);
     if (req.body.esterilizado !== undefined) {
-        req.body.esterilizado = req.body.esterilizado === 'true'; 
+        req.body.esterilizado = req.body.esterilizado === 'true' || req.body.esterilizado === true; 
+        if (req.body.esterilizado && !req.body.fecha_esterilizacion) {
+            req.body.fecha_esterilizacion = new Date();
+        }
+    }
+    
+    if (req.body.estado === 'Desaparecido') {
+        req.body.fecha_desaparicion = new Date();
     }
 
     if(req.file) {
@@ -75,10 +90,31 @@ const updateAnimal = async (req, res) => {
       return res.status(404).json({ mensaje: "Animal no encontrado para actualizar" });
     }
 
+    if (req.body.fecha_nac) {
+      const birthDate = new Date(req.body.fecha_nac);
+      const today = new Date();
+      if (birthDate > today) {
+        return res.status(400).json({ mensaje: "La fecha de nacimiento no puede ser en el futuro" });
+      }
+    }
+
     if (req.body.Colonia_idColonia !== undefined)
       req.body.Colonia_idColonia = Number(req.body.Colonia_idColonia);
     if (req.body.esterilizado !== undefined) {
-        req.body.esterilizado = req.body.esterilizado === 'true'; 
+        const isEsterilizado = req.body.esterilizado === 'true' || req.body.esterilizado === true;
+        req.body.esterilizado = isEsterilizado;
+        
+        if (isEsterilizado && !existingAnimal.esterilizado && !req.body.fecha_esterilizacion) {
+            req.body.fecha_esterilizacion = new Date();
+        }
+    }
+    
+    if (req.body.estado !== undefined) {
+        if (req.body.estado === 'Desaparecido' && existingAnimal.estado !== 'Desaparecido') {
+            req.body.fecha_desaparicion = new Date();
+        } else if (req.body.estado !== 'Desaparecido' && existingAnimal.estado === 'Desaparecido') {
+            req.body.fecha_desaparicion = null;
+        }
     }
 
     if(req.file) {

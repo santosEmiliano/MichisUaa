@@ -93,6 +93,18 @@ export const GatoModal = ({ isOpen, onClose, onSuccess, catToEdit }: CatModalPro
       return;
     }
     
+    if (fechaNac) {
+      // Necesitamos asegurar que comparemos correctamente las fechas sin problemas de zonas horarias
+      const selectedDate = new Date(fechaNac + "T00:00:00");
+      const today = new Date();
+      today.setHours(0, 0, 0, 0); // Ignorar la hora actual para comparar solo el día
+      
+      if (selectedDate > today) {
+        alert("La fecha de nacimiento no puede ser mayor a la fecha actual.");
+        return;
+      }
+    }
+    
     setLoading(true);
     try {
       const token = localStorage.getItem("token") || "";
@@ -197,8 +209,7 @@ export const GatoModal = ({ isOpen, onClose, onSuccess, catToEdit }: CatModalPro
             <select
               value={coloniaId}
               onChange={(e) => setColoniaId(e.target.value)}
-              className="appearance-none w-full bg-gris border border-sidebar-separador text-secondary rounded-xl px-4 py-3 pr-10 focus:outline-none focus:border-acento-naranja focus:bg-[rgba(232,137,60,0.05)] hover:border-acento-naranja transition-all duration-200 cursor-pointer [&>option]:bg-[#30302e] [&>option]:text-white"
-              style={{ colorScheme: "dark" }}
+              className="appearance-none w-full bg-gris border border-sidebar-separador text-secondary rounded-xl px-4 py-3 pr-10 focus:outline-none focus:border-acento-naranja focus:bg-[rgba(232,137,60,0.05)] hover:border-acento-naranja transition-all duration-200 cursor-pointer [&>option]:bg-gris [&>option]:text-main"
             >
               <option value="" disabled>
                 Seleccionar colonia
@@ -247,8 +258,7 @@ export const GatoModal = ({ isOpen, onClose, onSuccess, catToEdit }: CatModalPro
             <select
               value={estado}
               onChange={(e) => setEstado(e.target.value)}
-              className="appearance-none w-full bg-gris border border-sidebar-separador text-secondary rounded-xl px-4 py-3 pr-10 focus:outline-none focus:border-acento-naranja focus:bg-[rgba(232,137,60,0.05)] hover:border-acento-naranja transition-all duration-200 cursor-pointer [&>option]:bg-[#30302e] [&>option]:text-white"
-              style={{ colorScheme: "dark" }}
+              className="appearance-none w-full bg-gris border border-sidebar-separador text-secondary rounded-xl px-4 py-3 pr-10 focus:outline-none focus:border-acento-naranja focus:bg-[rgba(232,137,60,0.05)] hover:border-acento-naranja transition-all duration-200 cursor-pointer [&>option]:bg-gris [&>option]:text-main"
             >
               <option value="Registrado">Registrado</option>
               <option value="Desaparecido">Desaparecido</option>
@@ -262,10 +272,10 @@ export const GatoModal = ({ isOpen, onClose, onSuccess, catToEdit }: CatModalPro
           <label className="block text-main font-bold">Fecha de Nacimiento (Aprox)</label>
           <input
             type="date"
+            max={new Date().toISOString().split('T')[0]}
             value={fechaNac}
             onChange={(e) => setFechaNac(e.target.value)}
             className="w-56 bg-gris border border-sidebar-separador rounded-xl px-4 py-3 text-secondary focus:outline-none focus:border-acento-naranja focus:bg-[rgba(232,137,60,0.05)] hover:border-acento-naranja transition-all duration-200"
-            style={{ colorScheme: "dark" }}
           />
         </div>
       </form>

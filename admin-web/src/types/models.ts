@@ -9,6 +9,7 @@ export interface Cat {
   estado: "Registrado" | "Desaparecido" | "No Registrado";
   fechaRegistro: string;
   fecha_nac?: string;
+  fecha_desaparicion?: string;
   fotoUrl?: string;
 }
 
@@ -49,6 +50,7 @@ export interface Avistamiento {
   animalId?: number;
   animalColonia: string;
   reportadoPor: string;
+  verificadoPorNombre?: string;
   ubicacion: string;
   hace: string;
   estado: "Pendiente" | "Verificado" | "Rechazado" | "Sin identificar";
@@ -74,6 +76,10 @@ export interface BackendAvistamiento {
     nombre: string;
     email: string;
   };
+  verificador: {
+    nombre: string;
+    email: string;
+  } | null;
   animal: {
     nombre: string;
     colonia: {

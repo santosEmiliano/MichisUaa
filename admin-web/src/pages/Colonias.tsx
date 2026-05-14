@@ -10,9 +10,6 @@ import type { Colonia } from "../types/models";
 import { Pestanas } from "../components/Pestanas";
 import { coloniesService } from "../services/coloniesApi";
 
-const ROWS_DESKTOP = 2;
-const ROWS_MOBILE = 3;
-
 const Colonias = () => {
   const [colonias, setColonias] = useState<Colonia[]>([]);
   const [users, setUsers] = useState<{ id: string; nombre: string }[]>([]);
@@ -106,7 +103,7 @@ const Colonias = () => {
   useEffect(() => {
     const update = () => {
       const w = window.innerWidth;
-      const next = w < 1024 ? 1 : w < 1536 ? 2 : 3;
+      const next = w < 768 ? 1 : w < 1280 ? 2 : 3;
       if (colsRef.current !== next) {
         setCols(next);
         setCurrentPage(1);
@@ -117,36 +114,15 @@ const Colonias = () => {
     return () => window.removeEventListener("resize", update);
   }, []);
 
-  const rows = cols === 1 ? ROWS_MOBILE : ROWS_DESKTOP;
-  const itemsPerPage = cols * rows;
+  const ITEMS_PER_PAGE = cols === 1 ? 3 : 6;
 
-  const totalPages = Math.max(1, Math.ceil(colonias.length / itemsPerPage));
+  const totalPages = Math.max(1, Math.ceil(colonias.length / ITEMS_PER_PAGE));
   const safePage = Math.min(currentPage, totalPages);
 
   const currentColonias = useMemo(() => {
-    const start = (safePage - 1) * itemsPerPage;
-    return colonias.slice(start, start + itemsPerPage);
-  }, [colonias, safePage, itemsPerPage]);
-
-  const getBentoConfig = () => {
-    if (cols === 3) {
-      const patterns: ("tall" | "wide")[][] = [
-        ["tall", "tall", "tall", "wide", "wide", "tall"],
-        ["wide", "wide", "tall", "tall", "tall", "tall"],
-        ["tall", "wide", "wide", "wide", "wide", "tall"],
-      ];
-      return { gridRows: 4, pattern: patterns[(safePage - 1) % patterns.length] };
-    } else if (cols === 2) {
-      const patterns: ("tall" | "wide")[][] = [
-        ["wide", "tall", "tall", "wide"],
-        ["tall", "tall", "wide", "wide"],
-      ];
-      return { gridRows: 4, pattern: patterns[(safePage - 1) % patterns.length] };
-    }
-    return { gridRows: currentColonias.length || 3, pattern: [] };
-  };
-
-  const { gridRows: bentoRows, pattern: bentoPattern } = getBentoConfig();
+    const start = (safePage - 1) * ITEMS_PER_PAGE;
+    return colonias.slice(start, start + ITEMS_PER_PAGE);
+  }, [colonias, safePage, ITEMS_PER_PAGE]);
 
   const [badgeTarget, setBadgeTarget] = useState<HTMLElement | null>(null);
   const [actionsTarget, setActionsTarget] = useState<HTMLElement | null>(null);
@@ -227,7 +203,7 @@ const Colonias = () => {
   );
 
   return (
-    <div className="flex flex-col h-full min-h-0 pt-2 gap-3 overflow-hidden">
+    <div className="flex flex-col h-full min-h-0 pt-2 gap-4 overflow-hidden">
       {badgeTarget && createPortal(headerBadge, badgeTarget)}
       {actionsTarget && createPortal(headerAction, actionsTarget)}
 
@@ -248,42 +224,30 @@ const Colonias = () => {
           No hay colonias registradas.
         </div>
       ) : (
+        <div
+          className="flex-1 min-h-0 grid gap-4 content-start"
+          style={{
+            gridTemplateColumns: `repeat(${cols}, minmax(0, 1fr))`,
+          }}
+        >
+          {currentColonias.map((colonia, i) => {
+            const { id, ...cardProps } = colonia;
 
-      <div
-        className="flex-1 min-h-0 grid gap-2.5 auto-rows-[minmax(0,1fr)] grid-flow-dense"
-        style={{
-          gridTemplateColumns: `repeat(${cols}, minmax(0, 1fr))`,
-          gridTemplateRows: `repeat(${bentoRows}, minmax(0, 1fr))`,
-        }}
-      >
-        {currentColonias.map((colonia, i) => {
-          const { id, ...cardProps } = colonia;
-          
-          let variant: "tall" | "wide" | "standard" = "standard";
-          let spanClass = "col-span-1 row-span-1";
-
-          if (cols > 1 && bentoPattern[i]) {
-            variant = bentoPattern[i];
-            if (variant === "tall") spanClass = "col-span-1 row-span-2";
-            if (variant === "wide") spanClass = "col-span-2 row-span-1";
-          }
-
-          return (
-            <div
-              key={`${id}-${safePage}`}
-              className={`animate-row-in h-full min-h-0 ${spanClass}`}
-              style={{ animationDelay: `${i * 60}ms` }}
-            >
-              <ColoniaCard
-                {...cardProps}
-                variant={variant === "standard" ? "tall" : variant}
-                onEdit={() => openEdit(colonia)}
-                onDelete={() => handleDelete(colonia.id)}
-              />
-            </div>
-          );
-        })}
-      </div>
+            return (
+              <div
+                key={`${id}-${safePage}`}
+                className="animate-row-in"
+                style={{ animationDelay: `${i * 60}ms` }}
+              >
+                <ColoniaCard
+                  {...cardProps}
+                  onEdit={() => openEdit(colonia)}
+                  onDelete={() => handleDelete(colonia.id)}
+                />
+              </div>
+            );
+          })}
+        </div>
       )}
 
       <Pestanas 

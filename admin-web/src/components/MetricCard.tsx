@@ -5,7 +5,7 @@ export interface MetricCardProps {
   value: string | number;
   valueSuffix?: string;
   trendText: string;
-  trendType?: "success" | "danger" | "neutral";
+  trendType?: "success" | "danger" | "warning" | "neutral";
   borderColor?: string;
 }
 
@@ -55,18 +55,14 @@ export const MetricCard: React.FC<MetricCardProps> = ({
     }
   }, [value]);
 
-  let pillBg = "bg-[#1A3A2C]";
-  let pillText = "text-[#4ADE80]";
-  let pillBorder = "border-[#4ADE80]/30";
+  let pillClass = "bg-badge-verde text-badge-verde border border-badge-verde";
 
   if (trendType === "danger") {
-    pillBg = "bg-[#3A1A1A]";
-    pillText = "text-[#FCA5A5]";
-    pillBorder = "border-[#FCA5A5]/30";
+    pillClass = "bg-badge-rojo text-badge-rojo border border-badge-rojo";
+  } else if (trendType === "warning") {
+    pillClass = "bg-badge-naranja text-badge-naranja border border-badge-naranja";
   } else if (trendType === "neutral") {
-    pillBg = "bg-sidebar-separador";
-    pillText = "text-secondary";
-    pillBorder = "border-secondary/30";
+    pillClass = "bg-badge-gris text-badge-gris border border-badge-gris";
   }
 
   return (
@@ -74,16 +70,18 @@ export const MetricCard: React.FC<MetricCardProps> = ({
       className="bg-gris-oscuro rounded-2xl p-6 border-t-2 shadow-lg relative overflow-hidden flex flex-col items-start"
       style={{ borderTopColor: borderColor }}
     >
-      <h3 className="text-white text-lg font-bold mb-2">{title}</h3>
-      <p className="text-5xl font-bold text-white mb-4">
+      <h3 className="text-main text-lg font-bold mb-2">{title}</h3>
+      <p className="text-5xl font-bold text-main mb-4">
         {displayValue}
         {valueSuffix && <span className="text-3xl text-secondary ml-1">{valueSuffix}</span>}
       </p>
-      <span
-        className={`inline-block ${pillBg} ${pillText} text-xs font-bold px-3 py-1 rounded-full border ${pillBorder} mt-auto`}
-      >
-        {trendText}
-      </span>
+      {trendText && (
+        <span
+          className={`inline-block text-xs font-bold px-3 py-1 rounded-full mt-auto ${pillClass}`}
+        >
+          {trendText}
+        </span>
+      )}
     </div>
   );
 };

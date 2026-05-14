@@ -1,6 +1,7 @@
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { useLocation } from "react-router-dom";
 import Icons from "./Icons";
+import { useTheme } from "../contexts/ThemeContext";
 
 const routeTitles: Record<string, string> = {
   "/": "Dashboard",
@@ -11,66 +12,188 @@ const routeTitles: Record<string, string> = {
   "/usuarios": "Usuarios",
 };
 
-const mockNotifications = [
-  {
-    id: 1,
-    text: "Nuevo avistamiento en Ed. 108",
-    time: "Hace 5 min",
-    unread: true,
-  },
-  {
-    id: 2,
-    text: "Gato 'Michi' esterilizado",
-    time: "Hace 2 hrs",
-    unread: true,
-  },
-  {
-    id: 3,
-    text: "Reporte mensual generado",
-    time: "Hace 1 día",
-    unread: false,
-  },
+/* ── Notification types & mock data ── */
+type NotifType = "sighting" | "alert" | "info" | "report";
+
+interface Notification {
+  id: number;
+  text: string;
+  time: string;
+  type: NotifType;
+  unread: boolean;
+}
+
+const NOTIF_COLORS: Record<NotifType, string> = {
+  sighting: "bg-badge-naranja text-badge-naranja border-badge-naranja",
+  alert:    "bg-badge-rojo text-badge-rojo border-badge-rojo",
+  info:     "bg-badge-gris text-badge-gris border-badge-gris",
+  report:   "bg-badge-gris text-badge-gris border-badge-gris",
+};
+
+const mockNotifications: Notification[] = [
+  { id: 1, text: "Nuevo avistamiento en Ed. 108", time: "Hace 5 min",   type: "sighting", unread: true },
+  { id: 2, text: "Reporte mensual generado",      time: "Hace 20 min",  type: "report",   unread: true },
+  { id: 3, text: "Alerta de colonia UMD",         time: "Hace 1 hr",    type: "alert",    unread: true },
+  { id: 4, text: "Gato 'Michi' esterilizado",     time: "Hace 2 hrs",   type: "info",     unread: false },
+  { id: 5, text: "Nuevo avistamiento en Ed. 108",  time: "Hace 3 hrs",   type: "info",     unread: false },
+  { id: 6, text: "Reporte mensual generado",       time: "Hace 30 días", type: "alert",    unread: false },
 ];
+
+/* ── Notification Panel Component ── */
+const NotificationPanel = ({
+  isOpen,
+  onClose,
+  notifications,
+  onMarkAllRead,
+}: {
+  isOpen: boolean;
+  onClose: () => void;
+  notifications: Notification[];
+  onMarkAllRead: () => void;
+}) => {
+  const [shouldRender, setShouldRender] = useState(isOpen);
+  const [isExiting, setIsExiting] = useState(false);
+
+  useEffect(() => {
+    if (isOpen) {
+      setShouldRender(true);
+      setIsExiting(false);
+    } else {
+      setIsExiting(true);
+      const timer = setTimeout(() => {
+        setShouldRender(false);
+        setIsExiting(false);
+      }, 350);
+      return () => clearTimeout(timer);
+    }
+  }, [isOpen]);
+
+  if (!shouldRender) return null;
+
+  const handleClose = () => {
+    onClose();
+  };
+
+  return (
+    <>
+      {/* Backdrop */}
+      <div
+        className={`fixed inset-0 bg-black/40 z-40 transition-opacity duration-300 ${
+          isExiting ? "opacity-0" : "opacity-100"
+        }`}
+        onClick={handleClose}
+      />
+
+      {/* Panel */}
+      <div
+        className={`fixed top-0 right-0 h-full w-full max-w-sm z-50 flex flex-col border-l border-white/[0.08] shadow-2xl bg-card ${
+          isExiting ? "animate-panel-out" : "animate-panel-in"
+        }`}
+      >
+        {/* Header */}
+        <div className="flex items-center justify-between px-6 py-5 border-b border-sidebar-separador">
+          <h2 className="text-xl font-bold text-main">Notificaciones</h2>
+          <button
+            onClick={handleClose}
+            className="p-2 rounded-lg text-secondary hover:text-main hover:bg-hover transition-colors"
+          >
+            <Icons.Close className="w-5 h-5" />
+          </button>
+        </div>
+
+        {/* Notification list */}
+        <div className="flex-1 overflow-y-auto px-4 py-4 space-y-2.5">
+          {notifications.map((notif, i) => {
+            const colorClass = NOTIF_COLORS[notif.type];
+            return (
+              <div
+                key={notif.id}
+                className={`rounded-xl px-5 py-3.5 cursor-pointer transition-all duration-200 hover:brightness-110 hover:scale-[1.01] animate-row-in border ${colorClass}`}
+                style={{
+                  animationDelay: `${i * 60}ms`,
+                }}
+              >
+                <p className="text-[15px] font-bold leading-snug">
+                  {notif.text}
+                </p>
+                <p className="text-[12px] opacity-80 font-medium mt-1">
+                  {notif.time}
+                </p>
+              </div>
+            );
+          })}
+
+          {notifications.length === 0 && (
+            <div className="flex-1 flex items-center justify-center py-20">
+              <p className="text-secondary text-sm">No hay notificaciones</p>
+            </div>
+          )}
+        </div>
+
+        {/* Footer */}
+        {notifications.length > 0 && (
+          <div className="px-6 py-4 border-t border-sidebar-separador">
+            <button
+              onClick={onMarkAllRead}
+              className="w-full text-center text-acento-naranja text-sm font-bold hover:underline transition-colors"
+            >
+              Marcar todas como leídas
+            </button>
+          </div>
+        )}
+      </div>
+    </>
+  );
+};
 
 const Header = () => {
   const location = useLocation();
+  const { theme, toggleTheme } = useTheme();
   const [isNotifOpen, setIsNotifOpen] = useState(false);
+  const [notifications, setNotifications] = useState(mockNotifications);
 
   const isDashboard = location.pathname === "/";
   const currentTitle = routeTitles[location.pathname] || "Panel";
-  const unreadCount = mockNotifications.filter((n) => n.unread).length;
+  const unreadCount = notifications.filter((n) => n.unread).length;
+
+  const handleMarkAllRead = () => {
+    setNotifications((prev) => prev.map((n) => ({ ...n, unread: false })));
+  };
 
   return (
-    <header className="sticky top-0 z-20 px-6 py-5 md:px-10 flex items-center justify-between border-b border-panel bg-gris">
-      <div className="flex items-center gap-3 min-w-0">
-        <h1 
-          key={currentTitle}
-          className="text-4xl font-extrabold text-main shrink-0 animate-title"
-        >
-          {currentTitle}
-        </h1>
-
-        {isDashboard ? (
-          <span 
-            key={currentTitle + "-badge"}
-            className="text-base px-5 py-1.5 rounded-full font-bold bg-badge-naranja text-badge-naranja animate-title [animation-delay:100ms]"
+    <>
+      <header className="sticky top-0 z-20 px-6 py-5 md:px-10 flex items-center justify-between border-b border-panel bg-gris">
+        <div className="flex items-center gap-3 min-w-0">
+          <h1 
+            key={currentTitle}
+            className="text-4xl font-extrabold text-main shrink-0 animate-title"
           >
-            Colonia Central
-          </span>
-        ) : (
+            {currentTitle}
+          </h1>
+
           <div 
             id="header-badge" 
             key={currentTitle + "-badge"}
             className="flex items-center shrink-0 animate-title [animation-delay:100ms]" 
           />
-        )}
-      </div>
+        </div>
 
-      <div className="flex items-center gap-3 relative">
-        {isDashboard ? (
-          <>
+        <div className="flex items-center gap-3 relative">
+          <button
+            onClick={toggleTheme}
+            className="relative p-2 rounded-full hover-bg-item transition-colors"
+            title={theme === "dark" ? "Cambiar a modo claro" : "Cambiar a modo oscuro"}
+          >
+            {theme === "dark" ? (
+              <Icons.Sun className="w-6 h-6 text-main" />
+            ) : (
+              <Icons.Moon className="w-6 h-6 text-main" />
+            )}
+          </button>
+
+          {isDashboard ? (
             <button
-              onClick={() => setIsNotifOpen(!isNotifOpen)}
+              onClick={() => setIsNotifOpen(true)}
               className="relative p-2 rounded-full hover-bg-item transition-colors"
             >
               <Icons.Bell className="w-8 h-8 text-main" />
@@ -84,49 +207,23 @@ const Header = () => {
                 />
               )}
             </button>
+          ) : (
+            <div 
+              id="header-actions" 
+              key={currentTitle + "-actions"}
+              className="flex items-center gap-3 animate-title-reverse" 
+            />
+          )}
+        </div>
+      </header>
 
-            {isNotifOpen && (
-              <div className="absolute top-full right-0 mt-4 w-80 bg-card border border-panel rounded-2xl shadow-2xl overflow-hidden z-50">
-                <div className="p-4 border-b border-panel flex justify-between items-center bg-gris-oscuro">
-                  <h3 className="font-bold text-lg text-main">
-                    Notificaciones
-                  </h3>
-                  {unreadCount > 0 && (
-                    <span className="text-xs font-bold px-2 py-1 bg-orange text-white rounded-full">
-                      {unreadCount} nuevas
-                    </span>
-                  )}
-                </div>
-                <div className="max-h-[60vh] overflow-y-auto">
-                  {mockNotifications.map((notif) => (
-                    <div
-                      key={notif.id}
-                      className={`p-4 border-b border-panel hover-bg-item cursor-pointer transition-colors ${notif.unread ? "active-bg-item" : ""}`}
-                    >
-                      <p className="text-sm text-main font-medium mb-1">
-                        {notif.text}
-                      </p>
-                      <p className="text-xs text-secondary">{notif.time}</p>
-                    </div>
-                  ))}
-                </div>
-                <div className="p-3 text-center border-t border-panel bg-gris-oscuro hover-bg-item cursor-pointer transition-colors">
-                  <span className="text-orange font-semibold text-sm">
-                    Ver todo el historial
-                  </span>
-                </div>
-              </div>
-            )}
-          </>
-        ) : (
-          <div 
-            id="header-actions" 
-            key={currentTitle + "-actions"}
-            className="flex items-center gap-3 animate-title-reverse" 
-          />
-        )}
-      </div>
-    </header>
+      <NotificationPanel
+        isOpen={isNotifOpen}
+        onClose={() => setIsNotifOpen(false)}
+        notifications={notifications}
+        onMarkAllRead={handleMarkAllRead}
+      />
+    </>
   );
 };
 

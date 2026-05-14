@@ -25,7 +25,10 @@ export const AvistamientoModal = ({ isOpen, onClose, onSuccess, avistamiento }: 
     if (isOpen) {
       setShouldRender(true);
       setIsExiting(false);
-      if (avistamiento) setDisplayAvistamiento(avistamiento);
+      if (avistamiento) {
+        setDisplayAvistamiento(avistamiento);
+        setSelectedGato(avistamiento.animalId ? String(avistamiento.animalId) : "");
+      }
     } else {
       setIsExiting(true);
       const timer = setTimeout(() => {
@@ -81,7 +84,11 @@ export const AvistamientoModal = ({ isOpen, onClose, onSuccess, avistamiento }: 
 
     try {
       setIsProcessing(true);
-      await avistamientosApi.verificarAvistamiento(displayAvistamiento.id, Number(selectedGato));
+      if (displayAvistamiento.estado === "Rechazado") {
+        await avistamientosApi.revocarRechazoAvistamiento(displayAvistamiento.id)
+      } else {
+        await avistamientosApi.verificarAvistamiento(displayAvistamiento.id, Number(selectedGato));
+      }
       if (onSuccess) onSuccess();
       onClose();
     } catch (error) {
@@ -101,6 +108,39 @@ export const AvistamientoModal = ({ isOpen, onClose, onSuccess, avistamiento }: 
     } catch (error) {
       console.error(error);
       alert("Error al rechazar el avistamiento.");
+    } finally {
+      setIsProcessing(false);
+    }
+  };
+
+  const handleGuardarCambios = async () => {
+    if (!selectedGato) {
+      alert("Por favor selecciona un gato.");
+      return;
+    }
+
+    try {
+      setIsProcessing(true);
+      await avistamientosApi.modificarAnimalAvistamiento(displayAvistamiento.id, Number(selectedGato));
+      if (onSuccess) onSuccess();
+      onClose();
+    } catch (error) {
+      console.error(error);
+      alert("Error al guardar los cambios.");
+    } finally {
+      setIsProcessing(false);
+    }
+  };
+
+  const handleRevocarVerificacion = async () => {
+    try {
+      setIsProcessing(true);
+      await avistamientosApi.revocarVerificacion(displayAvistamiento.id);
+      if (onSuccess) onSuccess();
+      onClose();
+    } catch (error) {
+      console.error(error);
+      alert("Error al revocar la verificación.");
     } finally {
       setIsProcessing(false);
     }
@@ -137,8 +177,18 @@ export const AvistamientoModal = ({ isOpen, onClose, onSuccess, avistamiento }: 
         </div>
 
         <div className="px-8 py-6 overflow-y-auto flex-1 min-h-0 space-y-6">
-          <div className="w-full h-48 bg-gris rounded-2xl border border-panel flex items-center justify-center text-6xl">
-            🐱
+          <div className="w-full h-48 bg-gris rounded-2xl border border-panel overflow-hidden">
+            {displayAvistamiento.fotoUrl ? (
+              <img
+                src={displayAvistamiento.fotoUrl}
+                alt="Foto del avistamiento"
+                className="w-full h-full object-cover"
+              />
+            ) : (
+              <div className="w-full h-full flex items-center justify-center text-6xl">
+                🐱
+              </div>
+            )}
           </div>
 
           <div className="space-y-4">
@@ -192,11 +242,39 @@ export const AvistamientoModal = ({ isOpen, onClose, onSuccess, avistamiento }: 
               </div>
             </div>
 
+            {displayAvistamiento.verificadoPorNombre ? (
+              <div>
+                <div className="flex items-center gap-2 text-secondary mb-3">
+                  <span className="w-1.5 h-1.5 rounded-full bg-secondary opacity-50" />
+                  {displayAvistamiento.estado == "Verificado" ? (
+                      <span className="text-sm font-medium"> 
+                        Verificado por:
+                      </span>
+                    ) : (
+                      <span className="text-sm font-medium"> 
+                        Rechazado por: 
+                      </span>
+                    )
+                  }
+                </div>
+                <div className="pl-3.5 space-y-2">
+                  <p className="text-main text-sm pl-3.5 leading-relaxed">
+                    {displayAvistamiento.verificadoPorNombre}
+                  </p>
+                </div>
+              </div>
+            ) : (
+              <div></div>
+            )}
+
             <div className="pt-2">
               <div className="flex items-center gap-2 text-secondary mb-2">
                 <span className="w-1.5 h-1.5 rounded-full bg-secondary opacity-50" />
-                <span className="text-sm font-medium">Asociar a Gato</span>
+                <span className="text-sm font-medium">
+                  {displayAvistamiento.estado === "Verificado" ? "Gato asociado" : "Gato asociado"}
+                </span>
               </div>
+              {displayAvistamiento.estado !== "Rechazado" ? (
               <div className="pl-3.5 relative">
                 <select
                   value={selectedGato}
@@ -214,28 +292,62 @@ export const AvistamientoModal = ({ isOpen, onClose, onSuccess, avistamiento }: 
                 </select>
                 <Icons.ChevronDown className="absolute right-4 top-3.5 w-4 h-4 text-secondary pointer-events-none" />
               </div>
+              ) : (<div className="pl-3.5 space-y-2">
+                  <p className="text-main text-sm pl-3.5 leading-relaxed">
+                    {displayAvistamiento.animalName}
+                  </p>
+                </div>)}
             </div>
           </div>
         </div>
 
         {/* Footer */}
         <div className="px-8 py-6 border-t border-sidebar-separador flex justify-center gap-4 bg-gris-oscuro shrink-0">
-          <button
-            onClick={handleVerificar}
-            disabled={isProcessing}
-            className="px-8 py-2.5 rounded-xl border border-acento-naranja text-acento-naranja font-bold hover:bg-[rgba(232,137,60,0.1)] transition-all duration-200 flex items-center gap-2 disabled:opacity-50"
-          >
-            <Icons.CheckCircle className="w-5 h-5" />
-            {isProcessing ? "Procesando..." : "Verificar"}
-          </button>
-          <button
-            onClick={handleRechazar}
-            disabled={isProcessing}
-            className="px-8 py-2.5 rounded-xl border border-sidebar-separador text-secondary font-bold hover:text-main hover:bg-gris transition-all duration-200 flex items-center gap-2 disabled:opacity-50"
-          >
-            <Icons.Close className="w-5 h-5" />
-            {isProcessing ? "Cargando..." : "Rechazar"}
-          </button>
+          {displayAvistamiento.estado === "Verificado" ? (
+            <>
+              <button
+                onClick={handleGuardarCambios}
+                disabled={isProcessing}
+                className="px-8 py-2.5 rounded-xl border border-acento-naranja text-acento-naranja font-bold hover:bg-[rgba(232,137,60,0.1)] transition-all duration-200 flex items-center gap-2 disabled:opacity-50"
+              >
+                <Icons.CheckCircle className="w-5 h-5" />
+                {isProcessing ? "Guardando..." : "Guardar cambios"}
+              </button>
+              <button
+                onClick={handleRevocarVerificacion}
+                disabled={isProcessing}
+                className="px-8 py-2.5 rounded-xl border border-metrica-rojo text-badge-rojo font-bold hover:bg-[rgba(200,75,75,0.1)] transition-all duration-200 flex items-center gap-2 disabled:opacity-50"
+              >
+                <Icons.Close className="w-5 h-5" />
+                {isProcessing ? "Revocando..." : "Revocar verificación"}
+              </button>
+            </>
+          ) : (
+            <>
+              <button
+                onClick={handleVerificar}
+                disabled={isProcessing}
+                className="px-8 py-2.5 rounded-xl border border-acento-naranja text-acento-naranja font-bold hover:bg-[rgba(232,137,60,0.1)] transition-all duration-200 flex items-center gap-2 disabled:opacity-50"
+              >
+                <Icons.CheckCircle className="w-5 h-5" />
+                {isProcessing
+                  ? "Procesando..."
+                  : displayAvistamiento.estado === "Rechazado"
+                    ? "Quitar Rechazo"
+                    : "Verificar"}
+              </button>
+              {displayAvistamiento.estado !== "Rechazado" && (
+                <button
+                  onClick={handleRechazar}
+                  disabled={isProcessing}
+                  className="px-8 py-2.5 rounded-xl border border-sidebar-separador text-secondary font-bold hover:text-main hover:bg-gris transition-all duration-200 flex items-center gap-2 disabled:opacity-50"
+                >
+                  <Icons.Close className="w-5 h-5" />
+                  {isProcessing ? "Cargando..." : "Rechazar"}
+                </button>
+              )}
+            </>
+          )}
         </div>
       </div>
     </div>

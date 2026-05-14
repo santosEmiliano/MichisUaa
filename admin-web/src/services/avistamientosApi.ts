@@ -10,9 +10,12 @@ const getHeaders = () => {
   };
 };
 
-const getUserId = (): number | null => {
+const getUserId = (): number => {
   const id = localStorage.getItem("userId");
-  return id ? Number(id) : null;
+  if (!id || id === "undefined" || isNaN(Number(id))) {
+    throw new Error("Sesión inválida: No se encontró el ID del usuario. Por favor, inicia sesión de nuevo.");
+  }
+  return Number(id);
 };
 
 export const avistamientosApi = {
@@ -33,7 +36,7 @@ export const avistamientosApi = {
       body: JSON.stringify({ 
         animalId: animalId,
         verificado: true,
-        verificadoPor: getUserId() || 1
+        verificadoPor: getUserId()
       }),
     });
     if (!res.ok) throw new Error("Error al verificar el avistamiento");
@@ -48,10 +51,50 @@ export const avistamientosApi = {
       headers: getHeaders(),
       body: JSON.stringify({ 
         verificado: false,
-        verificadoPor: getUserId() || 1
+        verificadoPor: getUserId()
       }),
     });
     if (!res.ok) throw new Error("Error al rechazar el avistamiento");
+    return res.json();
+  },
+
+  // Quitar el rechazo de un avistamiento (Quitar el verificado por)
+  revocarRechazoAvistamiento: async (id: number) => {
+    // Para rechazar, enviamos verificado en false pero con el ID del admin que procesó el reporte
+    const res = await fetch(`${API_URL}/avistamientos/${id}`, {
+      method: "PUT",
+      headers: getHeaders(),
+      body: JSON.stringify({ 
+        verificado: false,
+        verificadoPor: null
+      }),
+    });
+    if (!res.ok) throw new Error("Error al rechazar el avistamiento");
+    return res.json();
+  },
+
+  // Modificar animal de un avistamiento ya verificado
+  modificarAnimalAvistamiento: async (id: number, animalId: number) => {
+    const res = await fetch(`${API_URL}/avistamientos/${id}`, {
+      method: "PUT",
+      headers: getHeaders(),
+      body: JSON.stringify({ animalId }),
+    });
+    if (!res.ok) throw new Error("Error al modificar el avistamiento");
+    return res.json();
+  },
+
+  // Revocar verificacion (regresa a pendiente)
+  revocarVerificacion: async (id: number) => {
+    const res = await fetch(`${API_URL}/avistamientos/${id}`, {
+      method: "PUT",
+      headers: getHeaders(),
+      body: JSON.stringify({
+        verificado: false,
+        verificadoPor: null,
+      }),
+    });
+    if (!res.ok) throw new Error("Error al revocar la verificación");
     return res.json();
   },
 

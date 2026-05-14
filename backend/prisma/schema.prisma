@@ -36,6 +36,7 @@ model Animal {
   estado               EstadoAnimal @default(Registrado)
   fecha_nac            DateTime?
   fecha_esterilizacion DateTime?
+  fecha_desaparicion   DateTime?
   descripcion          String?      @db.VarChar(400)
   createdAt            DateTime     @default(now()) @map("created_at")
   updatedAt            DateTime     @updatedAt @map("updated_at")
@@ -81,8 +82,8 @@ model Avistamiento {
   foto_id              String?      @db.VarChar(160)
   descripcion    String?  @db.VarChar(400)
   verificado     Boolean  @default(false)
-  longitud       Decimal  @db.Decimal(9, 1)
-  latitud        Decimal  @db.Decimal(9, 1)
+  longitud       Decimal  @db.Decimal(10, 7)
+  latitud        Decimal  @db.Decimal(10, 7)
   createdAt      DateTime @default(now()) @map("created_at")
 
   usuario     Usuario  @relation("RegistradoPor", fields: [usuarioId], references: [idUsuario], onDelete: Cascade)

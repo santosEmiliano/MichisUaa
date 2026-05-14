@@ -3,6 +3,7 @@
 @tailwind utilities;
 
 :root {
+  color-scheme: dark;
   --bg-dark: #0d0d0d;
   --bg-panel: #162422;
   --bg-active-item: rgba(232, 137, 60, 0.18);
@@ -54,6 +55,60 @@
   --verde-claro: #ebffee;
 }
 
+:root.light {
+  color-scheme: light;
+  --bg-dark: #f0f2f5;
+  --bg-panel: #ffffff;
+  --bg-active-item: rgba(232, 137, 60, 0.12);
+  --bg-hover: rgba(0, 0, 0, 0.05);
+
+  --text-main: #1a1a1a;
+  --text-secondary: rgba(0, 0, 0, 0.6);
+
+  --accent-orange: #d9701a;
+  --accent-gold: #c28c46;
+  --accent-green: rgba(144, 185, 83, 0.8);
+
+  --border-color: rgba(0, 0, 0, 0.1);
+
+  --sidebar-fondo: #ffffff;
+  --sidebar-acento-principal: #d9701a;
+  --sidebar-nav-item-activ-texto: #b85b0d;
+  --sidebar-nav-item-activ-fondo: rgba(232, 137, 60, 0.12);
+  --sidebar-texto-secundario: rgba(0, 0, 0, 0.6);
+  --sidebar-texto-secciones: rgba(0, 0, 0, 0.4);
+  --sidebar-separadores: rgba(0, 0, 0, 0.08);
+
+  --fondo-gris: #ffffff;
+  --bg-card: #ffffff;
+  --fondo-gris-oscuro: #f8f9fa;
+
+  --metrica-naranja: #e8893c;
+  --metrica-verde: #236b5c;
+  --metrica-rojo: #ba3838;
+  --metrica-azul: #2b6cb8;
+
+  --badge-naranja-fondo: #fef3e2;
+  --badge-naranja-texto: #b86c10;
+  --badge-naranja-borde: #f0c070;
+
+  --badge-verde-fondo: #e6f5ef;
+  --badge-verde-texto: #2a7a50;
+
+  --badge-azul-fondo: #ebf0fe;
+  --badge-azul-texto: #3b5cc5;
+
+  --badge-rojo-fondo: #ffe6e6;
+  --badge-rojo-texto: #8a3939;
+
+  --badge-gris-fondo: #e0e0e0;
+  --badge-gris-texto: rgba(0, 0, 0, 0.6);
+  --badge-gris-borde: rgba(0, 0, 0, 0.1);
+
+  --verde-claro: #ebffee;
+}
+
+
 body {
   background-color: var(--bg-dark);
   color: var(--text-main);
@@ -76,6 +131,9 @@ body {
 
 .bg-sidebar {
   background-color: var(--sidebar-fondo);
+}
+.bg-dark {
+  background-color: var(--bg-dark);
 }
 .bg-gris {
   background-color: var(--fondo-gris);

@@ -29,7 +29,7 @@ const LoginBackground: React.FC = () => {
   );
 
   return (
-    <div className="fixed inset-0 z-0 overflow-hidden bg-[#0d0d0d]">
+    <div className="fixed inset-0 z-0 overflow-hidden bg-dark transition-colors duration-300">
       {/* Círculos de fondo con blur */}
       <div 
         className="absolute top-[-10%] left-[-10%] w-[50%] h-[50%] rounded-full opacity-40 blur-[120px] animate-float"
@@ -49,7 +49,7 @@ const LoginBackground: React.FC = () => {
         {paws.map((paw) => (
           <div
             key={paw.id}
-            className="absolute text-white/5 animate-float"
+            className="absolute text-main opacity-5 animate-float"
             style={{
               top: paw.top,
               left: paw.left,
@@ -68,7 +68,7 @@ const LoginBackground: React.FC = () => {
         {particles.map((p) => (
           <div
             key={p.id}
-            className="absolute rounded-full bg-white/10 blur-[1px] animate-float"
+            className="absolute rounded-full bg-main opacity-10 blur-[1px] animate-float"
             style={{
               top: p.top,
               left: p.left,

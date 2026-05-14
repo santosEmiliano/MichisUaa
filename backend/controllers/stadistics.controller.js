@@ -3,7 +3,8 @@ const stadisticsModel = require("../model/stadistics.model");
 const getTotalCats = async (req, res) => {
     try {
         const totalCats = await stadisticsModel.getAllCats();
-        return res.status(200).json(totalCats);
+        const addedThisWeek = await stadisticsModel.getCatsAddedThisWeek();
+        return res.status(200).json({ total: totalCats, addedThisWeek: addedThisWeek });
     } catch (error) {
         console.error("Error al obtener total de gatos:", error);
         return res.status(500).json({ mensaje: "Error al obtener el total de gatos" });
@@ -14,8 +15,20 @@ const getSterilizedCount = async (req, res) => {
     try {
         const totalCats = await stadisticsModel.getAllCats();
         const sterilizedCount = await stadisticsModel.getSterilizedCount();
-        const percentage = (sterilizedCount / totalCats) * 100;
-        return res.status(200).json(Math.round(percentage));
+        const percentage = totalCats > 0 ? Math.round((sterilizedCount / totalCats) * 100) : 0;
+
+        const totalCatsLastWeek = await stadisticsModel.getAllCatsLastWeek();
+        const sterilizedLastWeek = await stadisticsModel.getSterilizedCountLastWeek();
+        const percentageLastWeek = totalCatsLastWeek > 0 ? Math.round((sterilizedLastWeek / totalCatsLastWeek) * 100) : 0;
+
+        const trendPercentage = percentage - percentageLastWeek;
+
+        return res.status(200).json({
+            count: sterilizedCount,
+            total: totalCats,
+            percentage: percentage,
+            trendPercentage: trendPercentage
+        });
     } catch (error) {
         console.error("Error al obtener porcentaje de gatos esterilizados:", error);
         return res.status(500).json({ mensaje: "Error al obtener el total de gatos" });
@@ -25,7 +38,8 @@ const getSterilizedCount = async (req, res) => {
 const getMissingCats = async (req, res) => {
     try {
         const missingCatsCount = await stadisticsModel.getMissingCatsCount(); 
-        return res.status(200).json(missingCatsCount);
+        const missingAddedThisWeek = await stadisticsModel.getMissingCatsAddedThisWeek();
+        return res.status(200).json({ total: missingCatsCount, addedThisWeek: missingAddedThisWeek });
     } catch (error) {
         console.error("Error al obtener porcentaje de gatos esterilizados:", error);
         return res.status(500).json({ mensaje: "Error al obtener el total de gatos" });
@@ -34,11 +48,18 @@ const getMissingCats = async (req, res) => {
 
 const sightingsLastWeek = async (req, res) => {
     try {
-        const fecha = new Date(); // Fecha actual en UTC (Horario universal)
-        fecha.setDate(fecha.getDate() - 7);
+        const fecha7Dias = new Date(); // Fecha actual en UTC (Horario universal)
+        fecha7Dias.setDate(fecha7Dias.getDate() - 7);
         
-        const sightingsCount = await stadisticsModel.getSightingsLastWeekCount(fecha);
-        return res.status(200).json(sightingsCount);
+        const fecha14Dias = new Date();
+        fecha14Dias.setDate(fecha14Dias.getDate() - 14);
+        
+        const sightingsCount = await stadisticsModel.getSightingsLastWeekCount(fecha7Dias);
+        const previousWeekCount = await stadisticsModel.getSightingsPreviousWeekCount(fecha7Dias, fecha14Dias);
+        
+        const trend = sightingsCount - previousWeekCount;
+        
+        return res.status(200).json({ count: sightingsCount, trend });
     } catch (error) {
         console.error("Error al obtener avistamientos de la última semana:", error);
         return res.status(500).json({ mensaje: "Error al obtener avistamientos" });
