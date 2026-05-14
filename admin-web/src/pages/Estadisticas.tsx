@@ -8,6 +8,7 @@ const Estadisticas = () => {
   const [totalGatos, setTotalGatos] = useState(0);
   const [gatosAddedWeek, setGatosAddedWeek] = useState(0);
   const [esterilizados, setEsterilizados] = useState(0);
+  const [esterilizadosTrend, setEsterilizadosTrend] = useState(0);
   const [desapariciones, setDesapariciones] = useState(0);
   const [avistamientosSemana, setAvistamientosSemana] = useState(0);
   const [sterilizedState, setSterilizedState] = useState<{ name: string; value: number; color: string }[]>([]);
@@ -75,6 +76,7 @@ const Estadisticas = () => {
       if (resEsterilizados.ok) {
         const data = await resEsterilizados.json();
         setEsterilizados(data.percentage || 0);
+        setEsterilizadosTrend(data.trendPercentage || 0);
       }
       if (resDesapariciones.ok) setDesapariciones(await resDesapariciones.json());
       if (resAvistamientos.ok) setAvistamientosSemana(await resAvistamientos.json());
@@ -125,7 +127,8 @@ const Estadisticas = () => {
           title="Esterilizados"
           value={esterilizados}
           valueSuffix="%"
-          trendText="+5% vs anterior"
+          trendText={`${esterilizadosTrend > 0 ? '+' : ''}${esterilizadosTrend}% vs semana pasada`}
+          trendType={esterilizadosTrend >= 0 ? "success" : "danger"}
           borderColor="#2B9E76"
         />
         <MetricCard

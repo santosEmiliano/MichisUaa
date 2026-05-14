@@ -15,11 +15,19 @@ const getSterilizedCount = async (req, res) => {
     try {
         const totalCats = await stadisticsModel.getAllCats();
         const sterilizedCount = await stadisticsModel.getSterilizedCount();
-        const percentage = (sterilizedCount / totalCats) * 100;
+        const percentage = totalCats > 0 ? Math.round((sterilizedCount / totalCats) * 100) : 0;
+
+        const totalCatsLastWeek = await stadisticsModel.getAllCatsLastWeek();
+        const sterilizedLastWeek = await stadisticsModel.getSterilizedCountLastWeek();
+        const percentageLastWeek = totalCatsLastWeek > 0 ? Math.round((sterilizedLastWeek / totalCatsLastWeek) * 100) : 0;
+
+        const trendPercentage = percentage - percentageLastWeek;
+
         return res.status(200).json({
             count: sterilizedCount,
             total: totalCats,
-            percentage: Math.round(percentage)
+            percentage: percentage,
+            trendPercentage: trendPercentage
         });
     } catch (error) {
         console.error("Error al obtener porcentaje de gatos esterilizados:", error);

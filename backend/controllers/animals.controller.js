@@ -78,7 +78,12 @@ const updateAnimal = async (req, res) => {
     if (req.body.Colonia_idColonia !== undefined)
       req.body.Colonia_idColonia = Number(req.body.Colonia_idColonia);
     if (req.body.esterilizado !== undefined) {
-        req.body.esterilizado = req.body.esterilizado === 'true'; 
+        const isEsterilizado = req.body.esterilizado === 'true' || req.body.esterilizado === true;
+        req.body.esterilizado = isEsterilizado;
+        
+        if (isEsterilizado && !existingAnimal.esterilizado && !req.body.fecha_esterilizacion) {
+            req.body.fecha_esterilizacion = new Date();
+        }
     }
 
     if(req.file) {
