@@ -43,7 +43,14 @@ const createAnimal = async (req, res) => {
 
     req.body.Colonia_idColonia = Number(req.body.Colonia_idColonia);
     if (req.body.esterilizado !== undefined) {
-        req.body.esterilizado = req.body.esterilizado === 'true'; 
+        req.body.esterilizado = req.body.esterilizado === 'true' || req.body.esterilizado === true; 
+        if (req.body.esterilizado && !req.body.fecha_esterilizacion) {
+            req.body.fecha_esterilizacion = new Date();
+        }
+    }
+    
+    if (req.body.estado === 'Desaparecido') {
+        req.body.fecha_desaparicion = new Date();
     }
 
     if(req.file) {
@@ -83,6 +90,14 @@ const updateAnimal = async (req, res) => {
         
         if (isEsterilizado && !existingAnimal.esterilizado && !req.body.fecha_esterilizacion) {
             req.body.fecha_esterilizacion = new Date();
+        }
+    }
+    
+    if (req.body.estado !== undefined) {
+        if (req.body.estado === 'Desaparecido' && existingAnimal.estado !== 'Desaparecido') {
+            req.body.fecha_desaparicion = new Date();
+        } else if (req.body.estado !== 'Desaparecido' && existingAnimal.estado === 'Desaparecido') {
+            req.body.fecha_desaparicion = null;
         }
     }
 

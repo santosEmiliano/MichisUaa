@@ -101,6 +101,23 @@ async function getMissingCatsCount() {
   } 
 }
 
+async function getMissingCatsAddedThisWeek() {
+  try {
+    const fecha = new Date();
+    fecha.setDate(fecha.getDate() - 7);
+    const count = await prisma.animal.count({
+        where: {
+            estado: "Desaparecido",
+            fecha_desaparicion: { gte: fecha }
+        },
+    });
+    return count;
+  } catch (error) {
+    console.error("Error obteniendo gatos desaparecidos esta semana:", error);
+    throw error;
+  } 
+}
+
 async function getSightingsLastWeekCount(fecha) {
   try {
     const totalAvistamientos = await prisma.avistamiento.count({
@@ -267,6 +284,7 @@ module.exports = {
   getSterilizedCountLastWeek,
   getSterilizedCount,
   getMissingCatsCount,
+  getMissingCatsAddedThisWeek,
   getSightingsLastWeekCount,
   getSigningsPerColony,
   getColoniesSummary,

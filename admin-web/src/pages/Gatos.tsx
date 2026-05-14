@@ -97,14 +97,29 @@ const columns: ColumnDef<Cat>[] = [
   },
   {
     header: "Estado",
-    render: (cat) => (
-      <span
-        className="text-xs font-bold px-4 py-1.5 rounded-full whitespace-nowrap"
-        style={estadoBadge[cat.estado]}
-      >
-        {cat.estado}
-      </span>
-    ),
+    render: (cat) => {
+      if (cat.estado === "Desaparecido" && cat.fecha_desaparicion) {
+        const [year, month, day] = cat.fecha_desaparicion.split("-");
+        return (
+          <div
+            className="text-xs font-bold px-4 py-1.5 rounded-2xl inline-flex flex-col items-center justify-center text-center w-fit"
+            style={estadoBadge[cat.estado]}
+          >
+            <span>{cat.estado}</span>
+            <span className="text-[10px] font-medium opacity-90">{`${day}/${month}/${year}`}</span>
+          </div>
+        );
+      }
+      
+      return (
+        <span
+          className="text-xs font-bold px-4 py-1.5 rounded-full whitespace-nowrap"
+          style={estadoBadge[cat.estado]}
+        >
+          {cat.estado}
+        </span>
+      );
+    },
   },
   {
     header: "Registrado",
@@ -118,6 +133,7 @@ interface BackendAnimal {
   idAnimal: number;
   nombre: string;
   fecha_nac?: string;
+  fecha_desaparicion?: string;
   createdAt: string;
   colonia?: { nombre: string };
   Colonia_idColonia: number;
@@ -244,19 +260,29 @@ const GatosPage = () => {
           const mesCapitalizado = fechaObj.toLocaleString('es-ES', { month: 'long' });
           const fechaReg = `${mesCapitalizado.charAt(0).toUpperCase() + mesCapitalizado.slice(1)} ${fechaObj.getFullYear()}`;
 
-          return {
-            id: animal.idAnimal,
-            nombre: animal.nombre,
-            genero: "Hembra",
-            edad: edadStr,
-            colonia: animal.colonia?.nombre || `Colonia ${animal.Colonia_idColonia}`,
-            coloniaId: animal.Colonia_idColonia,
-            esterilizado: animal.esterilizado,
-            estado: animal.estado === "NoRegistrado" ? "No Registrado" : animal.estado,
-            fechaRegistro: fechaReg,
-            fecha_nac: animal.fecha_nac ? new Date(animal.fecha_nac).toISOString().split('T')[0] : "",
-            fotoUrl: animal.foto_url || undefined,
-          };
+            let fechaDesapStr = "";
+            if (animal.fecha_desaparicion) {
+              const d = new Date(animal.fecha_desaparicion);
+              const year = d.getFullYear();
+              const month = String(d.getMonth() + 1).padStart(2, '0');
+              const day = String(d.getDate()).padStart(2, '0');
+              fechaDesapStr = `${year}-${month}-${day}`;
+            }
+
+            return {
+              id: animal.idAnimal,
+              nombre: animal.nombre,
+              genero: "Hembra",
+              edad: edadStr,
+              colonia: animal.colonia?.nombre || `Colonia ${animal.Colonia_idColonia}`,
+              coloniaId: animal.Colonia_idColonia,
+              esterilizado: animal.esterilizado,
+              estado: animal.estado === "NoRegistrado" ? "No Registrado" : animal.estado,
+              fechaRegistro: fechaReg,
+              fecha_nac: animal.fecha_nac ? new Date(animal.fecha_nac).toISOString().split('T')[0] : "",
+              fecha_desaparicion: fechaDesapStr,
+              fotoUrl: animal.foto_url || undefined,
+            };
         });
 
         setCats(mappedCats);

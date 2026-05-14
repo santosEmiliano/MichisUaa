@@ -10,6 +10,7 @@ const Estadisticas = () => {
   const [esterilizados, setEsterilizados] = useState(0);
   const [esterilizadosTrend, setEsterilizadosTrend] = useState(0);
   const [desapariciones, setDesapariciones] = useState(0);
+  const [desaparicionesTrend, setDesaparicionesTrend] = useState(0);
   const [avistamientosSemana, setAvistamientosSemana] = useState(0);
   const [sterilizedState, setSterilizedState] = useState<{ name: string; value: number; color: string }[]>([]);
 
@@ -78,7 +79,16 @@ const Estadisticas = () => {
         setEsterilizados(data.percentage || 0);
         setEsterilizadosTrend(data.trendPercentage || 0);
       }
-      if (resDesapariciones.ok) setDesapariciones(await resDesapariciones.json());
+      if (resDesapariciones.ok) {
+        const data = await resDesapariciones.json();
+        if (typeof data === 'number') {
+          setDesapariciones(data);
+          setDesaparicionesTrend(0);
+        } else {
+          setDesapariciones(data.total);
+          setDesaparicionesTrend(data.addedThisWeek);
+        }
+      }
       if (resAvistamientos.ok) setAvistamientosSemana(await resAvistamientos.json());
       if (resSighingsTendency.ok) setSighingsTendencyData(await resSighingsTendency.json());
       if (resColoniesSummary.ok) setColoniesSummaryData(await resColoniesSummary.json());
@@ -134,7 +144,7 @@ const Estadisticas = () => {
         <MetricCard
           title="Desapariciones"
           value={desapariciones}
-          trendText="+1 este mes"
+          trendText={`+${desaparicionesTrend} esta semana`}
           trendType="danger"
           borderColor="#E05252"
         />

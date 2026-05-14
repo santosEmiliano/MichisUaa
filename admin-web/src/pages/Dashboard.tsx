@@ -94,7 +94,10 @@ const Dashboard = () => {
         setEsterilizadosCount(data.count);
         setTotalGatos(data.total);
       }
-      if (resDesapariciones.ok) setDesapariciones(await resDesapariciones.json());
+      if (resDesapariciones.ok) {
+        const res = await resDesapariciones.json();
+        setDesapariciones(typeof res === 'number' ? res : res.total);
+      }
       if (resColonias.ok) {
         const cols = await resColonias.json();
         setColoniasCount(cols.length);

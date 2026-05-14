@@ -116,6 +116,12 @@ async function main() {
         createdAt.setDate(createdAt.getDate() - (10 + Math.floor(Math.random() * 290)));
       }
 
+      let fechaDesaparicion = null;
+      if (estado === 'Desaparecido') {
+         // Generar una fecha aleatoria de desaparición desde la fecha de creación hasta hoy
+         fechaDesaparicion = new Date(createdAt.getTime() + Math.random() * (new Date().getTime() - createdAt.getTime()));
+      }
+
       const animal = await prisma.animal.create({
         data: {
           nombre: catNames[nameIndex],
@@ -124,6 +130,7 @@ async function main() {
           estado: estado,
           fecha_nac: fechaNac,
           fecha_esterilizacion: fechaEsterilizacion,
+          fecha_desaparicion: fechaDesaparicion,
           descripcion: `Un gato muy peculiar llamado ${catNames[nameIndex]}, visto frecuentemente en la colonia.`,
           createdAt: createdAt
         }

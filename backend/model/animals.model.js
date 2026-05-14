@@ -68,6 +68,7 @@ async function updateAnimal(id, data) {
     if (data.estado !== undefined) updateData.estado = data.estado;
     if (data.fecha_nac !== undefined) updateData.fecha_nac = data.fecha_nac ? new Date(data.fecha_nac) : null;
     if (data.fecha_esterilizacion !== undefined) updateData.fecha_esterilizacion = data.fecha_esterilizacion ? new Date(data.fecha_esterilizacion) : null;
+    if (data.fecha_desaparicion !== undefined) updateData.fecha_desaparicion = data.fecha_desaparicion ? new Date(data.fecha_desaparicion) : null;
     if (data.descripcion !== undefined) updateData.descripcion = data.descripcion;
 
     const updatedAnimal = await prisma.animal.update({

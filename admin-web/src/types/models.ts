@@ -9,6 +9,7 @@ export interface Cat {
   estado: "Registrado" | "Desaparecido" | "No Registrado";
   fechaRegistro: string;
   fecha_nac?: string;
+  fecha_desaparicion?: string;
   fotoUrl?: string;
 }
 
