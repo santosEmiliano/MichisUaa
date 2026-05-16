@@ -2,6 +2,7 @@ import { StyleSheet, View, Text, TextInput, TouchableOpacity, KeyboardAvoidingVi
 import Colors from '@/constants/Colors';
 import { useColorScheme } from '@/components/useColorScheme';
 import { useState } from 'react';
+import { router } from 'expo-router';
 
 // Servicios
 import { handleLogin } from '@/services/authApi';
@@ -50,10 +51,9 @@ export default function LoginScreen() {
       // Guardar sesión de forma segura (SecureStore en móvil, localStorage en web)
       await saveSession(result.token, result.datos.id, result.datos.nombre);
 
-      showAlert(
-        "¡Bienvenido!",
-        `Has iniciado sesión correctamente como ${result.datos.nombre}`
-      );
+      // Redirigir al primer tab, reemplazando el historial de navegación
+      // para que el usuario no pueda volver al login con el botón "Atrás"
+      router.replace('/(tabs)');
     } catch (error: any) {
       showAlert("Error", error.message);
     } finally {
