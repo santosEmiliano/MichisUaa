@@ -14,7 +14,7 @@ export default function LoginScreen() {
   const [password, setPassword] = useState('');
   const [loading, setLoading] = useState(false);
 
-  // Función auxiliar para mostrar alertas compatibles con Web y Móvil
+  // Función para mostrar alertas compatibles con Web y Móvil
   const showAlert = (title: string, message: string) => {
     if (Platform.OS === "web") {
       alert(`${title}\n${message}`);
