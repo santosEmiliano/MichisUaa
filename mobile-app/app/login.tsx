@@ -1,4 +1,4 @@
-import { StyleSheet, View, Text, TextInput, TouchableOpacity, KeyboardAvoidingView, Platform, SafeAreaView, Image } from 'react-native';
+import { StyleSheet, View, Text, TextInput, TouchableOpacity, KeyboardAvoidingView, Platform, SafeAreaView, Image, Alert } from 'react-native';
 import Colors from '@/constants/Colors';
 import { useColorScheme } from '@/components/useColorScheme';
 import { useState } from 'react';
@@ -12,6 +12,38 @@ export default function LoginScreen() {
 
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
+  const [loading, setLoading] = useState(false);
+
+  const onLoginPress = async () => {
+    if (!email || !password) {
+      Alert.alert("Atención", "Por favor ingresa tu correo y contraseña.");
+      return;
+    }
+
+    setLoading(true);
+    try {
+      const result = await handleLogin(email, password);
+      if(Platform.OS === "web") {
+        alert(
+          `¡Bienvenido!\n` +
+          `Has iniciado sesión correctamente como ${result.datos.nombre}`
+        );
+      } else {
+        Alert.alert(
+          "¡Bienvenido!",
+          `Has iniciado sesión correctamente como ${result.datos.nombre}`
+        );
+      }
+    } catch (error: any) {
+      if(Platform.OS === "web") {
+        alert(`Error, ${error.message}`);
+      } else {
+        Alert.alert("Error", error.message);
+      }
+    } finally {
+      setLoading(false);
+    }
+  };
 
   return (
     <SafeAreaView style={[styles.safeArea, { backgroundColor: colors.bgDark }]}>
@@ -79,8 +111,18 @@ export default function LoginScreen() {
               </Text>
             </TouchableOpacity>
 
-            <TouchableOpacity style={[styles.loginButton, { backgroundColor: colors.accentOrange }] } onPress={() => handleLogin(email, password)}>
-              <Text style={styles.loginButtonText}>Iniciar Sesión</Text>
+            <TouchableOpacity 
+              style={[
+                styles.loginButton, 
+                { backgroundColor: colors.accentOrange },
+                loading && { opacity: 0.7 }
+              ]} 
+              onPress={onLoginPress}
+              disabled={loading}
+            >
+              <Text style={styles.loginButtonText}>
+                {loading ? "Cargando..." : "Iniciar Sesión"}
+              </Text>
             </TouchableOpacity>
           </View>
 
