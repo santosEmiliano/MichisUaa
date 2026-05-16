@@ -6,6 +6,9 @@ import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import Colors from '@/constants/Colors';
 import { useColorScheme } from '@/components/useColorScheme';
 
+// Utils
+import { showAlert } from '@/utils/alerts';
+
 type FieldState = 'idle' | 'valid' | 'invalid';
 
 export default function RegisterScreen() {
@@ -45,6 +48,35 @@ export default function RegisterScreen() {
     if (state === 'valid') return '#4ade80';
     if (state === 'invalid') return '#f87171';
     return 'transparent';
+  };
+
+  // Servicio de registro
+
+  const onRegisterPress = () => {
+    if (nombreState !== 'valid') {
+      showAlert("Atención", "Por favor ingresa tu nombre correctamente.");
+      return;
+    }
+
+    if (correoState !== 'valid') {
+      showAlert("Atención", "Por favor ingresa tu correo correctamente.");
+      return;
+    }
+
+    if (passwordState !== 'valid') {
+      showAlert("Atención", "Por favor ingresa tu contraseña correctamente.");
+      return;
+    }
+
+    if (confirmPasswordState !== 'valid') {
+      showAlert("Atención", "Por favor confirma tu contraseña.");
+      return;
+    }
+
+    if (password !== confirmPassword) {
+      showAlert("Atención", "Las contraseñas no coinciden.");
+      return;
+    }
   };
 
   return (
@@ -195,7 +227,7 @@ export default function RegisterScreen() {
           </View>
 
           {/* Botón de registro */}
-          <TouchableOpacity style={styles.button} activeOpacity={0.85}>
+          <TouchableOpacity style={styles.button} activeOpacity={0.85} onPress={onRegisterPress}>
             <Text style={styles.buttonText}>Crear cuenta</Text>
           </TouchableOpacity>
         </View>
