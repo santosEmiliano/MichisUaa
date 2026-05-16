@@ -5,6 +5,7 @@ import { useState } from 'react';
 
 // Servicios
 import { handleLogin } from '@/services/authApi';
+import { saveSession, getSession } from '@/services/sessionStorage';
 
 export default function LoginScreen() {
   const colorScheme = useColorScheme() ?? 'light';
@@ -45,6 +46,10 @@ export default function LoginScreen() {
     setLoading(true);
     try {
       const result = await handleLogin(email.trim(), password);
+
+      // Guardar sesión de forma segura (SecureStore en móvil, localStorage en web)
+      await saveSession(result.token, result.datos.id, result.datos.nombre);
+
       showAlert(
         "¡Bienvenido!",
         `Has iniciado sesión correctamente como ${result.datos.nombre}`
