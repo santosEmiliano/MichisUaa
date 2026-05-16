@@ -3,6 +3,9 @@ import Colors from '@/constants/Colors';
 import { useColorScheme } from '@/components/useColorScheme';
 import { useState } from 'react';
 
+// Servicios
+import { handleLogin } from '@/services/authApi';
+
 export default function LoginScreen() {
   const colorScheme = useColorScheme() ?? 'light';
   const colors = Colors[colorScheme];
@@ -76,7 +79,7 @@ export default function LoginScreen() {
               </Text>
             </TouchableOpacity>
 
-            <TouchableOpacity style={[styles.loginButton, { backgroundColor: colors.accentOrange }]}>
+            <TouchableOpacity style={[styles.loginButton, { backgroundColor: colors.accentOrange }] } onPress={() => handleLogin(email, password)}>
               <Text style={styles.loginButtonText}>Iniciar Sesión</Text>
             </TouchableOpacity>
           </View>
