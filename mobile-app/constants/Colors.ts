@@ -1,5 +1,3 @@
-// Archivo generado a partir de la paleta de admin-web
-
 export default {
   light: {
     // Fondos principales
