@@ -144,7 +144,7 @@ export default function LoginScreen() {
 
           <View style={styles.footer}>
             <Text style={{ color: colors.textSecondary, fontSize: 14 }}>¿Primera vez? </Text>
-            <TouchableOpacity>
+            <TouchableOpacity onPress={() => router.push('/register')}>
               <Text style={{ color: colors.accentOrange, fontSize: 14, fontWeight: '500' }}>Regístrate gratis</Text>
             </TouchableOpacity>
           </View>
