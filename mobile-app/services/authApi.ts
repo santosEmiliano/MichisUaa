@@ -1,6 +1,6 @@
 import { Platform } from "react-native";
 
-const BACKEND_HOST_IP = "192.168.100.8";
+const BACKEND_HOST_IP = "localhost";
 
 const handleLogin = async (email: string, password: string) => {
   const API_URL = Platform.OS === "web" ? "http://localhost:3000" : `http://${BACKEND_HOST_IP}:3000`;
