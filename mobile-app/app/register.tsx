@@ -1,5 +1,5 @@
 import { useState } from 'react';
-import { View, Text, StyleSheet, TouchableOpacity, TextInput, ScrollView, KeyboardAvoidingView, Platform, } from 'react-native';
+import { View, Text, StyleSheet, TouchableOpacity, TextInput, ScrollView, KeyboardAvoidingView, Platform, Modal, ActivityIndicator } from 'react-native';
 import { router } from 'expo-router';
 import { Ionicons } from '@expo/vector-icons';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
@@ -28,6 +28,7 @@ export default function RegisterScreen() {
   const [showPassword, setShowPassword] = useState(false);
   const [showConfirmPassword, setShowConfirmPassword] = useState(false);
   const [loading, setLoading] = useState(false);
+  const [showTerms, setShowTerms] = useState(false);
 
   // Validaciones de inputs
   const nombreState: FieldState =
@@ -55,34 +56,34 @@ export default function RegisterScreen() {
     return 'transparent';
   };
 
-  // Servicio de registro
-
-  const onRegisterPress = async () => {
+  const onRegisterPress = () => {
     if (nombreState !== 'valid') {
       showAlert("Atención", "Por favor ingresa tu nombre correctamente.");
       return;
     }
-
     if (correoState !== 'valid') {
       showAlert("Atención", "Por favor ingresa tu correo correctamente.");
       return;
     }
-
     if (passwordState !== 'valid') {
       showAlert("Atención", "Por favor ingresa tu contraseña correctamente.");
       return;
     }
-
     if (confirmPasswordState !== 'valid') {
       showAlert("Atención", "Por favor confirma tu contraseña.");
       return;
     }
-
     if (password !== confirmPassword) {
       showAlert("Atención", "Las contraseñas no coinciden.");
       return;
     }
+    // Si todo está bien, muestra el modal de T&C
+    setShowTerms(true);
+  };
 
+  // Se llama al aceptar los T&C
+  const doRegister = async () => {
+    setShowTerms(false);
     setLoading(true);
     try {
       const result = await handleRegister(nombre.trim(), correo.trim(), password);
@@ -243,8 +244,16 @@ export default function RegisterScreen() {
           </View>
 
           {/* Botón de registro */}
-          <TouchableOpacity style={styles.button} activeOpacity={0.85} onPress={onRegisterPress}>
-            <Text style={styles.buttonText}>Crear cuenta</Text>
+          <TouchableOpacity
+            style={[styles.button, loading && { opacity: 0.7 }]}
+            activeOpacity={0.85}
+            onPress={onRegisterPress}
+            disabled={loading}
+          >
+            {loading
+              ? <ActivityIndicator color="#fff" />
+              : <Text style={styles.buttonText}>Crear cuenta</Text>
+            }
           </TouchableOpacity>
         </View>
 
@@ -256,6 +265,117 @@ export default function RegisterScreen() {
           </TouchableOpacity>
         </View>
       </ScrollView>
+
+      {/* Modal de Términos y Condiciones */}
+      <Modal
+        visible={showTerms}
+        transparent
+        animationType="slide"
+        onRequestClose={() => setShowTerms(false)}
+      >
+        <View style={styles.modalOverlay}>
+          <View style={[styles.modalCard, { backgroundColor: colors.fondoGrisOscuro, borderColor: colors.borderColor }]}>
+
+            {/* Drag handle */}
+            <View style={[styles.dragHandle, { backgroundColor: colors.borderColor }]} />
+
+            {/* Header con ícono naranja */}
+            <View style={styles.modalHeader}>
+              <View style={styles.modalIconWrap}>
+                <Ionicons name="document-text" size={22} color="#e8893c" />
+              </View>
+              <View style={{ flex: 1 }}>
+                <Text style={[styles.modalTitle, { color: colors.textMain }]}>Términos y Condiciones</Text>
+                <Text style={[styles.modalSubtitle, { color: colors.textSecondary }]}>MichisUAA · Comunidad de cuidado felino</Text>
+              </View>
+            </View>
+
+            {/* Divider naranja */}
+            <View style={styles.modalDivider} />
+
+            <ScrollView style={styles.modalScroll} showsVerticalScrollIndicator={false}>
+
+              {/* Sección 1 */}
+              <View style={styles.termRow}>
+                <View style={styles.termBadge}><Text style={styles.termBadgeText}>1</Text></View>
+                <Text style={[styles.termSection, { color: colors.textMain }]}>Propósito de la aplicación</Text>
+              </View>
+              <Text style={[styles.termText, { color: colors.textSecondary }]}>
+                MichisUAA es una plataforma comunitaria destinada exclusivamente al registro, seguimiento y cuidado de las colonias felinas dentro del campus de la Universidad Autónoma de Aguascalientes. Su uso es estrictamente benéfico y de carácter universitario.
+              </Text>
+
+              {/* Sección 2 */}
+              <View style={styles.termRow}>
+                <View style={styles.termBadge}><Text style={styles.termBadgeText}>2</Text></View>
+                <Text style={[styles.termSection, { color: colors.textMain }]}>Uso aceptable</Text>
+              </View>
+              <Text style={[styles.termText, { color: colors.textSecondary }]}>
+                El usuario se compromete a utilizar la aplicación de forma responsable. Está permitido: reportar avistamientos de gatos del campus, consultar información de las colonias y colaborar con los administradores de la comunidad.
+              </Text>
+
+              {/* Sección 3 — Destacada */}
+              <View style={styles.termRow}>
+                <View style={[styles.termBadge, styles.termBadgeDanger]}><Text style={styles.termBadgeText}>3</Text></View>
+                <Text style={[styles.termSection, { color: colors.textMain }]}>Conductas prohibidas</Text>
+              </View>
+              <View style={[styles.termWarningBox, { borderColor: 'rgba(232,137,60,0.3)', backgroundColor: 'rgba(232,137,60,0.07)' }]}>
+                <Text style={[styles.termText, { color: colors.textSecondary }]}>
+                  Queda estrictamente prohibido:{`\n\n`}
+                  <Text style={{ color: colors.accentOrange }}>•</Text>{` Subir fotografías, datos personales o cualquier información identificable de cualquier persona —sea o no miembro de la universidad— sin su consentimiento explícito.\n\n`}
+                  <Text style={{ color: colors.accentOrange }}>•</Text>{` Publicar, compartir o almacenar contenido explícito, ilegal, ofensivo, discriminatorio o que atente contra la dignidad de cualquier persona.\n\n`}
+                  <Text style={{ color: colors.accentOrange }}>•</Text>{` Usar la plataforma con fines distintos al cuidado y monitoreo felino.\n\n`}
+                  <Text style={{ color: colors.accentOrange }}>•</Text>{` Suplantar identidades o crear cuentas falsas.`}
+                </Text>
+              </View>
+
+              {/* Sección 4 */}
+              <View style={styles.termRow}>
+                <View style={styles.termBadge}><Text style={styles.termBadgeText}>4</Text></View>
+                <Text style={[styles.termSection, { color: colors.textMain }]}>Deslinde de responsabilidad</Text>
+              </View>
+              <Text style={[styles.termText, { color: colors.textSecondary }]}>
+                El equipo de desarrollo y los administradores de MichisUAA no se hacen responsables del uso indebido que los usuarios hagan de la plataforma. Cualquier contenido publicado es responsabilidad exclusiva de quien lo genera. El incumplimiento de estos términos puede resultar en la suspensión inmediata de la cuenta y, de ser necesario, en el reporte a las autoridades universitarias competentes.
+              </Text>
+
+              {/* Sección 5 */}
+              <View style={styles.termRow}>
+                <View style={styles.termBadge}><Text style={styles.termBadgeText}>5</Text></View>
+                <Text style={[styles.termSection, { color: colors.textMain }]}>Privacidad de datos</Text>
+              </View>
+              <Text style={[styles.termText, { color: colors.textSecondary }]}>
+                Los datos proporcionados al registrarse (nombre y correo institucional) se utilizarán únicamente para identificarte dentro de la plataforma. Los datos no serán comercializados ni compartidos con terceros ajenos al funcionamiento técnico de la plataforma.
+              </Text>
+
+              {/* Sección 6 */}
+              <View style={styles.termRow}>
+                <View style={styles.termBadge}><Text style={styles.termBadgeText}>6</Text></View>
+                <Text style={[styles.termSection, { color: colors.textMain }]}>Aceptación</Text>
+              </View>
+              <Text style={[styles.termText, { color: colors.textSecondary, marginBottom: 8 }]}>
+                Al presionar <Text style={{ color: colors.accentOrange, fontWeight: '600' }}>"Acepto y crear cuenta"</Text> confirmas que has leído, entendido y aceptado estos términos y condiciones en su totalidad.
+              </Text>
+
+            </ScrollView>
+
+            {/* Botones */}
+            <View style={[styles.modalDivider, { marginBottom: 16 }]} />
+            <View style={styles.modalButtons}>
+              <TouchableOpacity
+                style={[styles.modalBtnCancel, { borderColor: colors.borderColor }]}
+                onPress={() => setShowTerms(false)}
+              >
+                <Text style={[styles.modalBtnCancelText, { color: colors.textSecondary }]}>Cancelar</Text>
+              </TouchableOpacity>
+              <TouchableOpacity style={styles.modalBtnAccept} onPress={doRegister}>
+                <Ionicons name="checkmark-circle" size={16} color="#fff" style={{ marginRight: 6 }} />
+                <Text style={styles.modalBtnAcceptText}>Acepto y crear cuenta</Text>
+              </TouchableOpacity>
+            </View>
+
+          </View>
+        </View>
+      </Modal>
+
     </KeyboardAvoidingView>
   );
 }
@@ -377,5 +497,125 @@ const styles = StyleSheet.create({
   footerLink: {
     fontSize: 14,
     fontWeight: '600',
+  },
+
+  // Modal de Términos y Condiciones
+  modalOverlay: {
+    flex: 1,
+    backgroundColor: 'rgba(0,0,0,0.65)',
+    justifyContent: 'flex-end',
+  },
+  modalCard: {
+    borderTopLeftRadius: 28,
+    borderTopRightRadius: 28,
+    borderWidth: 1,
+    paddingHorizontal: 22,
+    paddingTop: 12,
+    paddingBottom: 32,
+    maxHeight: '88%',
+  },
+  dragHandle: {
+    width: 40,
+    height: 4,
+    borderRadius: 2,
+    alignSelf: 'center',
+    marginBottom: 20,
+  },
+  modalHeader: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 14,
+    marginBottom: 16,
+  },
+  modalIconWrap: {
+    width: 44,
+    height: 44,
+    borderRadius: 12,
+    backgroundColor: 'rgba(232,137,60,0.15)',
+    justifyContent: 'center',
+    alignItems: 'center',
+  },
+  modalTitle: {
+    fontSize: 18,
+    fontWeight: '800',
+    marginBottom: 2,
+  },
+  modalSubtitle: {
+    fontSize: 12,
+  },
+  modalDivider: {
+    height: 1.5,
+    backgroundColor: '#e8893c',
+    opacity: 0.25,
+    marginBottom: 12,
+  },
+  modalScroll: {
+    maxHeight: 360,
+    marginBottom: 8,
+  },
+  termRow: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 10,
+    marginTop: 16,
+    marginBottom: 6,
+  },
+  termBadge: {
+    width: 22,
+    height: 22,
+    borderRadius: 11,
+    backgroundColor: '#e8893c',
+    justifyContent: 'center',
+    alignItems: 'center',
+  },
+  termBadgeDanger: {
+    backgroundColor: '#c0392b',
+  },
+  termBadgeText: {
+    color: '#fff',
+    fontSize: 11,
+    fontWeight: '800',
+  },
+  termSection: {
+    fontSize: 14,
+    fontWeight: '700',
+    flex: 1,
+  },
+  termText: {
+    fontSize: 13,
+    lineHeight: 20,
+  },
+  termWarningBox: {
+    borderWidth: 1,
+    borderRadius: 10,
+    padding: 12,
+    marginBottom: 4,
+  },
+  modalButtons: {
+    flexDirection: 'row',
+    gap: 12,
+  },
+  modalBtnCancel: {
+    flex: 1,
+    borderWidth: 1,
+    borderRadius: 12,
+    paddingVertical: 13,
+    alignItems: 'center',
+  },
+  modalBtnCancelText: {
+    fontSize: 14,
+    fontWeight: '600',
+  },
+  modalBtnAccept: {
+    flex: 2,
+    backgroundColor: '#e8893c',
+    borderRadius: 12,
+    paddingVertical: 13,
+    alignItems: 'center',
+  },
+  modalBtnAcceptText: {
+    color: '#fff',
+    fontSize: 14,
+    fontWeight: '700',
   },
 });
