@@ -6,6 +6,10 @@ import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import Colors from '@/constants/Colors';
 import { useColorScheme } from '@/components/useColorScheme';
 
+// Services
+import { handleRegister } from '@/services/authApi';
+import { saveSession } from '@/services/sessionStorage';
+
 // Utils
 import { showAlert } from '@/utils/alerts';
 
@@ -23,6 +27,7 @@ export default function RegisterScreen() {
 
   const [showPassword, setShowPassword] = useState(false);
   const [showConfirmPassword, setShowConfirmPassword] = useState(false);
+  const [loading, setLoading] = useState(false);
 
   // Validaciones de inputs
   const nombreState: FieldState =
@@ -52,7 +57,7 @@ export default function RegisterScreen() {
 
   // Servicio de registro
 
-  const onRegisterPress = () => {
+  const onRegisterPress = async () => {
     if (nombreState !== 'valid') {
       showAlert("Atención", "Por favor ingresa tu nombre correctamente.");
       return;
@@ -76,6 +81,17 @@ export default function RegisterScreen() {
     if (password !== confirmPassword) {
       showAlert("Atención", "Las contraseñas no coinciden.");
       return;
+    }
+
+    setLoading(true);
+    try {
+      const result = await handleRegister(nombre.trim(), correo.trim(), password);
+      await saveSession(result.token, result.userId, result.nombre);
+      router.replace('/(tabs)');
+    } catch (error: any) {
+      showAlert('Error al registrarse', error.message);
+    } finally {
+      setLoading(false);
     }
   };
 
