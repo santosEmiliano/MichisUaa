@@ -14,32 +14,43 @@ export default function LoginScreen() {
   const [password, setPassword] = useState('');
   const [loading, setLoading] = useState(false);
 
+  // Función auxiliar para mostrar alertas compatibles con Web y Móvil
+  const showAlert = (title: string, message: string) => {
+    if (Platform.OS === "web") {
+      alert(`${title}\n${message}`);
+    } else {
+      Alert.alert(title, message);
+    }
+  };
+
   const onLoginPress = async () => {
-    if (!email || !password) {
-      Alert.alert("Atención", "Por favor ingresa tu correo y contraseña.");
+    // Validación de correo vacío
+    if (!email.trim()) {
+      showAlert("Atención", "Por favor ingresa tu correo electrónico.");
+      return;
+    }
+
+    // Validación de formato de correo (regex para @ y dominio)
+    const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+    if (!emailRegex.test(email.trim())) {
+      showAlert("Atención", "Por favor ingresa un correo electrónico válido (ej. usuario@edu.uaa.mx).");
+      return;
+    }
+
+    if (!password) {
+      showAlert("Atención", "Por favor ingresa tu contraseña.");
       return;
     }
 
     setLoading(true);
     try {
-      const result = await handleLogin(email, password);
-      if(Platform.OS === "web") {
-        alert(
-          `¡Bienvenido!\n` +
-          `Has iniciado sesión correctamente como ${result.datos.nombre}`
-        );
-      } else {
-        Alert.alert(
-          "¡Bienvenido!",
-          `Has iniciado sesión correctamente como ${result.datos.nombre}`
-        );
-      }
+      const result = await handleLogin(email.trim(), password);
+      showAlert(
+        "¡Bienvenido!",
+        `Has iniciado sesión correctamente como ${result.datos.nombre}`
+      );
     } catch (error: any) {
-      if(Platform.OS === "web") {
-        alert(`Error, ${error.message}`);
-      } else {
-        Alert.alert("Error", error.message);
-      }
+      showAlert("Error", error.message);
     } finally {
       setLoading(false);
     }
