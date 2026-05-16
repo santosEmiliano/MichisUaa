@@ -1,4 +1,4 @@
-import { StyleSheet, View, Text, TextInput, TouchableOpacity, KeyboardAvoidingView, Platform, SafeAreaView, Image, Alert } from 'react-native';
+import { StyleSheet, View, Text, TextInput, TouchableOpacity, KeyboardAvoidingView, Platform, SafeAreaView, Image } from 'react-native';
 import Colors from '@/constants/Colors';
 import { useColorScheme } from '@/components/useColorScheme';
 import { useState } from 'react';
@@ -8,6 +8,9 @@ import { router } from 'expo-router';
 import { handleLogin } from '@/services/authApi';
 import { saveSession, getSession } from '@/services/sessionStorage';
 
+// Utils
+import { showAlert } from '@/utils/alerts';
+
 export default function LoginScreen() {
   const colorScheme = useColorScheme() ?? 'light';
   const colors = Colors[colorScheme];
@@ -15,15 +18,6 @@ export default function LoginScreen() {
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
   const [loading, setLoading] = useState(false);
-
-  // Función para mostrar alertas compatibles con Web y Móvil
-  const showAlert = (title: string, message: string) => {
-    if (Platform.OS === "web") {
-      alert(`${title}\n${message}`);
-    } else {
-      Alert.alert(title, message);
-    }
-  };
 
   const onLoginPress = async () => {
     // Validación de correo vacío
