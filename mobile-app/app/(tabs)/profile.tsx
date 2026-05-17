@@ -59,8 +59,20 @@ export default function ProfileScreen() {
         <View style={[styles.headerContainer, { backgroundColor: colors.bgPanel }]}>
           {/* Grupo izquierdo: Avatar e Información */}
           <View style={styles.profileGroup}>
-            <View style={[styles.avatar, { backgroundColor: colors.accentOrange }]}>
-              <Text style={styles.avatarText}>{getInitials(userName)}</Text>
+            {/* Contenedor del Avatar con Orejitas de Gato */}
+            <View style={styles.avatarWrapper}>
+              {/* Oreja Izquierda */}
+              <View style={[styles.catEar, styles.leftEar, { backgroundColor: colors.accentOrange }]}>
+                <View style={styles.innerEar} />
+              </View>
+              {/* Oreja Derecha */}
+              <View style={[styles.catEar, styles.rightEar, { backgroundColor: colors.accentOrange }]}>
+                <View style={styles.innerEar} />
+              </View>
+              {/* Círculo Principal del Avatar */}
+              <View style={[styles.avatar, { backgroundColor: colors.accentOrange }]}>
+                <Text style={styles.avatarText}>{getInitials(userName)}</Text>
+              </View>
             </View>
 
             <View style={styles.infoColumn}>
@@ -118,12 +130,45 @@ const styles = StyleSheet.create({
     alignItems: 'center',
     gap: 16,
   },
+  avatarWrapper: {
+    position: 'relative',
+    width: 64,
+    height: 64,
+  },
+  catEar: {
+    position: 'absolute',
+    width: 20,
+    height: 20,
+    borderRadius: 4,
+    justifyContent: 'center',
+    alignItems: 'center',
+    zIndex: 1,
+    elevation: 1, // orden de capas en Android
+  },
+  leftEar: {
+    top: -3,
+    left: 6,
+    transform: [{ rotate: '25deg' }],
+  },
+  rightEar: {
+    top: -3,
+    right: 6,
+    transform: [{ rotate: '65deg' }],
+  },
+  innerEar: {
+    width: 10,
+    height: 10,
+    borderRadius: 2,
+    backgroundColor: 'rgba(255, 255, 255, 0.35)',
+  },
   avatar: {
     width: 64,
     height: 64,
     borderRadius: 32,
     justifyContent: 'center',
     alignItems: 'center',
+    zIndex: 10,
+    elevation: 5,
   },
   avatarText: {
     fontSize: 24,
