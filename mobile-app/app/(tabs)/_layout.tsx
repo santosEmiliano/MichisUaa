@@ -36,27 +36,15 @@ export default function TabLayout() {
         name="map"
         options={{
           title: 'Mapa',
+          headerShown: false, // Oculta el encabezado nativo
           tabBarIcon: ({ color }) => <TabBarIcon name="map" color={color} />,
-          headerRight: () => (
-            <Link href="/modal" asChild>
-              <Pressable>
-                {({ pressed }) => (
-                  <FontAwesome
-                    name="info-circle"
-                    size={25}
-                    color={Colors[colorScheme ?? 'light'].text}
-                    style={{ marginRight: 15, opacity: pressed ? 0.5 : 1 }}
-                  />
-                )}
-              </Pressable>
-            </Link>
-          ),
         }}
       />
       <Tabs.Screen
         name="sighting"
         options={{
           title: 'Avistamiento',
+          headerShown: false, // Oculta el encabezado nativo
           tabBarIcon: ({ color }) => <TabBarIcon name="plus-circle" color={color} />,
         }}
       />
@@ -64,6 +52,7 @@ export default function TabLayout() {
         name="profile"
         options={{
           title: 'Perfil',
+          headerShown: false, // Oculta el encabezado nativo
           tabBarIcon: ({ color }) => <TabBarIcon name="user" color={color} />,
         }}
       />
