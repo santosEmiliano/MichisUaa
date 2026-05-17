@@ -3,7 +3,7 @@ import { Platform } from "react-native";
 // Services
 import { getSession } from "./sessionStorage";
 
-const BACKEND_HOST_IP = "192.168.100.8";
+const BACKEND_HOST_IP = "192.168.1.98";
 
 const getSightingsByUser = async () => {
     const API_URL = Platform.OS === "web" ? "http://localhost:3000" : `http://${BACKEND_HOST_IP}:3000`;

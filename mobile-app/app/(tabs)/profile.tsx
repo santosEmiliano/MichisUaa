@@ -1,4 +1,4 @@
-import React, { useEffect, useState } from 'react';
+import React, { useCallback, useState } from 'react';
 import { StyleSheet, View, ActivityIndicator } from 'react-native';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 
@@ -8,6 +8,7 @@ import { getSession } from '@/services/sessionStorage';
 import { getSightingsByUser } from '@/services/profileApi';
 import { ProfileHeader, ProfileStats, SightingHistoryTab } from '@/components/profileTab';
 import TabSelector from '@/components/TabSelector';
+import { useFocusEffect } from 'expo-router';
 
 export default function ProfileScreen() {
   const colorScheme = useColorScheme() ?? 'light';
@@ -21,28 +22,31 @@ export default function ProfileScreen() {
   const [sightingsCount, setSightingsCount] = useState<number>(0);
   const [sightings, setSightings] = useState<any[]>([]);
 
-  useEffect(() => {
-    async function loadProfileData() {
-      try {
-        const session = await getSession();
-        if (session) {
-          if (session.userName) setUserName(session.userName);
-          if (session.userEmail) setUserEmail(session.userEmail);
-        }
+  useFocusEffect(
+    useCallback(() => {
+      async function loadProfileData() {
+        setLoading(true);
+        try {
+          const session = await getSession();
+          if (session) {
+            if (session.userName) setUserName(session.userName);
+            if (session.userEmail) setUserEmail(session.userEmail);
+          }
 
-        const data = await getSightingsByUser();
-        if (Array.isArray(data)) {
-          setSightings(data);
-          setSightingsCount(data.length);
+          const data = await getSightingsByUser();
+          if (Array.isArray(data)) {
+            setSightings(data);
+            setSightingsCount(data.length);
+          }
+        } catch (error) {
+          console.error("Error al cargar datos del perfil:", error);
+        } finally {
+          setLoading(false);
         }
-      } catch (error) {
-        console.error("Error al cargar datos del perfil:", error);
-      } finally {
-        setLoading(false);
       }
-    }
-    loadProfileData();
-  }, []);
+      loadProfileData();
+    }, [])
+  );
 
   const getInitials = (name: string) => {
     if (!name) return '??';
