@@ -1,5 +1,5 @@
 import React, { useState } from 'react';
-import { StyleSheet, View, Text, ScrollView, TouchableOpacity } from 'react-native';
+import { StyleSheet, View, Text, ScrollView, TouchableOpacity, Image, Modal, Pressable } from 'react-native';
 
 import Colors from '@/constants/Colors';
 import { useColorScheme } from '@/components/useColorScheme';
@@ -65,16 +65,13 @@ function formatDate(dateString: string): string {
   return `${day} de ${monthNames[date.getMonth()]} · ${time}`;
 }
 
-// Emoji de gato basado en el id nomas para que no quede vacía la imagen
-const catEmojis = ['🐱', '🐈', '🐈‍⬛', '😺', '😸', '🙀'];
-function getCatEmoji(id: number): string {
-  return catEmojis[id % catEmojis.length];
-}
+
 
 export default function SightingHistoryTab({ sightings }: SightingHistoryTabProps) {
   const colorScheme = useColorScheme() ?? 'light';
   const colors = Colors[colorScheme];
   const [activeFilter, setActiveFilter] = useState('Todos');
+  const [selectedPhoto, setSelectedPhoto] = useState<string | null>(null);
 
   // Filtrar avistamientos según el chip activo
   const filtered = sightings.filter((s) => {
@@ -119,6 +116,22 @@ export default function SightingHistoryTab({ sightings }: SightingHistoryTabProp
             );
           })}
         </ScrollView>
+
+        {/* Foto en la pantalla completa */}
+        <Modal visible={!!selectedPhoto} transparent animationType="fade" onRequestClose={() => setSelectedPhoto(null)}>
+          <Pressable style={styles.lightboxOverlay} onPress={() => setSelectedPhoto(null)}>
+            {selectedPhoto && (
+              <Image
+                source={{ uri: selectedPhoto }}
+                style={styles.lightboxImage}
+                resizeMode="contain"
+              />
+            )}
+            <TouchableOpacity style={styles.lightboxClose} onPress={() => setSelectedPhoto(null)}>
+              <Text style={styles.lightboxCloseText}>✕</Text>
+            </TouchableOpacity>
+          </Pressable>
+        </Modal>
       </View>
 
       {/* Lista de avistamientos*/}
@@ -145,7 +158,19 @@ export default function SightingHistoryTab({ sightings }: SightingHistoryTabProp
                 key={sighting.idAvistamiento}
                 style={[styles.card, { backgroundColor: colors.bgCard }]}
               >
-                <Text style={styles.catEmoji}>{getCatEmoji(sighting.idAvistamiento)}</Text>
+                {sighting.foto_url ? (
+                  <TouchableOpacity onPress={() => setSelectedPhoto(sighting.foto_url)} activeOpacity={0.85}>
+                    <Image
+                      source={{ uri: sighting.foto_url }}
+                      style={styles.sightingImage}
+                      resizeMode="cover"
+                    />
+                  </TouchableOpacity>
+                ) : (
+                  <View style={[styles.sightingImage, styles.sightingImagePlaceholder, { backgroundColor: colors.fondoGris }]}>
+                    <Text style={styles.placeholderEmoji}>🐱</Text>
+                  </View>
+                )}
 
                 <View style={styles.cardContent}>
                   <View style={styles.cardTitleRow}>
@@ -225,9 +250,18 @@ const styles = StyleSheet.create({
     alignItems: 'flex-start',
     gap: 12,
   },
-  catEmoji: {
-    fontSize: 28,
+  sightingImage: {
+    width: 60,
+    height: 60,
+    borderRadius: 10,
     marginTop: 2,
+  },
+  sightingImagePlaceholder: {
+    justifyContent: 'center',
+    alignItems: 'center',
+  },
+  placeholderEmoji: {
+    fontSize: 26,
   },
   cardContent: {
     flex: 1,
@@ -269,5 +303,33 @@ const styles = StyleSheet.create({
     fontSize: 12,
     marginTop: 4,
     lineHeight: 17,
+  },
+
+  // Lightbox
+  lightboxOverlay: {
+    flex: 1,
+    backgroundColor: 'rgba(0,0,0,0.92)',
+    justifyContent: 'center',
+    alignItems: 'center',
+  },
+  lightboxImage: {
+    width: '100%',
+    height: '80%',
+  },
+  lightboxClose: {
+    position: 'absolute',
+    top: 52,
+    right: 20,
+    width: 36,
+    height: 36,
+    borderRadius: 18,
+    backgroundColor: 'rgba(255,255,255,0.15)',
+    justifyContent: 'center',
+    alignItems: 'center',
+  },
+  lightboxCloseText: {
+    color: '#ffffff',
+    fontSize: 18,
+    fontWeight: '600',
   },
 });
