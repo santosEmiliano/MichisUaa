@@ -53,7 +53,7 @@ function RootLayoutNav() {
 
   return (
     <ThemeProvider value={colorScheme === 'dark' ? DarkTheme : DefaultTheme}>
-      <StatusBar style="light" translucent backgroundColor="transparent" />
+      <StatusBar style={colorScheme === 'dark' ? 'light' : 'dark'} translucent backgroundColor="transparent" />
       <Stack
         screenOptions={{
           contentStyle: { backgroundColor: colors.bgDark },
