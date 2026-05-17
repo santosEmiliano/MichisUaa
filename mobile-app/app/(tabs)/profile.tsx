@@ -6,6 +6,7 @@ import Colors from '@/constants/Colors';
 import { useColorScheme } from '@/components/useColorScheme';
 import { getSession } from '@/services/sessionStorage';
 import { ProfileHeader, ProfileStats } from '@/components/profileTab';
+import TabSelector from '@/components/TabSelector';
 
 export default function ProfileScreen() {
   const colorScheme = useColorScheme() ?? 'light';
@@ -15,6 +16,7 @@ export default function ProfileScreen() {
   const [userName, setUserName] = useState<string>('Ana García');
   const [userEmail, setUserEmail] = useState<string>('usuario@edu.uaa.mx');
   const [loading, setLoading] = useState<boolean>(true);
+  const [activeTab, setActiveTab] = useState<string>('Logros');
 
   useEffect(() => {
     async function loadUserData() {
@@ -57,6 +59,11 @@ export default function ProfileScreen() {
             initials={getInitials(userName)}
           />
           <ProfileStats />
+          <TabSelector
+            tabs={['Logros', 'Historial', 'Ranking']}
+            activeTab={activeTab}
+            onTabChange={setActiveTab}
+          />
         </View>
       )}
     </View>
@@ -74,8 +81,5 @@ const styles = StyleSheet.create({
   },
   topCard: {
     paddingTop: 24,
-    paddingBottom: 24,
-    borderBottomWidth: 1,
-    borderBottomColor: 'rgba(0, 0, 0, 0.05)',
-  },
+  }
 });
