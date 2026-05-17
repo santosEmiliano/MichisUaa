@@ -6,7 +6,7 @@ import Colors from '@/constants/Colors';
 import { useColorScheme } from '@/components/useColorScheme';
 import { getSession } from '@/services/sessionStorage';
 import { getSightingsByUser } from '@/services/profileApi';
-import { ProfileHeader, ProfileStats } from '@/components/profileTab';
+import { ProfileHeader, ProfileStats, SightingHistoryTab } from '@/components/profileTab';
 import TabSelector from '@/components/TabSelector';
 
 export default function ProfileScreen() {
@@ -19,6 +19,7 @@ export default function ProfileScreen() {
   const [loading, setLoading] = useState<boolean>(true);
   const [activeTab, setActiveTab] = useState<string>('Logros');
   const [sightingsCount, setSightingsCount] = useState<number>(0);
+  const [sightings, setSightings] = useState<any[]>([]);
 
   useEffect(() => {
     async function loadProfileData() {
@@ -29,10 +30,10 @@ export default function ProfileScreen() {
           if (session.userEmail) setUserEmail(session.userEmail);
         }
 
-        // Cargar avistamientos del usuario
-        const sightings = await getSightingsByUser();
-        if (Array.isArray(sightings)) {
-          setSightingsCount(sightings.length);
+        const data = await getSightingsByUser();
+        if (Array.isArray(data)) {
+          setSightings(data);
+          setSightingsCount(data.length);
         }
       } catch (error) {
         console.error("Error al cargar datos del perfil:", error);
@@ -59,27 +60,44 @@ export default function ProfileScreen() {
     { value: '#--', label: 'Ranking' },
   ];
 
+  // Renderizar contenido según el tab activo
+  const renderTabContent = () => {
+    switch (activeTab) {
+      case 'Historial':
+        return <SightingHistoryTab sightings={sightings} />;
+      case 'Logros':
+      case 'Ranking':
+      default:
+        return null;
+    }
+  };
+
   return (
-    <View style={[styles.screen, { backgroundColor: colors.bgPanel }]}>
+    <View style={[styles.screen, { backgroundColor: colors.bgDark }]}>
       {loading ? (
         <View style={[styles.loadingContainer, { paddingTop: insets.top }]}>
           <ActivityIndicator size="small" color={colors.accentOrange} />
         </View>
       ) : (
-        /* Tarjeta superior del perfil */
-        <View style={[styles.topCard, { backgroundColor: colors.bgPanel, paddingTop: insets.top + 24 }]}>
-          <ProfileHeader
-            userName={userName}
-            userEmail={userEmail}
-            initials={getInitials(userName)}
-          />
-          <ProfileStats stats={profileStats} />
-          <TabSelector
-            tabs={['Logros', 'Historial', 'Ranking']}
-            activeTab={activeTab}
-            onTabChange={setActiveTab}
-          />
-        </View>
+        <>
+          {/* Tarjeta superior del perfil */}
+          <View style={[styles.topCard, { backgroundColor: colors.bgPanel, paddingTop: insets.top + 24 }]}>
+            <ProfileHeader
+              userName={userName}
+              userEmail={userEmail}
+              initials={getInitials(userName)}
+            />
+            <ProfileStats stats={profileStats} />
+            <TabSelector
+              tabs={['Logros', 'Historial', 'Ranking']}
+              activeTab={activeTab}
+              onTabChange={setActiveTab}
+            />
+          </View>
+
+          {/* Contenido del tab seleccionado */}
+          {renderTabContent()}
+        </>
       )}
     </View>
   );
@@ -95,5 +113,5 @@ const styles = StyleSheet.create({
     justifyContent: 'center',
   },
   topCard: {
-  }
+  },
 });
