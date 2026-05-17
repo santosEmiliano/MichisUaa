@@ -55,53 +55,78 @@ export default function ProfileScreen() {
           <ActivityIndicator size="small" color={colors.accentOrange} />
         </View>
       ) : (
-        /* Parte superior del perfil (Header) */
-        <View style={[styles.headerContainer, { backgroundColor: colors.bgPanel }]}>
-          {/* Grupo izquierdo: Avatar e Información */}
-          <View style={styles.profileGroup}>
-            {/* Contenedor del Avatar con Orejitas de Gato */}
-            <View style={styles.avatarWrapper}>
-              {/* Oreja Izquierda */}
-              <View style={[styles.catEar, styles.leftEar, { backgroundColor: colors.accentOrange }]}>
-                <View style={styles.innerEar} />
+        /* Tarjeta superior del perfil */
+        <View style={[styles.topCard, { backgroundColor: colors.bgPanel }]}>
+          {/* Fila superior: Avatar e Información */}
+          <View style={styles.headerRow}>
+            {/* Grupo izquierdo: Avatar e Información */}
+            <View style={styles.profileGroup}>
+              {/* Contenedor del Avatar con Orejitas de Gato */}
+              <View style={styles.avatarWrapper}>
+                {/* Oreja Izquierda */}
+                <View style={[styles.catEar, styles.leftEar, { backgroundColor: colors.accentOrange }]}>
+                  <View style={styles.innerEar} />
+                </View>
+                {/* Oreja Derecha */}
+                <View style={[styles.catEar, styles.rightEar, { backgroundColor: colors.accentOrange }]}>
+                  <View style={styles.innerEar} />
+                </View>
+                {/* Círculo Principal del Avatar */}
+                <View style={[styles.avatar, { backgroundColor: colors.accentOrange }]}>
+                  <Text style={styles.avatarText}>{getInitials(userName)}</Text>
+                </View>
               </View>
-              {/* Oreja Derecha */}
-              <View style={[styles.catEar, styles.rightEar, { backgroundColor: colors.accentOrange }]}>
-                <View style={styles.innerEar} />
-              </View>
-              {/* Círculo Principal del Avatar */}
-              <View style={[styles.avatar, { backgroundColor: colors.accentOrange }]}>
-                <Text style={styles.avatarText}>{getInitials(userName)}</Text>
+
+              <View style={styles.infoColumn}>
+                <Text style={[styles.userName, { color: colors.textMain }]}>
+                  {userName}
+                </Text>
+                <View style={styles.roleRow}>
+                  <View style={[styles.roleDot, { backgroundColor: colors.metricaVerde }]} />
+                  <Text style={[styles.roleText, { color: colors.textSecondary }]}>
+                    {userEmail}
+                  </Text>
+                </View>
               </View>
             </View>
 
-            <View style={styles.infoColumn}>
-              <Text style={[styles.userName, { color: colors.textMain }]}>
-                {userName}
-              </Text>
-              <View style={styles.roleRow}>
-                <View style={[styles.roleDot, { backgroundColor: colors.metricaVerde }]} />
-                <Text style={[styles.roleText, { color: colors.textSecondary }]}>
-                  {userEmail}
-                </Text>
-              </View>
-            </View>
+            {/* Botón derecho: Ícono para cambiar tema */}
+            <TouchableOpacity 
+              style={[
+                styles.sunButton, 
+                { backgroundColor: colorScheme === 'dark' ? colors.fondoGris : colors.fondoGrisOscuro }
+              ]}
+              onPress={toggleTheme}
+            >
+              <Ionicons 
+                name={colorScheme === 'dark' ? 'sunny-outline' : 'moon-outline'} 
+                size={22} 
+                color={colors.textSecondary} 
+              />
+            </TouchableOpacity>
           </View>
 
-          {/* Botón derecho: Ícono para cambiar tema */}
-          <TouchableOpacity 
-            style={[
-              styles.sunButton, 
-              { backgroundColor: colorScheme === 'dark' ? colors.fondoGris : colors.fondoGrisOscuro }
-            ]}
-            onPress={toggleTheme}
-          >
-            <Ionicons 
-              name={colorScheme === 'dark' ? 'sunny-outline' : 'moon-outline'} 
-              size={22} 
-              color={colors.textSecondary} 
-            />
-          </TouchableOpacity>
+          {/* Fila inferior: Estadísticas (Avistamientos, Medallas, Ranking) */}
+          <View style={styles.statsRow}>
+            <View style={styles.statItem}>
+              <Text style={[styles.statNumber, { color: colors.textMain }]}>34</Text>
+              <Text style={[styles.statLabel, { color: colors.textSecondary }]}>Avistamientos</Text>
+            </View>
+
+            <View style={[styles.statDivider, { backgroundColor: colors.borderColor }]} />
+
+            <View style={styles.statItem}>
+              <Text style={[styles.statNumber, { color: colors.textMain }]}>4</Text>
+              <Text style={[styles.statLabel, { color: colors.textSecondary }]}>Medallas</Text>
+            </View>
+
+            <View style={[styles.statDivider, { backgroundColor: colors.borderColor }]} />
+
+            <View style={styles.statItem}>
+              <Text style={[styles.statNumber, { color: colors.textMain }]}>#3</Text>
+              <Text style={[styles.statLabel, { color: colors.textSecondary }]}>Ranking</Text>
+            </View>
+          </View>
         </View>
       )}
     </View>
@@ -117,13 +142,18 @@ const styles = StyleSheet.create({
     alignItems: 'center',
     justifyContent: 'center',
   },
-  headerContainer: {
+  topCard: {
+    paddingTop: 24,
+    paddingBottom: 24,
+    borderBottomWidth: 1,
+    borderBottomColor: 'rgba(0, 0, 0, 0.05)',
+  },
+  headerRow: {
     flexDirection: 'row',
     alignItems: 'center',
     justifyContent: 'space-between',
     paddingHorizontal: 24,
-    paddingTop: 24,
-    paddingBottom: 20,
+    marginBottom: 28,
   },
   profileGroup: {
     flexDirection: 'row',
@@ -143,7 +173,7 @@ const styles = StyleSheet.create({
     justifyContent: 'center',
     alignItems: 'center',
     zIndex: 1,
-    elevation: 1, // orden de capas en Android
+    elevation: 1,
   },
   leftEar: {
     top: -3,
@@ -203,5 +233,28 @@ const styles = StyleSheet.create({
     borderRadius: 22,
     justifyContent: 'center',
     alignItems: 'center',
+  },
+  statsRow: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'space-evenly',
+    paddingHorizontal: 16,
+  },
+  statItem: {
+    alignItems: 'center',
+    flex: 1,
+  },
+  statNumber: {
+    fontSize: 24,
+    fontWeight: 'bold',
+    marginBottom: 4,
+  },
+  statLabel: {
+    fontSize: 13,
+    fontWeight: '500',
+  },
+  statDivider: {
+    width: 1,
+    height: 32,
   },
 });
