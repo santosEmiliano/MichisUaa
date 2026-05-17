@@ -45,14 +45,14 @@ export default function ProfileScreen() {
   };
 
   return (
-    <View style={[styles.screen, { backgroundColor: colors.bgDark, paddingTop: insets.top }]}>
+    <View style={[styles.screen, { backgroundColor: colors.bgPanel }]}>
       {loading ? (
-        <View style={styles.loadingContainer}>
+        <View style={[styles.loadingContainer, { paddingTop: insets.top }]}>
           <ActivityIndicator size="small" color={colors.accentOrange} />
         </View>
       ) : (
         /* Tarjeta superior del perfil */
-        <View style={[styles.topCard, { backgroundColor: colors.bgPanel }]}>
+        <View style={[styles.topCard, { backgroundColor: colors.bgPanel, paddingTop: insets.top + 24 }]}>
           <ProfileHeader
             userName={userName}
             userEmail={userEmail}
@@ -80,6 +80,5 @@ const styles = StyleSheet.create({
     justifyContent: 'center',
   },
   topCard: {
-    paddingTop: 24,
   }
 });
