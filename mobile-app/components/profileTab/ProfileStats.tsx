@@ -10,16 +10,10 @@ interface StatData {
 }
 
 interface ProfileStatsProps {
-  stats?: StatData[];
+  stats: StatData[];
 }
 
-const defaultStats: StatData[] = [
-  { value: '34', label: 'Avistamientos' },
-  { value: '4', label: 'Medallas' },
-  { value: '#3', label: 'Ranking' },
-];
-
-export default function ProfileStats({ stats = defaultStats }: ProfileStatsProps) {
+export default function ProfileStats({ stats }: ProfileStatsProps) {
   const colorScheme = useColorScheme() ?? 'light';
   const colors = Colors[colorScheme];
 

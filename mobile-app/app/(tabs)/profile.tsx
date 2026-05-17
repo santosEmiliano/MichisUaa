@@ -5,6 +5,7 @@ import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import Colors from '@/constants/Colors';
 import { useColorScheme } from '@/components/useColorScheme';
 import { getSession } from '@/services/sessionStorage';
+import { getSightingsByUser } from '@/services/profileApi';
 import { ProfileHeader, ProfileStats } from '@/components/profileTab';
 import TabSelector from '@/components/TabSelector';
 
@@ -17,22 +18,29 @@ export default function ProfileScreen() {
   const [userEmail, setUserEmail] = useState<string>('usuario@edu.uaa.mx');
   const [loading, setLoading] = useState<boolean>(true);
   const [activeTab, setActiveTab] = useState<string>('Logros');
+  const [sightingsCount, setSightingsCount] = useState<number>(0);
 
   useEffect(() => {
-    async function loadUserData() {
+    async function loadProfileData() {
       try {
         const session = await getSession();
         if (session) {
           if (session.userName) setUserName(session.userName);
           if (session.userEmail) setUserEmail(session.userEmail);
         }
+
+        // Cargar avistamientos del usuario
+        const sightings = await getSightingsByUser();
+        if (Array.isArray(sightings)) {
+          setSightingsCount(sightings.length);
+        }
       } catch (error) {
-        console.error("Error al cargar la sesión:", error);
+        console.error("Error al cargar datos del perfil:", error);
       } finally {
         setLoading(false);
       }
     }
-    loadUserData();
+    loadProfileData();
   }, []);
 
   const getInitials = (name: string) => {
@@ -43,6 +51,13 @@ export default function ProfileScreen() {
     }
     return name.substring(0, 2).toUpperCase();
   };
+
+  // Estadísticas del perfil
+  const profileStats = [
+    { value: String(sightingsCount), label: 'Avistamientos' },
+    { value: '0', label: 'Medallas' },
+    { value: '#--', label: 'Ranking' },
+  ];
 
   return (
     <View style={[styles.screen, { backgroundColor: colors.bgPanel }]}>
@@ -58,7 +73,7 @@ export default function ProfileScreen() {
             userEmail={userEmail}
             initials={getInitials(userName)}
           />
-          <ProfileStats />
+          <ProfileStats stats={profileStats} />
           <TabSelector
             tabs={['Logros', 'Historial', 'Ranking']}
             activeTab={activeTab}
