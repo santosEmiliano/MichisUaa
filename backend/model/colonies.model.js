@@ -75,6 +75,23 @@ async function getAllColonies(idEncargado) {
   }
 }
 
+// READ PUBLIC
+async function getColoniesPublic() {
+  try {
+    const colonies = await prisma.colonia.findMany({
+      select: {
+        idColonia: true,
+        nombre: true,
+        zona: true // Ubicación
+      }
+    });
+    return colonies;
+  } catch (error) {
+    console.error("Error obteniendo colonias públicas:", error);
+    throw error;
+  }
+}
+
 // READ ONE
 async function getColonyById(id) {
   try {
@@ -148,6 +165,7 @@ async function deleteColony(id) {
 module.exports = {
   createColony,
   getAllColonies,
+  getColoniesPublic,
   getColonyById,
   updateColony,
   deleteColony

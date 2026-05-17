@@ -6,6 +6,13 @@ const multer = require("../middleware/multer");
 
 const upload = multer();
 
+// rutas públicas (DEBEN ir antes de /:id para que Express no las confunda)
+router.get(
+  "/public",
+  token.verifyToken,
+  animalsFunctions.getAnimalsPublic
+)
+
 // Obtener todos los animales
 router.get(
   "/",

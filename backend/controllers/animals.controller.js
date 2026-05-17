@@ -162,10 +162,22 @@ const deleteAnimal = async (req, res) => {
   }
 };
 
+//Funciones Públicas
+const getAnimalsPublic = async (req, res) => {
+  try {
+    const animals = await animalModel.getAnimalsPublic();
+    return res.status(200).json(animals);
+  } catch (error) {
+    console.error("Error al obtener animales:", error);
+    return res.status(500).json({ mensaje: "Error al obtener los animales" });
+  }
+}
+
 module.exports = {
   getAnimals,
   getAnimalById,
   createAnimal,
   updateAnimal,
-  deleteAnimal
+  deleteAnimal,
+  getAnimalsPublic
 };

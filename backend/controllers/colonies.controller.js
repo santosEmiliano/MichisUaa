@@ -96,10 +96,25 @@ const removeColony = async (req, res) => {
   }
 };
 
+//Funciones Públicas
+
+// Función para devolver nombre y ubicación de cada colonia sin ser administrador
+const readColoniesPublic = async (req, res) => {
+  try {
+    const colonies = await coloniesModel.getColoniesPublic();
+    return res.status(200).json(colonies);
+  } catch (error) {
+    console.error("Error al obtener lista de colonias:", error);
+    return res.status(500).json({ mensaje: "Error al obtener las colonias" });
+  }
+}
+
+
 module.exports = {
   readColonies,
   readColonyById,
   registerColony,
   modifyColony,
-  removeColony
+  removeColony,
+  readColoniesPublic
 };

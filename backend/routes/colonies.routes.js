@@ -3,6 +3,13 @@ const router = express.Router();
 const token = require("../middleware/verifyToken");
 const coloniesFunctions = require("../controllers/colonies.controller");
 
+// rutas públicas (DEBEN ir antes de /:id para que Express no las confunda)
+router.get(
+  "/public",
+  token.verifyToken,
+  coloniesFunctions.readColoniesPublic
+)
+
 // Obtener todos las colonias
 // NOTA: Aqui viene en queryparams el ?idEncargado={id}
 router.get(
