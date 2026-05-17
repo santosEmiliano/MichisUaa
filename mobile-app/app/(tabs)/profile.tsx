@@ -4,7 +4,7 @@ import { Ionicons } from '@expo/vector-icons';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 
 import Colors from '@/constants/Colors';
-import { useColorScheme } from '@/components/useColorScheme';
+import { useColorScheme, setColorScheme } from '@/components/useColorScheme';
 import { getSession } from '@/services/sessionStorage';
 
 export default function ProfileScreen() {
@@ -42,6 +42,12 @@ export default function ProfileScreen() {
     return name.substring(0, 2).toUpperCase();
   };
 
+  // Alternar entre modo claro y oscuro a nivel de la aplicación
+  const toggleTheme = () => {
+    const nextScheme = colorScheme === 'light' ? 'dark' : 'light';
+    setColorScheme(nextScheme);
+  };
+
   return (
     <View style={[styles.screen, { backgroundColor: colors.bgDark, paddingTop: insets.top }]}>
       {loading ? (
@@ -70,14 +76,19 @@ export default function ProfileScreen() {
             </View>
           </View>
 
-          {/* Botón derecho: Ícono del sol */}
+          {/* Botón derecho: Ícono para cambiar tema */}
           <TouchableOpacity 
             style={[
               styles.sunButton, 
               { backgroundColor: colorScheme === 'dark' ? colors.fondoGris : colors.fondoGrisOscuro }
             ]}
+            onPress={toggleTheme}
           >
-            <Ionicons name="sunny-outline" size={22} color={colors.textSecondary} />
+            <Ionicons 
+              name={colorScheme === 'dark' ? 'sunny-outline' : 'moon-outline'} 
+              size={22} 
+              color={colors.textSecondary} 
+            />
           </TouchableOpacity>
         </View>
       )}
