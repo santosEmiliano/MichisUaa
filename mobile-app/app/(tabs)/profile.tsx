@@ -1,14 +1,15 @@
 import React, { useCallback, useState } from 'react';
-import { StyleSheet, View, ActivityIndicator } from 'react-native';
+import { StyleSheet, View, ActivityIndicator, TouchableOpacity, Text, Alert, Platform } from 'react-native';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
+import { Ionicons } from '@expo/vector-icons';
+import { router, useFocusEffect } from 'expo-router';
 
 import Colors from '@/constants/Colors';
 import { useColorScheme } from '@/components/useColorScheme';
-import { getSession } from '@/services/sessionStorage';
+import { getSession, clearSession } from '@/services/sessionStorage';
 import { getSightingsByUser } from '@/services/profileApi';
 import { ProfileHeader, ProfileStats, SightingHistoryTab } from '@/components/profileTab';
 import TabSelector from '@/components/TabSelector';
-import { useFocusEffect } from 'expo-router';
 
 export default function ProfileScreen() {
   const colorScheme = useColorScheme() ?? 'light';
@@ -64,6 +65,36 @@ export default function ProfileScreen() {
     { value: '#--', label: 'Ranking' },
   ];
 
+  const performLogout = async () => {
+    try {
+      await clearSession();
+      router.replace('/login');
+    } catch (error) {
+      console.error("Error al cerrar sesión:", error);
+    }
+  };
+
+  const handleLogout = () => {
+    if (Platform.OS === 'web') {
+      if (window.confirm("¿Estás seguro de que deseas cerrar sesión?")) {
+        performLogout();
+      }
+    } else {
+      Alert.alert(
+        "Cerrar sesión",
+        "¿Estás seguro de que deseas cerrar sesión?",
+        [
+          { text: "Cancelar", style: "cancel" },
+          {
+            text: "Cerrar sesión",
+            style: "destructive",
+            onPress: performLogout,
+          },
+        ]
+      );
+    }
+  };
+
   // Renderizar contenido según el tab activo
   const renderTabContent = () => {
     switch (activeTab) {
@@ -101,6 +132,18 @@ export default function ProfileScreen() {
 
           {/* Contenido del tab seleccionado */}
           {renderTabContent()}
+
+          {/* Botón de Cerrar Sesión al final de la pantalla */}
+          <View style={styles.logoutContainer}>
+            <TouchableOpacity
+              style={styles.logoutButton}
+              onPress={handleLogout}
+              activeOpacity={0.8}
+            >
+              <Ionicons name="log-out-outline" size={20} color="#c0392b" />
+              <Text style={styles.logoutText}>Cerrar sesión</Text>
+            </TouchableOpacity>
+          </View>
         </>
       )}
     </View>
@@ -117,5 +160,25 @@ const styles = StyleSheet.create({
     justifyContent: 'center',
   },
   topCard: {
+  },
+  logoutContainer: {
+    paddingHorizontal: 24,
+    paddingVertical: 14,
+  },
+  logoutButton: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'center',
+    paddingVertical: 13,
+    borderRadius: 14,
+    backgroundColor: 'rgba(192, 57, 43, 0.12)',
+    borderWidth: 1,
+    borderColor: 'rgba(192, 57, 43, 0.28)',
+    gap: 8,
+  },
+  logoutText: {
+    color: '#c0392b',
+    fontSize: 15,
+    fontWeight: 'bold',
   },
 });
