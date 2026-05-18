@@ -8,6 +8,7 @@ import Colors from '@/constants/Colors';
 import { useColorScheme } from '@/components/useColorScheme';
 import { getSession, clearSession } from '@/services/sessionStorage';
 import { getSightingsByUser, getUserRanking } from '@/services/profileApi';
+import { getTopRankings } from '@/services/rankings';
 import { ProfileHeader, ProfileStats, SightingHistoryTab } from '@/components/profileTab';
 import TabSelector from '@/components/TabSelector';
 
@@ -23,6 +24,7 @@ export default function ProfileScreen() {
   const [sightingsCount, setSightingsCount] = useState<number>(0);
   const [sightings, setSightings] = useState<any[]>([]);
   const [rankingPosition, setRankingPosition] = useState<string | number>('--');
+  const [topRankings, setTopRankings] = useState<any[]>([]);
 
   useFocusEffect(
     useCallback(() => {
@@ -44,10 +46,18 @@ export default function ProfileScreen() {
             }
           }
 
-          const data = await getSightingsByUser();
-          if (Array.isArray(data)) {
-            setSightings(data);
-            setSightingsCount(data.length);
+          const [sightingsData, rankingsData] = await Promise.all([
+            getSightingsByUser(),
+            getTopRankings(),
+          ]);
+
+          if (Array.isArray(sightingsData)) {
+            setSightings(sightingsData);
+            setSightingsCount(sightingsData.length);
+          }
+
+          if (Array.isArray(rankingsData)) {
+            setTopRankings(rankingsData);
           }
         } catch (error) {
           console.error("Error al cargar datos del perfil:", error);
