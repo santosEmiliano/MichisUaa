@@ -142,10 +142,25 @@ const deleteSighting = async (req, res) => {
   }
 };
 
+// RANKING - Posición de un usuario en el ranking
+const getUserRank = async (req, res) => {
+  try {
+    const { id } = req.params;
+    const result = await sightingFunctions.getUserRankPosition(id);
+    return res.status(200).json(result);
+  } catch (error) {
+    console.error("Error al obtener posición del usuario:", error);
+    return res
+      .status(500)
+      .json({ mensaje: "Error al obtener la posición del usuario" });
+  }
+};
+
 module.exports = {
   readSightings,
   readSightingsById,
   registerSighting,
   modifySighting,
   deleteSighting,
+  getUserRank,
 };

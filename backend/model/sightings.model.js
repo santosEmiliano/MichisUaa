@@ -146,10 +146,59 @@ async function removeSighting(id) {
   }
 }
 
+// RANKING individual
+async function getUserRankPosition(userId) {
+  try {
+    // Obtener todos los usuarios con avistamientos verificados y ya los ordenada de mayor a menor
+    const ranking = await prisma.avistamiento.groupBy({
+      by: ['usuarioId'],
+      where: { verificado: true },
+      _count: { idAvistamiento: true },
+      orderBy: { _count: { idAvistamiento: 'desc' } }
+    });
+
+    // busca los avistamientos del usuario en especifico
+    const posicion = ranking.findIndex(r => r.usuarioId === Number(userId));
+
+    if (posicion === -1) {
+      const usuario = await prisma.usuario.findUnique({
+        where: { idUsuario: Number(userId) },
+        select: { idUsuario: true, nombre: true }
+      });
+
+      return {
+        posicion: null,
+        usuarioId: Number(userId),
+        nombre: usuario ? usuario.nombre : 'Desconocido',
+        avistamientosVerificados: 0,
+        totalParticipantes: ranking.length,
+        mensaje: "Este usuario no tiene avistamientos verificados"
+      };
+    }
+
+    const usuario = await prisma.usuario.findUnique({
+      where: { idUsuario: Number(userId) },
+      select: { idUsuario: true, nombre: true }
+    });
+
+    return {
+      posicion: posicion + 1,
+      usuarioId: Number(userId),
+      nombre: usuario ? usuario.nombre : 'Desconocido',
+      avistamientosVerificados: ranking[posicion]._count.idAvistamiento,
+      totalParticipantes: ranking.length
+    };
+  } catch (error) {
+    console.error("Error obteniendo posición del usuario:", error);
+    throw error;
+  }
+}
+
 module.exports = {
   createSighting,
   getAllSightings,
   getSightingById,
   modifySighting,
-  removeSighting
+  removeSighting,
+  getUserRankPosition
 }

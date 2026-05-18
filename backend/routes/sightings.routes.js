@@ -10,6 +10,9 @@ const upload = multer();
 // NOTA: Aqui viene en queryparams el ?idUsuario={id}
 router.get("/", token.verifyToken, sightingFunctions.readSightings);
 
+// Ruta pública posición de un usuario en el ranking de avistamientos verificados
+router.get("/ranking/:id", token.verifyToken, sightingFunctions.getUserRank);
+
 //Ruta GET para obtener avistamiento en especifico
 router.get("/:id", token.verifyToken, sightingFunctions.readSightingsById);
 
