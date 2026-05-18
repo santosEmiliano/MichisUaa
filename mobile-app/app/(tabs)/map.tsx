@@ -1,11 +1,12 @@
 import React, { useState, useEffect, useMemo, useRef, useCallback } from 'react';
-import { StyleSheet, View, Text, TextInput, TouchableOpacity, Alert, Image, Animated } from 'react-native';
+import { StyleSheet, View, Text, TextInput, TouchableOpacity, Alert, Image, Animated, useColorScheme } from 'react-native';
 import { useFocusEffect } from 'expo-router';
 import * as Location from 'expo-location';
 import MapView from 'react-native-map-clustering';
 import { Marker, Callout } from 'react-native-maps';
 import FontAwesome from '@expo/vector-icons/FontAwesome';
 import { getPublicAnimals, AnimalPublic } from '@/services/mapApi';
+import Colors from '@/constants/Colors';
 
 // Coordenadas de la UAA
 const UAA_REGION = {
@@ -20,6 +21,9 @@ export default function MapScreen() {
   const [searchText, setSearchText] = useState('');
   const [activeFilter, setActiveFilter] = useState('Todos');
   const [showFilters, setShowFilters] = useState(false);
+
+  const theme = useColorScheme() ?? 'light';
+  const colors = Colors[theme];
 
   // Valores animados de Filtros
   const slideAnim = useRef(new Animated.Value(-20)).current;
@@ -197,18 +201,18 @@ export default function MapScreen() {
               }}
               tracksViewChanges={false}
             >
-              <View style={[styles.customMarker, { borderColor }]}>
+              <View style={[styles.customMarker, { borderColor, backgroundColor: theme === 'dark' ? colors.bgPanel : 'white' }]}>
                 {animal.foto_url ? (
                   <Image source={{ uri: animal.foto_url }} style={styles.markerImage} />
                 ) : (
-                  <Text style={styles.markerText}>?</Text>
+                  <Text style={[styles.markerText, { color: colors.textMain }]}>?</Text>
                 )}
               </View>
 
               <Callout tooltip>
-                <View style={styles.calloutContainer}>
-                  <Text style={styles.calloutTitle}>{animal.nombre}</Text>
-                  <Text style={styles.calloutText}>Colonia: {animal.colonia}</Text>
+                <View style={[styles.calloutContainer, { backgroundColor: colors.bgPanel, borderColor: colors.borderColor, borderWidth: theme === 'dark' ? 1 : 0 }]}>
+                  <Text style={[styles.calloutTitle, { color: colors.textMain }]}>{animal.nombre}</Text>
+                  <Text style={[styles.calloutText, { color: colors.textSecondary }]}>Colonia: {animal.colonia}</Text>
                   <Text style={[styles.calloutStatus, { color: borderColor }]}>
                     {animal.estado}
                   </Text>
@@ -226,17 +230,17 @@ export default function MapScreen() {
           transform: [{ translateY: entranceSlideTopAnim }]
         }
       ]}>
-        <View style={styles.searchBox}>
-          <FontAwesome name="search" size={20} color="#666" style={styles.searchIcon} />
+        <View style={[styles.searchBox, { backgroundColor: colors.bgPanel, borderColor: colors.borderColor, borderWidth: theme === 'dark' ? 1 : 0 }]}>
+          <FontAwesome name="search" size={20} color={colors.textSecondary} style={styles.searchIcon} />
           <TextInput
-            style={styles.searchInput}
+            style={[styles.searchInput, { color: colors.textMain }]}
             placeholder="Buscar por nombre..."
-            placeholderTextColor="#999"
+            placeholderTextColor={colors.textSecondary}
             value={searchText}
             onChangeText={setSearchText}
           />
           <TouchableOpacity onPress={() => setShowFilters(!showFilters)}>
-            <FontAwesome name="filter" size={20} color={showFilters ? '#F28C38' : '#666'} style={styles.filterIconBtn} />
+            <FontAwesome name="filter" size={20} color={showFilters ? colors.accentOrange : colors.textSecondary} style={styles.filterIconBtn} />
           </TouchableOpacity>
         </View>
       </Animated.View>
@@ -256,14 +260,16 @@ export default function MapScreen() {
             key={filter}
             style={[
               styles.filterButton,
-              activeFilter === filter && styles.filterButtonActive,
+              { backgroundColor: theme === 'dark' ? colors.bgCard : 'rgba(255, 255, 255, 0.9)' },
+              activeFilter === filter && { backgroundColor: colors.accentOrange },
             ]}
             onPress={() => setActiveFilter(filter)}
           >
             <Text
               style={[
                 styles.filterText,
-                activeFilter === filter && styles.filterTextActive,
+                { color: theme === 'dark' ? colors.textSecondary : '#555' },
+                activeFilter === filter && { color: colors.textWhite },
               ]}
             >
               {filter}
@@ -276,16 +282,19 @@ export default function MapScreen() {
         styles.legendContainer,
         {
           opacity: entranceFadeAnim,
-          transform: [{ translateY: entranceSlideBottomAnim }]
+          transform: [{ translateY: entranceSlideBottomAnim }],
+          backgroundColor: theme === 'dark' ? colors.bgPanel : 'rgba(255, 255, 255, 0.9)',
+          borderColor: colors.borderColor,
+          borderWidth: theme === 'dark' ? 1 : 0
         }
       ]}>
         <View style={styles.legendItem}>
           <View style={[styles.legendDot, { backgroundColor: '#4CAF50' }]} />
-          <Text style={styles.legendText}>Verificado</Text>
+          <Text style={[styles.legendText, { color: colors.textMain }]}>Verificado</Text>
         </View>
         <View style={styles.legendItem}>
           <View style={[styles.legendDot, { backgroundColor: '#F44336' }]} />
-          <Text style={styles.legendText}>Desaparecido</Text>
+          <Text style={[styles.legendText, { color: colors.textMain }]}>Desaparecido</Text>
         </View>
       </Animated.View>
 
@@ -296,8 +305,17 @@ export default function MapScreen() {
             opacity: entranceFadeAnim,
           }
         ]}>
-          <TouchableOpacity style={styles.recenterButton} onPress={centerOnUAA}>
-            <FontAwesome name="university" size={20} color="#F28C38" />
+          <TouchableOpacity 
+            style={[
+              styles.recenterButton, 
+              { 
+                backgroundColor: theme === 'dark' ? colors.bgPanel : 'rgba(255, 255, 255, 0.95)',
+                borderColor: theme === 'dark' ? colors.borderColor : '#eee'
+              }
+            ]} 
+            onPress={centerOnUAA}
+          >
+            <FontAwesome name="university" size={20} color={colors.accentOrange} />
           </TouchableOpacity>
         </Animated.View>
       )}
