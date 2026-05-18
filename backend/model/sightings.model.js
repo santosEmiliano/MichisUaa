@@ -161,32 +161,15 @@ async function getUserRankPosition(userId) {
     const posicion = ranking.findIndex(r => r.usuarioId === Number(userId));
 
     if (posicion === -1) {
-      const usuario = await prisma.usuario.findUnique({
-        where: { idUsuario: Number(userId) },
-        select: { idUsuario: true, nombre: true }
-      });
-
       return {
         posicion: null,
-        usuarioId: Number(userId),
-        nombre: usuario ? usuario.nombre : 'Desconocido',
-        avistamientosVerificados: 0,
-        totalParticipantes: ranking.length,
-        mensaje: "Este usuario no tiene avistamientos verificados"
+        avistamientosVerificados: 0
       };
     }
 
-    const usuario = await prisma.usuario.findUnique({
-      where: { idUsuario: Number(userId) },
-      select: { idUsuario: true, nombre: true }
-    });
-
     return {
       posicion: posicion + 1,
-      usuarioId: Number(userId),
-      nombre: usuario ? usuario.nombre : 'Desconocido',
-      avistamientosVerificados: ranking[posicion]._count.idAvistamiento,
-      totalParticipantes: ranking.length
+      avistamientosVerificados: ranking[posicion]._count.idAvistamiento
     };
   } catch (error) {
     console.error("Error obteniendo posición del usuario:", error);
