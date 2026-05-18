@@ -146,10 +146,74 @@ async function removeSighting(id) {
   }
 }
 
+// RANKING individual
+async function getUserRankPosition(userId) {
+  try {
+    // Obtener todos los usuarios con avistamientos verificados y ya los ordenada de mayor a menor
+    const ranking = await prisma.avistamiento.groupBy({
+      by: ['usuarioId'],
+      where: { verificado: true },
+      _count: { idAvistamiento: true },
+      orderBy: { _count: { idAvistamiento: 'desc' } }
+    });
+
+    // busca los avistamientos del usuario en especifico
+    const posicion = ranking.findIndex(r => r.usuarioId === Number(userId));
+
+    if (posicion === -1) {
+      return {
+        posicion: null,
+        avistamientosVerificados: 0
+      };
+    }
+
+    return {
+      posicion: posicion + 1,
+      avistamientosVerificados: ranking[posicion]._count.idAvistamiento
+    };
+  } catch (error) {
+    console.error("Error obteniendo posición del usuario:", error);
+    throw error;
+  }
+}
+
+// RANKING - Top 20 usuarios con más avistamientos verificados
+async function getTop20Ranking() {
+  try {
+    const ranking = await prisma.avistamiento.groupBy({
+      by: ['usuarioId'],
+      where: { verificado: true },
+      _count: { idAvistamiento: true },
+      orderBy: { _count: { idAvistamiento: 'desc' } },
+      take: 20
+    });
+
+    const userIds = ranking.map(r => r.usuarioId);
+    const usuarios = await prisma.usuario.findMany({
+      where: { idUsuario: { in: userIds } },
+      select: { idUsuario: true, nombre: true }
+    });
+
+    const usuariosMap = {};
+    usuarios.forEach(u => { usuariosMap[u.idUsuario] = u.nombre; });
+
+    return ranking.map((r, index) => ({
+      posicion: index + 1,
+      nombre: usuariosMap[r.usuarioId] || 'Desconocido',
+      avistamientosVerificados: r._count.idAvistamiento
+    }));
+  } catch (error) {
+    console.error("Error obteniendo ranking:", error);
+    throw error;
+  }
+}
+
 module.exports = {
   createSighting,
   getAllSightings,
   getSightingById,
   modifySighting,
-  removeSighting
+  removeSighting,
+  getUserRankPosition,
+  getTop20Ranking
 }
