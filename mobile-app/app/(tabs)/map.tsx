@@ -1,5 +1,5 @@
 import React, { useState, useEffect, useMemo, useRef, useCallback } from 'react';
-import { StyleSheet, View, Text, TextInput, TouchableOpacity, Alert, Image, Animated, useColorScheme } from 'react-native';
+import { StyleSheet, View, Text, TextInput, TouchableOpacity, Alert, Image, Animated, useColorScheme, ScrollView } from 'react-native';
 import { useFocusEffect } from 'expo-router';
 import * as Location from 'expo-location';
 import MapView from 'react-native-map-clustering';
@@ -145,7 +145,8 @@ export default function MapScreen() {
 
         if (activeFilter === 'Todos') return true;
         if (activeFilter === 'Desaparecidos') return animal.estado === 'Desaparecido';
-        if (activeFilter === 'Activos') return animal.estado !== 'Desaparecido';
+        if (activeFilter === 'No Registrados') return animal.estado === 'NoRegistrado';
+        if (activeFilter === 'Activos') return animal.estado !== 'Desaparecido' && animal.estado !== 'NoRegistrado';
 
         return true;
       });
@@ -189,8 +190,9 @@ export default function MapScreen() {
         maxZoom={18}
       >
         {filteredAnimals.map((animal) => {
-          const isDesaparecido = animal.estado === 'Desaparecido';
-          const borderColor = isDesaparecido ? '#F44336' : '#4CAF50';
+          let borderColor = '#4CAF50'; // Verificado por defecto
+          if (animal.estado === 'Desaparecido') borderColor = '#F44336';
+          else if (animal.estado === 'NoRegistrado') borderColor = '#FF9800';
 
           return (
             <Marker
@@ -211,10 +213,13 @@ export default function MapScreen() {
 
               <Callout tooltip>
                 <View style={[styles.calloutContainer, { backgroundColor: colors.bgPanel, borderColor: colors.borderColor, borderWidth: theme === 'dark' ? 1 : 0 }]}>
+                  {animal.foto_url && (
+                    <Image source={{ uri: animal.foto_url }} style={styles.calloutImage} />
+                  )}
                   <Text style={[styles.calloutTitle, { color: colors.textMain }]}>{animal.nombre}</Text>
                   <Text style={[styles.calloutText, { color: colors.textSecondary }]}>Colonia: {animal.colonia}</Text>
                   <Text style={[styles.calloutStatus, { color: borderColor }]}>
-                    {animal.estado}
+                    {animal.estado === 'NoRegistrado' ? 'No Registrado' : animal.estado}
                   </Text>
                 </View>
               </Callout>
@@ -255,27 +260,29 @@ export default function MapScreen() {
         ]}
         pointerEvents={showFilters ? "auto" : "none"}
       >
-        {['Todos', 'Activos', 'Desaparecidos'].map((filter) => (
-          <TouchableOpacity
-            key={filter}
-            style={[
-              styles.filterButton,
-              { backgroundColor: theme === 'dark' ? colors.bgCard : 'rgba(255, 255, 255, 0.9)' },
-              activeFilter === filter && { backgroundColor: colors.accentOrange },
-            ]}
-            onPress={() => setActiveFilter(filter)}
-          >
-            <Text
+        <ScrollView horizontal showsHorizontalScrollIndicator={false} contentContainerStyle={{ gap: 10 }}>
+          {['Todos', 'Activos', 'No Registrados', 'Desaparecidos'].map((filter) => (
+            <TouchableOpacity
+              key={filter}
               style={[
-                styles.filterText,
-                { color: theme === 'dark' ? colors.textSecondary : '#555' },
-                activeFilter === filter && { color: colors.textWhite },
+                styles.filterButton,
+                { backgroundColor: theme === 'dark' ? colors.bgCard : 'rgba(255, 255, 255, 0.9)' },
+                activeFilter === filter && { backgroundColor: colors.accentOrange },
               ]}
+              onPress={() => setActiveFilter(filter)}
             >
-              {filter}
-            </Text>
-          </TouchableOpacity>
-        ))}
+              <Text
+                style={[
+                  styles.filterText,
+                  { color: theme === 'dark' ? colors.textSecondary : '#555' },
+                  activeFilter === filter && { color: colors.textWhite },
+                ]}
+              >
+                {filter}
+              </Text>
+            </TouchableOpacity>
+          ))}
+        </ScrollView>
       </Animated.View>
 
       <Animated.View style={[
@@ -291,6 +298,10 @@ export default function MapScreen() {
         <View style={styles.legendItem}>
           <View style={[styles.legendDot, { backgroundColor: '#4CAF50' }]} />
           <Text style={[styles.legendText, { color: colors.textMain }]}>Verificado</Text>
+        </View>
+        <View style={styles.legendItem}>
+          <View style={[styles.legendDot, { backgroundColor: '#FF9800' }]} />
+          <Text style={[styles.legendText, { color: colors.textMain }]}>No Registrado</Text>
         </View>
         <View style={styles.legendItem}>
           <View style={[styles.legendDot, { backgroundColor: '#F44336' }]} />
@@ -367,8 +378,6 @@ const styles = StyleSheet.create({
     top: 125,
     left: 20,
     right: 20,
-    flexDirection: 'row',
-    justifyContent: 'space-between',
     zIndex: 1,
   },
   filterButton: {
@@ -446,12 +455,19 @@ const styles = StyleSheet.create({
     backgroundColor: 'white',
     borderRadius: 8,
     padding: 10,
-    minWidth: 150,
+    width: 160,
     shadowColor: '#000',
     shadowOffset: { width: 0, height: 2 },
     shadowOpacity: 0.25,
     shadowRadius: 3.84,
     elevation: 5,
+  },
+  calloutImage: {
+    width: '100%',
+    height: 100,
+    borderRadius: 6,
+    marginBottom: 8,
+    resizeMode: 'cover',
   },
   calloutTitle: {
     fontWeight: 'bold',
