@@ -47,7 +47,11 @@ async function getAnimalsPublic() {
         foto_url: true,
         nombre: true,
         estado: true,
-        Colonia_idColonia: true,
+        colonia: {
+          select: {
+            nombre: true
+          }
+        },
         avistamientos: {
           orderBy: { createdAt: 'desc' },
           take: 1,
@@ -66,7 +70,7 @@ async function getAnimalsPublic() {
         foto_url: animal.foto_url,
         nombre: animal.nombre,
         estado: animal.estado,
-        coloniaId: animal.Colonia_idColonia,
+        colonia: animal.colonia.nombre,
         coordenadas: ultimoAvistamiento ? {
           latitud: ultimoAvistamiento.latitud,
           longitud: ultimoAvistamiento.longitud

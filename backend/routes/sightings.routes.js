@@ -8,40 +8,28 @@ const upload = multer();
 
 //Ruta GET para obtener todos los avistamientos
 // NOTA: Aqui viene en queryparams el ?idUsuario={id}
-router.get(
-    "/",
-    token.verifyToken,
-    sightingFunctions.readSightings
-)
+router.get("/", token.verifyToken, sightingFunctions.readSightings);
 
 //Ruta GET para obtener avistamiento en especifico
-router.get(
-    "/:id",
-    token.verifyToken,
-    sightingFunctions.readSightingsById
-)
+router.get("/:id", token.verifyToken, sightingFunctions.readSightingsById);
 
 //Ruta POST para crear avistamiento
 router.post(
-    "/",
-    token.verifyToken,
-    upload.single("foto"),
-    sightingFunctions.registerSighting
-)
+  "/",
+  token.verifyToken,
+  upload.single("foto"),
+  sightingFunctions.registerSighting,
+);
 
 //Ruta PUT para modificar avistamiento
 router.put(
-    "/:id",
-    token.verifyToken,
-    upload.single("foto"),
-    sightingFunctions.modifySighting
-)
+  "/:id",
+  token.verifyToken,
+  upload.single("foto"),
+  sightingFunctions.modifySighting,
+);
 
 //Ruta DELETE para eliminar avistamiento
-router.delete(
-    "/:id",
-    token.verifyToken,
-    sightingFunctions.deleteSighting
-)
+router.delete("/:id", token.verifyToken, sightingFunctions.deleteSighting);
 
 module.exports = router;
