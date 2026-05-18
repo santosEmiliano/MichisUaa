@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useMemo } from 'react';
 import { StyleSheet, View, Text, TextInput, TouchableOpacity, Alert, Image } from 'react-native';
 import * as Location from 'expo-location';
 import MapView from 'react-native-map-clustering';
@@ -36,7 +36,7 @@ export default function MapScreen() {
     })();
   }, []);
 
-  // Efecto para cargar los animales desde el backend
+  // Efecto para cargar los animales
   useEffect(() => {
     const fetchAnimals = async () => {
       try {
@@ -53,7 +53,21 @@ export default function MapScreen() {
     fetchAnimals();
   }, []);
 
-  // Renderizado personalizado para el cluster
+  // Filtros
+  const filteredAnimals = useMemo(() => {
+    return animals.filter((animal) => {
+      const matchText = animal.nombre.toLowerCase().includes(searchText.toLowerCase());
+      if (!matchText) return false;
+
+      if (activeFilter === 'Todos') return true;
+      if (activeFilter === 'Desaparecidos') return animal.estado === 'Desaparecido';
+      if (activeFilter === 'Activos') return animal.estado !== 'Desaparecido';
+
+      return true;
+    });
+  }, [animals, searchText, activeFilter]);
+
+  // Renderizado
   const renderCluster = (cluster: any) => {
     const { id, geometry, onPress, properties } = cluster;
     const points = properties.point_count;
@@ -83,7 +97,7 @@ export default function MapScreen() {
         showsMyLocationButton={true}
         renderCluster={renderCluster}
       >
-        {animals.map((animal, index) => {
+        {filteredAnimals.map((animal, index) => {
           if (!animal.coordenadas) return null;
 
           const isDesaparecido = animal.estado === 'Desaparecido';
