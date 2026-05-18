@@ -9,7 +9,7 @@ import { useColorScheme } from '@/components/useColorScheme';
 import { getSession, clearSession } from '@/services/sessionStorage';
 import { getSightingsByUser, getUserRanking } from '@/services/profileApi';
 import { getTopRankings } from '@/services/rankings';
-import { ProfileHeader, ProfileStats, SightingHistoryTab } from '@/components/profileTab';
+import { ProfileHeader, ProfileStats, SightingHistoryTab, RankingTab } from '@/components/profileTab';
 import TabSelector from '@/components/TabSelector';
 
 export default function ProfileScreen() {
@@ -120,8 +120,9 @@ export default function ProfileScreen() {
     switch (activeTab) {
       case 'Historial':
         return <SightingHistoryTab sightings={sightings} />;
-      case 'Logros':
       case 'Ranking':
+        return <RankingTab rankings={topRankings} currentUserName={userName} />;
+      case 'Logros':
       default:
         return null;
     }
