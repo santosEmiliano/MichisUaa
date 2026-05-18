@@ -1,31 +1,10 @@
-import { StyleSheet } from 'react-native';
+// Este componente se encarga de redirigir al usuario a la pantalla del mapa
+// Esto porque el _layout.tsx siempre redirige primero a un archivo "index.tsx"
+// Si este archivo no existiera, entonces al redirigir a los (tabs) no se encontraría
+// ninguna pantalla y se redirigiría a la pantalla de "Not Fount".
 
-import EditScreenInfo from '@/components/EditScreenInfo';
-import { Text, View } from '@/components/Themed';
+import { Redirect } from 'expo-router';
 
-export default function TabOneScreen() {
-  return (
-    <View style={styles.container}>
-      <Text style={styles.title}>Interfaz del mapa</Text>
-      <View style={styles.separator} lightColor="#eee" darkColor="rgba(255,255,255,0.1)" />
-      <EditScreenInfo path="app/(tabs)/index.tsx" />
-    </View>
-  );
+export default function TabsIndex() {
+  return <Redirect href="/(tabs)/map" />;
 }
-
-const styles = StyleSheet.create({
-  container: {
-    flex: 1,
-    alignItems: 'center',
-    justifyContent: 'center',
-  },
-  title: {
-    fontSize: 20,
-    fontWeight: 'bold',
-  },
-  separator: {
-    marginVertical: 30,
-    height: 1,
-    width: '80%',
-  },
-});

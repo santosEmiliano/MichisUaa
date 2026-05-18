@@ -43,7 +43,7 @@ export default function LoginScreen() {
       const result = await handleLogin(email.trim(), password);
 
       // Guardar sesión de forma segura (SecureStore en móvil, localStorage en web)
-      await saveSession(result.token, result.datos.id, result.datos.nombre);
+      await saveSession(result.token, result.datos.id, result.datos.nombre, email.trim());
 
       // Redirigir al primer tab, reemplazando el historial de navegación
       // para que el usuario no pueda volver al login con el botón "Atrás"
