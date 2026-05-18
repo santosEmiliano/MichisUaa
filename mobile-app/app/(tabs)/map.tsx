@@ -34,8 +34,17 @@ export default function MapScreen() {
   const [animals, setAnimals] = useState<AnimalPublic[]>([]);
   const [isLoading, setIsLoading] = useState(true);
 
-  // Estado para conservar la posición del mapa al re-renderizar (evitar que te regrese a la UAA)
   const [mapRegion, setMapRegion] = useState(UAA_REGION);
+
+  const mapRef = useRef<any>(null);
+
+  const centerOnUAA = () => {
+    mapRef.current?.animateToRegion(UAA_REGION, 1000);
+  };
+
+  const isFarFromUAA = 
+    Math.abs(mapRegion.latitude - UAA_REGION.latitude) > 0.005 ||
+    Math.abs(mapRegion.longitude - UAA_REGION.longitude) > 0.005;
 
   useEffect(() => {
     (async () => {
@@ -115,7 +124,6 @@ export default function MapScreen() {
       .map((animal, index) => {
         let jitteredCoords = animal.coordenadas;
         if (animal.coordenadas) {
-          // Micro-desplazamiento (aprox 0.5 metros) para separar gatos en la MISMA coordenada exacta
           const offsetLat = Math.sin(index) * 0.000005;
           const offsetLng = Math.cos(index) * 0.000005;
           jitteredCoords = {
@@ -126,7 +134,6 @@ export default function MapScreen() {
         return { ...animal, originalIndex: index, coordenadas: jitteredCoords };
       })
       .filter((animal) => {
-        // 0. Si no tiene coordenadas, no lo mostramos en el mapa
         if (!animal.coordenadas) return false;
 
         const matchText = animal.nombre.toLowerCase().includes(searchText.toLowerCase());
@@ -165,7 +172,8 @@ export default function MapScreen() {
   return (
     <View style={styles.container}>
       <MapView
-        key={activeFilter} // El parche necesario para la estabilidad en iOS
+        ref={mapRef}
+        key={activeFilter} 
         style={styles.map}
         initialRegion={mapRegion}
         onRegionChangeComplete={(region) => setMapRegion(region)}
@@ -173,8 +181,8 @@ export default function MapScreen() {
         showsMyLocationButton={true}
         renderCluster={renderCluster}
         animationEnabled={false}
-        radius={15} // Radio muy pequeño para evitar que se forme un solo grupo gigante inicial
-        maxZoom={18} // Obligar a la librería a DEJAR de agrupar al llegar a este nivel de zoom
+        radius={15} 
+        maxZoom={18}
       >
         {filteredAnimals.map((animal) => {
           const isDesaparecido = animal.estado === 'Desaparecido';
@@ -280,6 +288,19 @@ export default function MapScreen() {
           <Text style={styles.legendText}>Desaparecido</Text>
         </View>
       </Animated.View>
+
+      {isFarFromUAA && (
+        <Animated.View style={[
+          styles.recenterContainer,
+          {
+            opacity: entranceFadeAnim,
+          }
+        ]}>
+          <TouchableOpacity style={styles.recenterButton} onPress={centerOnUAA}>
+            <FontAwesome name="university" size={20} color="#F28C38" />
+          </TouchableOpacity>
+        </Animated.View>
+      )}
     </View>
   );
 }
@@ -446,5 +467,26 @@ const styles = StyleSheet.create({
     color: 'white',
     fontWeight: 'bold',
     fontSize: 14,
+  },
+  recenterContainer: {
+    position: 'absolute',
+    bottom: 20,
+    right: 20,
+    zIndex: 1,
+  },
+  recenterButton: {
+    backgroundColor: 'rgba(255, 255, 255, 0.95)',
+    width: 50,
+    height: 50,
+    borderRadius: 25,
+    justifyContent: 'center',
+    alignItems: 'center',
+    shadowColor: '#000',
+    shadowOffset: { width: 0, height: 2 },
+    shadowOpacity: 0.3,
+    shadowRadius: 4,
+    elevation: 6,
+    borderWidth: 1,
+    borderColor: '#eee',
   },
 });
