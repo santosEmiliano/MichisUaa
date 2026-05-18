@@ -24,6 +24,7 @@ export default function ProfileScreen() {
   const [sightingsCount, setSightingsCount] = useState<number>(0);
   const [sightings, setSightings] = useState<any[]>([]);
   const [rankingPosition, setRankingPosition] = useState<string | number>('--');
+  const [totalUsersCount, setTotalUsersCount] = useState<number>(0);
   const [topRankings, setTopRankings] = useState<any[]>([]);
 
   useFocusEffect(
@@ -40,8 +41,10 @@ export default function ProfileScreen() {
               const rankData = await getUserRanking(session.userId);
               if (rankData?.posicion) {
                 setRankingPosition(rankData.posicion);
+                if (rankData.totalUsuarios) setTotalUsersCount(rankData.totalUsuarios);
               } else {
                 setRankingPosition('--');
+                if (rankData?.totalUsuarios) setTotalUsersCount(rankData.totalUsuarios);
               }
             }
           }
@@ -121,7 +124,14 @@ export default function ProfileScreen() {
       case 'Historial':
         return <SightingHistoryTab sightings={sightings} />;
       case 'Ranking':
-        return <RankingTab rankings={topRankings} currentUserName={userName} />;
+        return (
+          <RankingTab 
+            rankings={topRankings} 
+            currentUserName={userName} 
+            currentUserRanking={rankingPosition}
+            totalUsersCount={totalUsersCount}
+          />
+        );
       case 'Logros':
       default:
         return null;
