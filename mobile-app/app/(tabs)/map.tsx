@@ -105,7 +105,7 @@ export default function MapScreen() {
 
           return (
             <Marker
-              key={`animal-${index}`}
+              key={`animal-${animal.nombre}-${animal.coordenadas.latitud}`}
               coordinate={{
                 latitude: animal.coordenadas.latitud,
                 longitude: animal.coordenadas.longitud,
