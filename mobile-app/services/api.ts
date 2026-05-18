@@ -1,28 +1,24 @@
 import { Platform } from "react-native";
-import { getSession } from "./sessionStorage";
+import { router } from "expo-router";
+import { getSession, clearSession } from "./sessionStorage";
+import { showAlert } from "@/utils/alerts";
 
 const BACKEND_IP = process.env.EXPO_PUBLIC_BACKEND_IP;
+
+let isNavigatingToLogin = false;
 
 export const BASE_URL =
   Platform.OS === "web"
     ? "http://localhost:3000"
     : `http://${BACKEND_IP}:3000`;
 
-/**
- * Wrapper de fetch autenticado para el backend de MichisUAA.
- * Agrega automáticamente el token JWT desde SecureStore.
- *
- * @example
- * const res = await apiFetch('/animal/public');
- * const res = await apiFetch('/avistamientos', { method: 'POST', body: JSON.stringify(data) });
- */
 export const apiFetch = async (
   endpoint: string,
   options: RequestInit = {}
 ): Promise<Response> => {
   const session = await getSession();
 
-  return fetch(`${BASE_URL}${endpoint}`, {
+  const response = await fetch(`${BASE_URL}${endpoint}`, {
     ...options,
     headers: {
       "Content-Type": "application/json",
@@ -30,4 +26,19 @@ export const apiFetch = async (
       ...options.headers,
     },
   });
+
+  if (response.status === 401) {
+    if (!isNavigatingToLogin) {
+      isNavigatingToLogin = true;
+      await clearSession();
+      showAlert("Sesión expirada", "Tu sesión ha expirado por seguridad. Por favor, inicia sesión de nuevo.");
+      router.replace("/login");
+
+      setTimeout(() => {
+        isNavigatingToLogin = false;
+      }, 2000);
+    }
+  }
+
+  return response;
 };
