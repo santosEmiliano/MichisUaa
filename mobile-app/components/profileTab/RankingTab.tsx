@@ -16,63 +16,33 @@ interface RankingTabProps {
   currentUserName?: string;
 }
 
-// Datos fijos de prueba
-const MOCK_RANKINGS = [
-  { 
-    posicion: 1, 
-    nombre: 'Luis Torres', 
-    avistamientosVerificados: 58, 
-    avatarBg: '#ffffff', 
-    avatarColor: '#d35400',
-  },
-  { 
-    posicion: 2, 
-    nombre: 'J. Ramírez', 
-    avistamientosVerificados: 47, 
-    avatarBg: '#ffffff', 
-    avatarColor: '#8e44ad',
-  },
-  { 
-    posicion: 3, 
-    nombre: 'Ana García', 
-    avistamientosVerificados: 34, 
-    avatarBg: '#e0f2f1', 
-    avatarColor: '#004d40',
-  },
-  { 
-    posicion: 4, 
-    nombre: 'S. Méndez', 
-    avistamientosVerificados: 29, 
-    avatarBg: '#ffffff', 
-    avatarColor: '#c0392b',
-  },
-  { 
-    posicion: 5, 
-    nombre: 'C. Ríos', 
-    avistamientosVerificados: 21, 
-    avatarBg: '#ffffff', 
-    avatarColor: '#2980b9',
-  },
-  { 
-    posicion: 6, 
-    nombre: 'M. Ortega', 
-    avistamientosVerificados: 18, 
-    avatarBg: '#ffffff', 
-    avatarColor: '#8e44ad',
-  },
+// Paletas de colores para los avatares
+const AVATAR_PALETTES = [
+  { bg: '#ffffff', color: '#d35400' }, // Naranja oscuro
+  { bg: '#ffffff', color: '#8e44ad' }, // Morado
+  { bg: '#ffffff', color: '#c0392b' }, // Rojo oscuro
+  { bg: '#ffffff', color: '#2980b9' }, // Azul oscuro
+  { bg: '#ffffff', color: '#16a085' }, // Verde cerceta
+  { bg: '#ffffff', color: '#d68910' }, // Oro
 ];
 
 function enrichRankings(rankings: RankingItem[], currentUserName?: string) {
-  const list = MOCK_RANKINGS;
+  if (!rankings || rankings.length === 0) return [];
 
-  return list.map((item) => {
+  return rankings.map((item, index) => {
     const isCurrent = Boolean(
       currentUserName && 
       item.nombre.trim().toLowerCase() === currentUserName.trim().toLowerCase()
     );
 
+    // Si es el usuario actual, usar la combinación cyan para distinguirlo
+    const avatarBg = isCurrent ? '#e0f2f1' : AVATAR_PALETTES[index % AVATAR_PALETTES.length].bg;
+    const avatarColor = isCurrent ? '#004d40' : AVATAR_PALETTES[index % AVATAR_PALETTES.length].color;
+
     return {
       ...item,
+      avatarBg,
+      avatarColor,
       isCurrentUser: isCurrent,
     };
   });
