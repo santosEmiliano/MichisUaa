@@ -7,7 +7,7 @@ import { router, useFocusEffect } from 'expo-router';
 import Colors from '@/constants/Colors';
 import { useColorScheme } from '@/components/useColorScheme';
 import { getSession, clearSession } from '@/services/sessionStorage';
-import { getSightingsByUser } from '@/services/profileApi';
+import { getSightingsByUser, getUserRanking } from '@/services/profileApi';
 import { ProfileHeader, ProfileStats, SightingHistoryTab } from '@/components/profileTab';
 import TabSelector from '@/components/TabSelector';
 
@@ -22,6 +22,7 @@ export default function ProfileScreen() {
   const [activeTab, setActiveTab] = useState<string>('Logros');
   const [sightingsCount, setSightingsCount] = useState<number>(0);
   const [sightings, setSightings] = useState<any[]>([]);
+  const [rankingPosition, setRankingPosition] = useState<string | number>('--');
 
   useFocusEffect(
     useCallback(() => {
@@ -32,6 +33,15 @@ export default function ProfileScreen() {
           if (session) {
             if (session.userName) setUserName(session.userName);
             if (session.userEmail) setUserEmail(session.userEmail);
+
+            if (session.userId) {
+              const rankData = await getUserRanking(session.userId);
+              if (rankData?.posicion) {
+                setRankingPosition(rankData.posicion);
+              } else {
+                setRankingPosition('--');
+              }
+            }
           }
 
           const data = await getSightingsByUser();
@@ -62,7 +72,7 @@ export default function ProfileScreen() {
   const profileStats = [
     { value: String(sightingsCount), label: 'Avistamientos' },
     { value: '0', label: 'Medallas' },
-    { value: '#--', label: 'Ranking' },
+    { value: rankingPosition !== '--' ? `#${rankingPosition}` : '#--', label: 'Ranking' },
   ];
 
   const performLogout = async () => {
