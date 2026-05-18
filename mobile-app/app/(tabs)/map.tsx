@@ -40,10 +40,8 @@ export default function MapScreen() {
         showsMyLocationButton={true}
         clusterColor="#F28C38"
       >
-        {/* Aquí irán los marcadores en las siguientes fases */}
       </MapView>
 
-      {/* Barra superior de búsqueda */}
       <View style={styles.searchContainer}>
         <View style={styles.searchBox}>
           <FontAwesome name="search" size={20} color="#666" style={styles.searchIcon} />
@@ -57,7 +55,6 @@ export default function MapScreen() {
         </View>
       </View>
 
-      {/* Botones de filtro flotantes */}
       <View style={styles.filtersContainer}>
         {['Todos', 'Activos', 'Desaparecidos'].map((filter) => (
           <TouchableOpacity
@@ -79,8 +76,6 @@ export default function MapScreen() {
           </TouchableOpacity>
         ))}
       </View>
-
-      {/* Leyenda */}
       <View style={styles.legendContainer}>
         <View style={styles.legendItem}>
           <View style={[styles.legendDot, { backgroundColor: '#4CAF50' }]} />
@@ -104,7 +99,7 @@ const styles = StyleSheet.create({
   },
   searchContainer: {
     position: 'absolute',
-    top: 50, // Espacio para el status bar
+    top: 50,
     left: 20,
     right: 20,
     zIndex: 1,
@@ -151,7 +146,7 @@ const styles = StyleSheet.create({
     elevation: 3,
   },
   filterButtonActive: {
-    backgroundColor: '#F28C38', // Color naranja principal
+    backgroundColor: '#F28C38',
   },
   filterText: {
     fontSize: 14,
