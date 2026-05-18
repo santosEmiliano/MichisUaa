@@ -1,12 +1,8 @@
-import { Platform } from "react-native";
-
-const BACKEND_HOST_IP = "192.168.100.66";
+import { BASE_URL } from "./api";
 
 const handleLogin = async (email: string, password: string) => {
-  const API_URL = Platform.OS === "web" ? "http://localhost:3000" : `http://${BACKEND_HOST_IP}:3000`;
-
   try {
-    const response = await fetch(`${API_URL}/user/login`, {
+    const response = await fetch(`${BASE_URL}/user/login`, {
       method: "POST",
       headers: {
         "Content-Type": "application/json",
@@ -33,10 +29,8 @@ const handleLogin = async (email: string, password: string) => {
 };
 
 const handleRegister = async (userName: string, userEmail: string, password: string) => {
-  const API_URL = Platform.OS === "web" ? "http://localhost:3000" : `http://${BACKEND_HOST_IP}:3000`;
-
   try {
-    const response = await fetch(`${API_URL}/user/register`, {
+    const response = await fetch(`${BASE_URL}/user/register`, {
       method: "POST",
       headers: {
         "Content-Type": "application/json",
@@ -62,9 +56,8 @@ const handleRegister = async (userName: string, userEmail: string, password: str
     throw new Error("Error de conexión al servidor");
   }
 };
-  
 
-export { 
+export {
   handleLogin,
-  handleRegister
+  handleRegister,
 };
