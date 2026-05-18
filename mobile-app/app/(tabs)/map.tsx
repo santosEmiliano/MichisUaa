@@ -4,6 +4,7 @@ import * as Location from 'expo-location';
 import MapView from 'react-native-map-clustering';
 import { Marker } from 'react-native-maps';
 import FontAwesome from '@expo/vector-icons/FontAwesome';
+import { getPublicAnimals, AnimalPublic } from '@/services/mapApi';
 
 // Coordenadas de la UAA
 const UAA_REGION = {
@@ -17,6 +18,10 @@ export default function MapScreen() {
   const [location, setLocation] = useState<Location.LocationObject | null>(null);
   const [searchText, setSearchText] = useState('');
   const [activeFilter, setActiveFilter] = useState('Todos');
+  
+  // Estados para los animales
+  const [animals, setAnimals] = useState<AnimalPublic[]>([]);
+  const [isLoading, setIsLoading] = useState(true);
 
   useEffect(() => {
     (async () => {
@@ -29,6 +34,23 @@ export default function MapScreen() {
       let currentLocation = await Location.getCurrentPositionAsync({});
       setLocation(currentLocation);
     })();
+  }, []);
+
+  // Efecto para cargar los animales desde el backend
+  useEffect(() => {
+    const fetchAnimals = async () => {
+      try {
+        setIsLoading(true);
+        const data = await getPublicAnimals();
+        setAnimals(data);
+      } catch (error) {
+        Alert.alert('Error', 'No se pudieron cargar los avistamientos de los michis.');
+      } finally {
+        setIsLoading(false);
+      }
+    };
+
+    fetchAnimals();
   }, []);
 
   return (
