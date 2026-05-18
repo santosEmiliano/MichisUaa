@@ -5,6 +5,7 @@ const KEYS = {
   TOKEN: "auth_token",
   USER_ID: "auth_user_id",
   USER_NAME: "auth_user_name",
+  USER_EMAIL: "auth_user_email",
 };
 
 async function save(key: string, value: string): Promise<void> {
@@ -33,16 +34,18 @@ async function remove(key: string): Promise<void> {
 
 // funciones de guardado de sessionStorage
 
-// Guarda el token, el userId y el userName tras un login exitoso.
+// Guarda el token, el userId, userName y userEmail tras un login exitoso.
 export async function saveSession(
   token: string,
   userId: number,
-  userName: string
+  userName: string,
+  userEmail: string
 ): Promise<void> {
   await Promise.all([
     save(KEYS.TOKEN, token),
     save(KEYS.USER_ID, String(userId)),
     save(KEYS.USER_NAME, userName),
+    save(KEYS.USER_EMAIL, userEmail),
   ]);
 }
 
@@ -52,16 +55,18 @@ export async function getSession(): Promise<{
   token: string;
   userId: string;
   userName: string;
+  userEmail: string;
 } | null> {
-  const [token, userId, userName] = await Promise.all([
+  const [token, userId, userName, userEmail] = await Promise.all([
     get(KEYS.TOKEN),
     get(KEYS.USER_ID),
     get(KEYS.USER_NAME),
+    get(KEYS.USER_EMAIL),
   ]);
 
-  if (!token || !userId || !userName) return null;
+  if (!token || !userId || !userName || !userEmail) return null;
 
-  return { token, userId, userName };
+  return { token, userId, userName, userEmail };
 }
 
 // Elimina la sesión guardada (logout local).
@@ -71,5 +76,6 @@ export async function clearSession(): Promise<void> {
     remove(KEYS.TOKEN),
     remove(KEYS.USER_ID),
     remove(KEYS.USER_NAME),
+    remove(KEYS.USER_EMAIL),
   ]);
 }
