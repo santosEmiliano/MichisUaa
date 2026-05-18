@@ -34,6 +34,9 @@ export default function MapScreen() {
   const [animals, setAnimals] = useState<AnimalPublic[]>([]);
   const [isLoading, setIsLoading] = useState(true);
 
+  // Estado para conservar la posición del mapa al re-renderizar (evitar que te regrese a la UAA)
+  const [mapRegion, setMapRegion] = useState(UAA_REGION);
+
   useEffect(() => {
     (async () => {
       let { status } = await Location.requestForegroundPermissionsAsync();
@@ -108,16 +111,33 @@ export default function MapScreen() {
 
   // Filtros
   const filteredAnimals = useMemo(() => {
-    return animals.filter((animal) => {
-      const matchText = animal.nombre.toLowerCase().includes(searchText.toLowerCase());
-      if (!matchText) return false;
+    return animals
+      .map((animal, index) => {
+        let jitteredCoords = animal.coordenadas;
+        if (animal.coordenadas) {
+          // Micro-desplazamiento (aprox 0.5 metros) para separar gatos en la MISMA coordenada exacta
+          const offsetLat = Math.sin(index) * 0.000005;
+          const offsetLng = Math.cos(index) * 0.000005;
+          jitteredCoords = {
+            latitud: Number(animal.coordenadas.latitud) + offsetLat,
+            longitud: Number(animal.coordenadas.longitud) + offsetLng,
+          };
+        }
+        return { ...animal, originalIndex: index, coordenadas: jitteredCoords };
+      })
+      .filter((animal) => {
+        // 0. Si no tiene coordenadas, no lo mostramos en el mapa
+        if (!animal.coordenadas) return false;
 
-      if (activeFilter === 'Todos') return true;
-      if (activeFilter === 'Desaparecidos') return animal.estado === 'Desaparecido';
-      if (activeFilter === 'Activos') return animal.estado !== 'Desaparecido';
+        const matchText = animal.nombre.toLowerCase().includes(searchText.toLowerCase());
+        if (!matchText) return false;
 
-      return true;
-    });
+        if (activeFilter === 'Todos') return true;
+        if (activeFilter === 'Desaparecidos') return animal.estado === 'Desaparecido';
+        if (activeFilter === 'Activos') return animal.estado !== 'Desaparecido';
+
+        return true;
+      });
   }, [animals, searchText, activeFilter]);
 
   // Renderizado
@@ -133,6 +153,7 @@ export default function MapScreen() {
           latitude: geometry.coordinates[1],
         }}
         onPress={onPress}
+        tracksViewChanges={false}
       >
         <View style={styles.clusterContainer}>
           <Text style={styles.clusterText}>+{points} Grupo</Text>
@@ -144,25 +165,29 @@ export default function MapScreen() {
   return (
     <View style={styles.container}>
       <MapView
+        key={activeFilter} // El parche necesario para la estabilidad en iOS
         style={styles.map}
-        initialRegion={UAA_REGION}
+        initialRegion={mapRegion}
+        onRegionChangeComplete={(region) => setMapRegion(region)}
         showsUserLocation={true}
         showsMyLocationButton={true}
         renderCluster={renderCluster}
+        animationEnabled={false}
+        radius={15} // Radio muy pequeño para evitar que se forme un solo grupo gigante inicial
+        maxZoom={18} // Obligar a la librería a DEJAR de agrupar al llegar a este nivel de zoom
       >
-        {filteredAnimals.map((animal, index) => {
-          if (!animal.coordenadas) return null;
-
+        {filteredAnimals.map((animal) => {
           const isDesaparecido = animal.estado === 'Desaparecido';
           const borderColor = isDesaparecido ? '#F44336' : '#4CAF50';
 
           return (
             <Marker
-              key={`animal-${animal.nombre}-${animal.coordenadas.latitud}`}
+              key={`animal-stable-${animal.originalIndex}`}
               coordinate={{
-                latitude: animal.coordenadas.latitud,
-                longitude: animal.coordenadas.longitud,
+                latitude: animal.coordenadas!.latitud,
+                longitude: animal.coordenadas!.longitud,
               }}
+              tracksViewChanges={false}
             >
               <View style={[styles.customMarker, { borderColor }]}>
                 {animal.foto_url ? (
