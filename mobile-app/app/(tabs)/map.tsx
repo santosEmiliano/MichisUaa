@@ -213,6 +213,9 @@ export default function MapScreen() {
 
               <Callout tooltip>
                 <View style={[styles.calloutContainer, { backgroundColor: colors.bgPanel, borderColor: colors.borderColor, borderWidth: theme === 'dark' ? 1 : 0 }]}>
+                  {animal.foto_url && (
+                    <Image source={{ uri: animal.foto_url }} style={styles.calloutImage} />
+                  )}
                   <Text style={[styles.calloutTitle, { color: colors.textMain }]}>{animal.nombre}</Text>
                   <Text style={[styles.calloutText, { color: colors.textSecondary }]}>Colonia: {animal.colonia}</Text>
                   <Text style={[styles.calloutStatus, { color: borderColor }]}>
@@ -452,12 +455,19 @@ const styles = StyleSheet.create({
     backgroundColor: 'white',
     borderRadius: 8,
     padding: 10,
-    minWidth: 150,
+    width: 160,
     shadowColor: '#000',
     shadowOffset: { width: 0, height: 2 },
     shadowOpacity: 0.25,
     shadowRadius: 3.84,
     elevation: 5,
+  },
+  calloutImage: {
+    width: '100%',
+    height: 100,
+    borderRadius: 6,
+    marginBottom: 8,
+    resizeMode: 'cover',
   },
   calloutTitle: {
     fontWeight: 'bold',
