@@ -1,5 +1,6 @@
-import React, { useState, useEffect, useMemo, useRef } from 'react';
+import React, { useState, useEffect, useMemo, useRef, useCallback } from 'react';
 import { StyleSheet, View, Text, TextInput, TouchableOpacity, Alert, Image, Animated } from 'react-native';
+import { useFocusEffect } from 'expo-router';
 import * as Location from 'expo-location';
 import MapView from 'react-native-map-clustering';
 import { Marker, Callout } from 'react-native-maps';
@@ -20,9 +21,14 @@ export default function MapScreen() {
   const [activeFilter, setActiveFilter] = useState('Todos');
   const [showFilters, setShowFilters] = useState(false);
 
-  // Valores animados
+  // Valores animados de Filtros
   const slideAnim = useRef(new Animated.Value(-20)).current;
   const opacityAnim = useRef(new Animated.Value(0)).current;
+
+  // Valores animados de Entrada
+  const entranceFadeAnim = useRef(new Animated.Value(0)).current;
+  const entranceSlideTopAnim = useRef(new Animated.Value(-30)).current;
+  const entranceSlideBottomAnim = useRef(new Animated.Value(30)).current;
   
   // Estados para los animales
   const [animals, setAnimals] = useState<AnimalPublic[]>([]);
@@ -40,6 +46,32 @@ export default function MapScreen() {
       setLocation(currentLocation);
     })();
   }, []);
+
+  useFocusEffect(
+    useCallback(() => {
+      entranceFadeAnim.setValue(0);
+      entranceSlideTopAnim.setValue(-30);
+      entranceSlideBottomAnim.setValue(30);
+      
+      Animated.parallel([
+        Animated.timing(entranceFadeAnim, {
+          toValue: 1,
+          duration: 600,
+          useNativeDriver: true,
+        }),
+        Animated.timing(entranceSlideTopAnim, {
+          toValue: 0,
+          duration: 600,
+          useNativeDriver: true,
+        }),
+        Animated.timing(entranceSlideBottomAnim, {
+          toValue: 0,
+          duration: 600,
+          useNativeDriver: true,
+        }),
+      ]).start();
+    }, [])
+  );
 
   // Efecto para cargar los animales
   useEffect(() => {
@@ -154,7 +186,13 @@ export default function MapScreen() {
         })}
       </MapView>
 
-      <View style={styles.searchContainer}>
+      <Animated.View style={[
+        styles.searchContainer,
+        {
+          opacity: entranceFadeAnim,
+          transform: [{ translateY: entranceSlideTopAnim }]
+        }
+      ]}>
         <View style={styles.searchBox}>
           <FontAwesome name="search" size={20} color="#666" style={styles.searchIcon} />
           <TextInput
@@ -168,7 +206,7 @@ export default function MapScreen() {
             <FontAwesome name="filter" size={20} color={showFilters ? '#F28C38' : '#666'} style={styles.filterIconBtn} />
           </TouchableOpacity>
         </View>
-      </View>
+      </Animated.View>
 
       <Animated.View 
         style={[
@@ -201,7 +239,13 @@ export default function MapScreen() {
         ))}
       </Animated.View>
 
-      <View style={styles.legendContainer}>
+      <Animated.View style={[
+        styles.legendContainer,
+        {
+          opacity: entranceFadeAnim,
+          transform: [{ translateY: entranceSlideBottomAnim }]
+        }
+      ]}>
         <View style={styles.legendItem}>
           <View style={[styles.legendDot, { backgroundColor: '#4CAF50' }]} />
           <Text style={styles.legendText}>Verificado</Text>
@@ -210,7 +254,7 @@ export default function MapScreen() {
           <View style={[styles.legendDot, { backgroundColor: '#F44336' }]} />
           <Text style={styles.legendText}>Desaparecido</Text>
         </View>
-      </View>
+      </Animated.View>
     </View>
   );
 }
