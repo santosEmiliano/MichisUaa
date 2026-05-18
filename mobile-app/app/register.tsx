@@ -87,7 +87,7 @@ export default function RegisterScreen() {
     setLoading(true);
     try {
       const result = await handleRegister(nombre.trim(), correo.trim(), password);
-      await saveSession(result.token, result.userId, result.nombre);
+      await saveSession(result.token, result.userId, result.nombre, correo.trim());
       router.replace('/(tabs)');
     } catch (error: any) {
       showAlert('Error al registrarse', error.message);
