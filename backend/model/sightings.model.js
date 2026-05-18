@@ -163,13 +163,15 @@ async function getUserRankPosition(userId) {
     if (posicion === -1) {
       return {
         posicion: null,
-        avistamientosVerificados: 0
+        avistamientosVerificados: 0,
+        totalUsuarios: ranking.length
       };
     }
 
     return {
       posicion: posicion + 1,
-      avistamientosVerificados: ranking[posicion]._count.idAvistamiento
+      avistamientosVerificados: ranking[posicion]._count.idAvistamiento,
+      totalUsuarios: ranking.length
     };
   } catch (error) {
     console.error("Error obteniendo posición del usuario:", error);

@@ -7,8 +7,9 @@ import { router, useFocusEffect } from 'expo-router';
 import Colors from '@/constants/Colors';
 import { useColorScheme } from '@/components/useColorScheme';
 import { getSession, clearSession } from '@/services/sessionStorage';
-import { getSightingsByUser } from '@/services/profileApi';
-import { ProfileHeader, ProfileStats, SightingHistoryTab } from '@/components/profileTab';
+import { getSightingsByUser, getUserRanking } from '@/services/profileApi';
+import { getTopRankings } from '@/services/rankings';
+import { ProfileHeader, ProfileStats, SightingHistoryTab, RankingTab } from '@/components/profileTab';
 import TabSelector from '@/components/TabSelector';
 
 export default function ProfileScreen() {
@@ -22,6 +23,9 @@ export default function ProfileScreen() {
   const [activeTab, setActiveTab] = useState<string>('Logros');
   const [sightingsCount, setSightingsCount] = useState<number>(0);
   const [sightings, setSightings] = useState<any[]>([]);
+  const [rankingPosition, setRankingPosition] = useState<string | number>('--');
+  const [totalUsersCount, setTotalUsersCount] = useState<number>(0);
+  const [topRankings, setTopRankings] = useState<any[]>([]);
 
   useFocusEffect(
     useCallback(() => {
@@ -32,12 +36,31 @@ export default function ProfileScreen() {
           if (session) {
             if (session.userName) setUserName(session.userName);
             if (session.userEmail) setUserEmail(session.userEmail);
+
+            if (session.userId) {
+              const rankData = await getUserRanking(session.userId);
+              if (rankData?.posicion) {
+                setRankingPosition(rankData.posicion);
+                if (rankData.totalUsuarios) setTotalUsersCount(rankData.totalUsuarios);
+              } else {
+                setRankingPosition('--');
+                if (rankData?.totalUsuarios) setTotalUsersCount(rankData.totalUsuarios);
+              }
+            }
           }
 
-          const data = await getSightingsByUser();
-          if (Array.isArray(data)) {
-            setSightings(data);
-            setSightingsCount(data.length);
+          const [sightingsData, rankingsData] = await Promise.all([
+            getSightingsByUser(),
+            getTopRankings(),
+          ]);
+
+          if (Array.isArray(sightingsData)) {
+            setSightings(sightingsData);
+            setSightingsCount(sightingsData.length);
+          }
+
+          if (Array.isArray(rankingsData)) {
+            setTopRankings(rankingsData);
           }
         } catch (error) {
           console.error("Error al cargar datos del perfil:", error);
@@ -62,7 +85,7 @@ export default function ProfileScreen() {
   const profileStats = [
     { value: String(sightingsCount), label: 'Avistamientos' },
     { value: '0', label: 'Medallas' },
-    { value: '#--', label: 'Ranking' },
+    { value: rankingPosition !== '--' ? `#${rankingPosition}` : '#--', label: 'Ranking' },
   ];
 
   const performLogout = async () => {
@@ -100,8 +123,16 @@ export default function ProfileScreen() {
     switch (activeTab) {
       case 'Historial':
         return <SightingHistoryTab sightings={sightings} />;
-      case 'Logros':
       case 'Ranking':
+        return (
+          <RankingTab 
+            rankings={topRankings} 
+            currentUserName={userName} 
+            currentUserRanking={rankingPosition}
+            totalUsersCount={totalUsersCount}
+          />
+        );
+      case 'Logros':
       default:
         return null;
     }
