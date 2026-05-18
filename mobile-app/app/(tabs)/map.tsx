@@ -1,8 +1,8 @@
 import React, { useState, useEffect } from 'react';
-import { StyleSheet, View, Text, TextInput, TouchableOpacity, Alert } from 'react-native';
+import { StyleSheet, View, Text, TextInput, TouchableOpacity, Alert, Image } from 'react-native';
 import * as Location from 'expo-location';
 import MapView from 'react-native-map-clustering';
-import { Marker } from 'react-native-maps';
+import { Marker, Callout } from 'react-native-maps';
 import FontAwesome from '@expo/vector-icons/FontAwesome';
 import { getPublicAnimals, AnimalPublic } from '@/services/mapApi';
 
@@ -53,6 +53,27 @@ export default function MapScreen() {
     fetchAnimals();
   }, []);
 
+  // Renderizado personalizado para el cluster
+  const renderCluster = (cluster: any) => {
+    const { id, geometry, onPress, properties } = cluster;
+    const points = properties.point_count;
+
+    return (
+      <Marker
+        key={`cluster-${id}`}
+        coordinate={{
+          longitude: geometry.coordinates[0],
+          latitude: geometry.coordinates[1],
+        }}
+        onPress={onPress}
+      >
+        <View style={styles.clusterContainer}>
+          <Text style={styles.clusterText}>+{points} Grupo</Text>
+        </View>
+      </Marker>
+    );
+  };
+
   return (
     <View style={styles.container}>
       <MapView
@@ -60,8 +81,42 @@ export default function MapScreen() {
         initialRegion={UAA_REGION}
         showsUserLocation={true}
         showsMyLocationButton={true}
-        clusterColor="#F28C38"
+        renderCluster={renderCluster}
       >
+        {animals.map((animal, index) => {
+          if (!animal.coordenadas) return null;
+
+          const isDesaparecido = animal.estado === 'Desaparecido';
+          const borderColor = isDesaparecido ? '#F44336' : '#4CAF50';
+
+          return (
+            <Marker
+              key={`animal-${index}`}
+              coordinate={{
+                latitude: animal.coordenadas.latitud,
+                longitude: animal.coordenadas.longitud,
+              }}
+            >
+              <View style={[styles.customMarker, { borderColor }]}>
+                {animal.foto_url ? (
+                  <Image source={{ uri: animal.foto_url }} style={styles.markerImage} />
+                ) : (
+                  <Text style={styles.markerText}>?</Text>
+                )}
+              </View>
+
+              <Callout tooltip>
+                <View style={styles.calloutContainer}>
+                  <Text style={styles.calloutTitle}>{animal.nombre}</Text>
+                  <Text style={styles.calloutText}>Colonia: {animal.colonia}</Text>
+                  <Text style={[styles.calloutStatus, { color: borderColor }]}>
+                    {animal.estado}
+                  </Text>
+                </View>
+              </Callout>
+            </Marker>
+          );
+        })}
       </MapView>
 
       <View style={styles.searchContainer}>
@@ -206,5 +261,69 @@ const styles = StyleSheet.create({
     fontSize: 12,
     color: '#333',
     fontWeight: '500',
+  },
+  customMarker: {
+    width: 40,
+    height: 40,
+    borderRadius: 20,
+    borderWidth: 3,
+    backgroundColor: 'white',
+    justifyContent: 'center',
+    alignItems: 'center',
+    overflow: 'hidden',
+  },
+  markerImage: {
+    width: '100%',
+    height: '100%',
+    resizeMode: 'cover',
+  },
+  markerText: {
+    fontSize: 18,
+    fontWeight: 'bold',
+    color: '#666',
+  },
+  calloutContainer: {
+    backgroundColor: 'white',
+    borderRadius: 8,
+    padding: 10,
+    minWidth: 150,
+    shadowColor: '#000',
+    shadowOffset: { width: 0, height: 2 },
+    shadowOpacity: 0.25,
+    shadowRadius: 3.84,
+    elevation: 5,
+  },
+  calloutTitle: {
+    fontWeight: 'bold',
+    fontSize: 16,
+    marginBottom: 4,
+    color: '#333',
+  },
+  calloutText: {
+    fontSize: 14,
+    color: '#666',
+    marginBottom: 2,
+  },
+  calloutStatus: {
+    fontSize: 14,
+    fontWeight: 'bold',
+  },
+  clusterContainer: {
+    backgroundColor: '#F28C38',
+    paddingHorizontal: 12,
+    paddingVertical: 8,
+    borderRadius: 20,
+    borderWidth: 2,
+    borderColor: 'white',
+    shadowColor: '#000',
+    shadowOffset: { width: 0, height: 2 },
+    shadowOpacity: 0.25,
+    shadowRadius: 3.84,
+    elevation: 5,
+  },
+  clusterText: {
+    color: 'white',
+    fontWeight: 'bold',
+    fontSize: 14,
   },
 });
