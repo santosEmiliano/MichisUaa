@@ -156,6 +156,19 @@ const getUserRank = async (req, res) => {
   }
 };
 
+// RANKING - Top 20 usuarios con más avistamientos verificados
+const getTopRanking = async (req, res) => {
+  try {
+    const ranking = await sightingFunctions.getTop20Ranking();
+    return res.status(200).json(ranking);
+  } catch (error) {
+    console.error("Error al obtener ranking:", error);
+    return res
+      .status(500)
+      .json({ mensaje: "Error al obtener el ranking" });
+  }
+};
+
 module.exports = {
   readSightings,
   readSightingsById,
@@ -163,4 +176,5 @@ module.exports = {
   modifySighting,
   deleteSighting,
   getUserRank,
+  getTopRanking,
 };

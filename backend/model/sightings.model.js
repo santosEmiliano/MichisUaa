@@ -177,11 +177,43 @@ async function getUserRankPosition(userId) {
   }
 }
 
+// RANKING - Top 20 usuarios con más avistamientos verificados
+async function getTop20Ranking() {
+  try {
+    const ranking = await prisma.avistamiento.groupBy({
+      by: ['usuarioId'],
+      where: { verificado: true },
+      _count: { idAvistamiento: true },
+      orderBy: { _count: { idAvistamiento: 'desc' } },
+      take: 20
+    });
+
+    const userIds = ranking.map(r => r.usuarioId);
+    const usuarios = await prisma.usuario.findMany({
+      where: { idUsuario: { in: userIds } },
+      select: { idUsuario: true, nombre: true }
+    });
+
+    const usuariosMap = {};
+    usuarios.forEach(u => { usuariosMap[u.idUsuario] = u.nombre; });
+
+    return ranking.map((r, index) => ({
+      posicion: index + 1,
+      nombre: usuariosMap[r.usuarioId] || 'Desconocido',
+      avistamientosVerificados: r._count.idAvistamiento
+    }));
+  } catch (error) {
+    console.error("Error obteniendo ranking:", error);
+    throw error;
+  }
+}
+
 module.exports = {
   createSighting,
   getAllSightings,
   getSightingById,
   modifySighting,
   removeSighting,
-  getUserRankPosition
+  getUserRankPosition,
+  getTop20Ranking
 }
