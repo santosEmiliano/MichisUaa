@@ -1,5 +1,5 @@
-import React, { useState, useEffect, useMemo } from 'react';
-import { StyleSheet, View, Text, TextInput, TouchableOpacity, Alert, Image } from 'react-native';
+import React, { useState, useEffect, useMemo, useRef } from 'react';
+import { StyleSheet, View, Text, TextInput, TouchableOpacity, Alert, Image, Animated } from 'react-native';
 import * as Location from 'expo-location';
 import MapView from 'react-native-map-clustering';
 import { Marker, Callout } from 'react-native-maps';
@@ -18,6 +18,11 @@ export default function MapScreen() {
   const [location, setLocation] = useState<Location.LocationObject | null>(null);
   const [searchText, setSearchText] = useState('');
   const [activeFilter, setActiveFilter] = useState('Todos');
+  const [showFilters, setShowFilters] = useState(false);
+
+  // Valores animados
+  const slideAnim = useRef(new Animated.Value(-20)).current;
+  const opacityAnim = useRef(new Animated.Value(0)).current;
   
   // Estados para los animales
   const [animals, setAnimals] = useState<AnimalPublic[]>([]);
@@ -52,6 +57,22 @@ export default function MapScreen() {
 
     fetchAnimals();
   }, []);
+
+  // Efecto para animar los filtros
+  useEffect(() => {
+    Animated.parallel([
+      Animated.timing(slideAnim, {
+        toValue: showFilters ? 0 : -20,
+        duration: 250,
+        useNativeDriver: true,
+      }),
+      Animated.timing(opacityAnim, {
+        toValue: showFilters ? 1 : 0,
+        duration: 250,
+        useNativeDriver: true,
+      }),
+    ]).start();
+  }, [showFilters]);
 
   // Filtros
   const filteredAnimals = useMemo(() => {
@@ -143,10 +164,22 @@ export default function MapScreen() {
             value={searchText}
             onChangeText={setSearchText}
           />
+          <TouchableOpacity onPress={() => setShowFilters(!showFilters)}>
+            <FontAwesome name="filter" size={20} color={showFilters ? '#F28C38' : '#666'} style={styles.filterIconBtn} />
+          </TouchableOpacity>
         </View>
       </View>
 
-      <View style={styles.filtersContainer}>
+      <Animated.View 
+        style={[
+          styles.filtersContainer,
+          {
+            opacity: opacityAnim,
+            transform: [{ translateY: slideAnim }]
+          }
+        ]}
+        pointerEvents={showFilters ? "auto" : "none"}
+      >
         {['Todos', 'Activos', 'Desaparecidos'].map((filter) => (
           <TouchableOpacity
             key={filter}
@@ -166,7 +199,8 @@ export default function MapScreen() {
             </Text>
           </TouchableOpacity>
         ))}
-      </View>
+      </Animated.View>
+
       <View style={styles.legendContainer}>
         <View style={styles.legendItem}>
           <View style={[styles.legendDot, { backgroundColor: '#4CAF50' }]} />
@@ -216,9 +250,13 @@ const styles = StyleSheet.create({
     fontSize: 16,
     color: '#333',
   },
+  filterIconBtn: {
+    marginLeft: 10,
+    padding: 5,
+  },
   filtersContainer: {
     position: 'absolute',
-    top: 110,
+    top: 125,
     left: 20,
     right: 20,
     flexDirection: 'row',
