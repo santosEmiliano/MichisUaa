@@ -146,23 +146,35 @@ async function main() {
   const baseLng = -102.314;
 
   for (let i = 0; i < 30; i++) {
-    const randomUser = i < createdUsers.length ? createdUsers[i] : createdUsers[Math.floor(Math.random() * createdUsers.length)];
+    let randomUser;
+    let daysAgo;
+    const createdAt = new Date();
+
+    if (i < createdUsers.length) {
+      // 0 a 9: uno a cada usuario creado, nocturno (11:30 PM)
+      randomUser = createdUsers[i];
+      daysAgo = Math.floor(Math.random() * 60);
+      createdAt.setDate(createdAt.getDate() - daysAgo);
+      createdAt.setHours(23, 30, 0);
+    } else if (i >= 10 && i < 17) {
+      // 10 a 16 (7 avistamientos): asignados a Emiliano Santos (createdUsers[1]) para la racha de 7 días
+      randomUser = createdUsers[1];
+      daysAgo = i - 10; // 0, 1, 2, 3, 4, 5, 6 días atrás
+      createdAt.setDate(createdAt.getDate() - daysAgo);
+      createdAt.setHours(14, 15, 0);
+    } else {
+      // 17 en adelante: aleatorio
+      randomUser = createdUsers[Math.floor(Math.random() * createdUsers.length)];
+      daysAgo = Math.floor(Math.random() * 60);
+      createdAt.setDate(createdAt.getDate() - daysAgo);
+      createdAt.setHours(14, 15, 0);
+    }
+
     const randomAnimal = Math.random() > 0.2 ? createdAnimals[Math.floor(Math.random() * createdAnimals.length)] : null; // 20% sin identificar
     const randomAdmin = adminUsers[Math.floor(Math.random() * adminUsers.length)];
 
     const latOffset = (Math.random() - 0.5) * 0.005;
     const lngOffset = (Math.random() - 0.5) * 0.005;
-    
-    const daysAgo = Math.floor(Math.random() * 60); // Hace 0 a 60 días
-    const createdAt = new Date();
-    createdAt.setDate(createdAt.getDate() - daysAgo);
-
-    // Asegurar que los primeros 10 avistamientos (uno por usuario) sean nocturnos (11:30 PM)
-    if (i < createdUsers.length) {
-      createdAt.setHours(23, 30, 0); // 11:30 PM (Nocturno)
-    } else {
-      createdAt.setHours(14, 15, 0); // 2:15 PM (Diurno)
-    }
 
     // Tipos de estado: Pendiente, Verificado, Rechazado
     const statusRand = Math.random();

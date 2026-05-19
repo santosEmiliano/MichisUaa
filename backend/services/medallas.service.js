@@ -84,8 +84,64 @@ const verificarConteoAvistamientos = async (usuarioId) => {
 };
 
 const verificarRacha = async (usuarioId) => {
-  // TODO: Implementar verificación de que el usuario ha hecho avistamietnos 7 días seguidos
-  return null;
+  try {
+    const existe = await prisma.medalla.findUnique({
+      where: {
+        usuarioId_tipo: { usuarioId: Number(usuarioId), tipo: MEDALLAS.RACHA_7_DIAS }
+      }
+    });
+    if (existe) return null;
+
+    const avistamientos = await prisma.avistamiento.findMany({
+      where: { usuarioId: Number(usuarioId) },
+      select: { createdAt: true },
+      orderBy: { createdAt: 'desc' }
+    });
+
+    if (avistamientos.length < 7) return null;
+
+    // Extraer fechas únicas en formato YYYY-MM-DD ajustado a la zona horaria de Aguascalientes / CDMX
+    const fechasUnicas = [...new Set(avistamientos.map(a => {
+      const parts = new Intl.DateTimeFormat('en-US', { timeZone: 'America/Mexico_City', year: 'numeric', month: '2-digit', day: '2-digit' }).formatToParts(a.createdAt);
+      const year = parts.find(p => p.type === 'year').value;
+      const month = parts.find(p => p.type === 'month').value;
+      const day = parts.find(p => p.type === 'day').value;
+      return `${year}-${month}-${day}`;
+    }))];
+    
+    if (fechasUnicas.length < 7) return null;
+
+    // Verificar si hay al menos 7 fechas consecutivas
+    let maxRacha = 1;
+    let rachaActual = 1;
+
+    for (let i = 0; i < fechasUnicas.length - 1; i++) {
+      const fechaActual = new Date(fechasUnicas[i]);
+      const fechaAnterior = new Date(fechasUnicas[i + 1]); // anterior en el tiempo
+      const diffTime = Math.abs(fechaActual - fechaAnterior);
+      const diffDays = Math.round(diffTime / (1000 * 60 * 60 * 24));
+
+      if (diffDays === 1) {
+        rachaActual++;
+        if (rachaActual >= 7) {
+          maxRacha = 7;
+          break;
+        }
+      } else {
+        rachaActual = 1;
+      }
+    }
+
+    if (maxRacha >= 7) {
+      return await prisma.medalla.create({
+        data: { usuarioId: Number(usuarioId), tipo: MEDALLAS.RACHA_7_DIAS }
+      });
+    }
+    return null;
+  } catch (error) {
+    console.error("Error en verificarRacha:", error);
+    return null;
+  }
 };
 
 const verificarColonias = async (usuarioId) => {
