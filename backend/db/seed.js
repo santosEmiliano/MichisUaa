@@ -146,7 +146,7 @@ async function main() {
   const baseLng = -102.314;
 
   for (let i = 0; i < 30; i++) {
-    const randomUser = createdUsers[Math.floor(Math.random() * createdUsers.length)];
+    const randomUser = i < createdUsers.length ? createdUsers[i] : createdUsers[Math.floor(Math.random() * createdUsers.length)];
     const randomAnimal = Math.random() > 0.2 ? createdAnimals[Math.floor(Math.random() * createdAnimals.length)] : null; // 20% sin identificar
     const randomAdmin = adminUsers[Math.floor(Math.random() * adminUsers.length)];
 
@@ -156,6 +156,13 @@ async function main() {
     const daysAgo = Math.floor(Math.random() * 60); // Hace 0 a 60 días
     const createdAt = new Date();
     createdAt.setDate(createdAt.getDate() - daysAgo);
+
+    // Asegurar que los primeros 10 avistamientos (uno por usuario) sean nocturnos (11:30 PM)
+    if (i < createdUsers.length) {
+      createdAt.setHours(23, 30, 0); // 11:30 PM (Nocturno)
+    } else {
+      createdAt.setHours(14, 15, 0); // 2:15 PM (Diurno)
+    }
 
     // Tipos de estado: Pendiente, Verificado, Rechazado
     const statusRand = Math.random();

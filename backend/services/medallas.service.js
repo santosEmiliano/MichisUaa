@@ -94,8 +94,39 @@ const verificarColonias = async (usuarioId) => {
 };
 
 const verificarNocturno = async (usuarioId) => {
-  // TODO: Implementar verificación de que el usuario ha hecho avistamientos de gatos entre las 9 PM y las 5 AM
-  return null;
+  try {
+    const existe = await prisma.medalla.findUnique({
+      where: {
+        usuarioId_tipo: { usuarioId: Number(usuarioId), tipo: MEDALLAS.REPORTE_NOCTURNO }
+      }
+    });
+    if (existe) return null;
+
+    const avistamientos = await prisma.avistamiento.findMany({
+      where: { usuarioId: Number(usuarioId) },
+      select: { createdAt: true }
+    });
+
+    const tieneNocturno = avistamientos.some(a => {
+      // Convertir la fecha UTC de la base de datos a la zona horaria de Aguascalientes / CDMX
+      const options = { timeZone: 'America/Mexico_City', hour: 'numeric', hour12: false };
+      const formatter = new Intl.DateTimeFormat('en-US', options);
+      const hourString = formatter.format(a.createdAt);
+      const hour = parseInt(hourString, 10);
+
+      return hour >= 21 || hour <= 5; // Entre las 9 PM (21:00) y las 5 AM (05:00) en horario de Aguascalientes
+    });
+
+    if (tieneNocturno) {
+      return await prisma.medalla.create({
+        data: { usuarioId: Number(usuarioId), tipo: MEDALLAS.REPORTE_NOCTURNO }
+      });
+    }
+    return null;
+  } catch (error) {
+    console.error("Error en verificarNocturno:", error);
+    return null;
+  }
 };
 
 // Función principal
