@@ -92,6 +92,22 @@ async function searchId(id) {
   }
 }
 
+async function getUserMedals(id) {
+  try {
+    const medallas = await prisma.medalla.findMany({
+      where: { usuarioId: Number(id) },
+      select: {
+        tipo: true,
+        ganadaAt: true
+      }
+    });
+    return medallas;
+  } catch (error) {
+    console.error("Error obteniendo medallas del usuario:", error);
+    return [];
+  }
+}
+
 async function searchMail(email) {
   try {
     const user = await prisma.usuario.findUnique({
@@ -155,5 +171,6 @@ module.exports = {
     searchId,
     searchMail,
     modifyUser,
-    deleteUser
+    deleteUser,
+    getUserMedals
 }
