@@ -8,6 +8,8 @@ const MEDALLAS = {
   COLONIAS: 'colonias',
   FAVORITO: 'favorito',
   NOCTURNO: 'nocturno',
+  INCOMPRENDIDO: 'incomprendido',
+  DETECTIVE: 'detective',
 };
 
 // Función auxiliar para crear o actualizar el nivel de una medalla
@@ -231,6 +233,55 @@ const verificarNocturno = async (usuarioId) => {
   }
 };
 
+const verificarIncomprendido = async (usuarioId) => {
+  try {
+    const count = await prisma.avistamiento.count({ // Cuenta los avistamientos no verificados por un admin
+      where: { usuarioId: Number(usuarioId), verificado: false, verificadoPor: { not: null } }
+    });
+
+    let nivel = 0;
+    if (count >= 20) nivel = 5; // 20 reportes rechazados = nivel 5
+    else if (count >= 12) nivel = 4; // 12 reportes rechazados = nivel 4
+    else if (count >= 7) nivel = 3; // 7 reportes rechazados = nivel 3
+    else if (count >= 3) nivel = 2; // 3 reportes rechazados = nivel 2
+    else if (count >= 1) nivel = 1; // 1 reporte rechazado = nivel 1
+
+    if (nivel > 0) {
+      return await actualizarNivelMedalla(usuarioId, MEDALLAS.INCOMPRENDIDO, nivel);
+    }
+    return null;
+  } catch (error) {
+    console.error("Error en verificarIncomprendido:", error);
+    return null;
+  }
+};
+
+const verificarDetective = async (usuarioId) => {
+  try {
+    const count = await prisma.avistamiento.count({ // Cuenta avistamientos del usuario donde el gato esté reportado como Desaparecido
+      where: {
+        usuarioId: Number(usuarioId),
+        animal: { estado: 'Desaparecido' }
+      }
+    });
+
+    let nivel = 0;
+    if (count >= 15) nivel = 5; // 15 reportes de desaparecidos = nivel 5
+    else if (count >= 10) nivel = 4; // 10 reportes = nivel 4
+    else if (count >= 6) nivel = 3; // 6 reportes = nivel 3
+    else if (count >= 3) nivel = 2; // 3 reportes = nivel 2
+    else if (count >= 1) nivel = 1; // 1 reporte = nivel 1
+
+    if (nivel > 0) {
+      return await actualizarNivelMedalla(usuarioId, MEDALLAS.DETECTIVE, nivel);
+    }
+    return null;
+  } catch (error) {
+    console.error("Error en verificarDetective:", error);
+    return null;
+  }
+};
+
 // Función principal
 const verificarMedallas = async (usuarioId) => {
   try {
@@ -241,6 +292,8 @@ const verificarMedallas = async (usuarioId) => {
       verificarColonias(usuarioId),
       verificarFavorito(usuarioId),
       verificarNocturno(usuarioId),
+      verificarIncomprendido(usuarioId),
+      verificarDetective(usuarioId),
     ]);
 
     const nuevas = resultados.filter(Boolean); // devuelve solo las que se actualizaron o crearon
