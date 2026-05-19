@@ -1,4 +1,4 @@
-import React, { useState, useRef, useEffect } from 'react';
+import React, { useState, useRef } from 'react';
 import { StyleSheet, View, Text, ScrollView, Dimensions, TouchableOpacity } from 'react-native';
 import Colors from '@/constants/Colors';
 import { useColorScheme } from '@/components/useColorScheme';
@@ -13,6 +13,33 @@ interface LogrosTabProps {
 const { width } = Dimensions.get('window');
 const cardWidth = (width - 32 - 24) / 4;
 const slideWidth = width - 32;
+
+function getCategoryColors(tipo: string, colorScheme: 'light' | 'dark', baseColor: string, baseColorFondo: string) {
+  if (colorScheme === 'light') {
+    return { color: baseColor, colorFondo: baseColorFondo };
+  }
+
+  switch (tipo) {
+    case 'avistamientos':
+      return { color: '#FFB74D', colorFondo: '#2d251a' }; 
+    case 'verificados':
+      return { color: '#4DB6AC', colorFondo: '#152926' }; 
+    case 'racha':
+      return { color: '#9FA8DA', colorFondo: '#1f2238' }; 
+    case 'colonias':
+      return { color: '#64B5F6', colorFondo: '#162638' }; 
+    case 'favorito':
+      return { color: '#F06292', colorFondo: '#311925' }; 
+    case 'nocturno':
+      return { color: '#7986CB', colorFondo: '#1e2035' };
+    case 'incomprendido':
+      return { color: '#B0BEC5', colorFondo: '#242a2d' };
+    case 'detective':
+      return { color: '#FF8A65', colorFondo: '#33211b' };
+    default:
+      return { color: baseColor, colorFondo: baseColorFondo };
+  }
+}
 
 function calculateRacha(sightings: any[]): number {
   if (!Array.isArray(sightings) || sightings.length === 0) return 0;
@@ -48,7 +75,6 @@ function calculateRacha(sightings: any[]): number {
   return maxRacha;
 }
 
-// Calculate the progress value based on raw sightings array
 function getCategoryProgressValue(tipo: string, sightings: any[], sightingsCount: number): number {
   if (!Array.isArray(sightings)) return 0;
   
@@ -89,7 +115,6 @@ function getCategoryProgressValue(tipo: string, sightings: any[], sightingsCount
   }
 }
 
-// Get levels state and absolute percentage
 function getCategoryState(medalla: MedallaConfig, userLevel: number, progressValue: number) {
   const currentNivelConfig = medalla.niveles.find(n => n.nivel === userLevel);
   const nextNivelConfig = medalla.niveles.find(n => n.nivel === userLevel + 1);
@@ -157,7 +182,6 @@ export default function LogrosTab({
   const medallasLista = Object.values(MEDALLAS);
   const totalCategorias = medallasLista.length;
 
-  // Convert array of medal objects to lookup map for levels
   const medalLevelMap = new Map<string, number>();
   if (Array.isArray(userMedals)) {
     userMedals.forEach(m => {
@@ -203,12 +227,14 @@ export default function LogrosTab({
           const iniciado = userLevel > 0;
           const isSelected = activeIndex === index;
 
+          const resolvedColors = getCategoryColors(medalla.tipo, colorScheme, medalla.color, medalla.colorFondo);
+
           const cardBg = iniciado 
-            ? (isSelected ? medalla.colorFondo : (colorScheme === 'dark' ? '#1c1c1e' : '#fcfcfc')) 
+            ? (isSelected ? resolvedColors.colorFondo : (colorScheme === 'dark' ? '#1c1c1e' : '#fcfcfc')) 
             : (colorScheme === 'dark' ? '#2c2c2e' : '#f2f2f7');
           
           const cardBorder = isSelected 
-            ? medalla.color 
+            ? resolvedColors.color 
             : (iniciado ? (colorScheme === 'dark' ? '#3a3a3c' : '#e5e5ea') : 'transparent');
 
           const textColor = iniciado 
@@ -229,7 +255,7 @@ export default function LogrosTab({
                   borderWidth: isSelected ? 2 : 1,
                   transform: [{ scale: isSelected ? 1.03 : 1 }],
                   elevation: isSelected ? 3 : 0,
-                  shadowColor: isSelected ? medalla.color : 'transparent',
+                  shadowColor: isSelected ? resolvedColors.color : 'transparent',
                   shadowOffset: { width: 0, height: 2 },
                   shadowOpacity: isSelected ? 0.2 : 0,
                   shadowRadius: 4,
@@ -244,12 +270,12 @@ export default function LogrosTab({
                   styles.medallaName, 
                   { color: textColor }
                 ]} 
-                numberOfLines={1}
+                numberOfLines={2}
               >
                 {medalla.nombre}
               </Text>
               <Text style={[styles.levelTag, { 
-                color: iniciado ? medalla.color : '#8e8e93',
+                color: iniciado ? resolvedColors.color : '#8e8e93',
                 fontWeight: iniciado ? 'bold' : 'normal'
               }]}>
                 {iniciado ? `Nv. ${userLevel}` : 'Bloqueado'}
@@ -287,6 +313,8 @@ export default function LogrosTab({
                   nextConditionText 
                 } = getCategoryState(medalla, userLevel, progressValue);
 
+                const resolvedColors = getCategoryColors(medalla.tipo, colorScheme, medalla.color, medalla.colorFondo);
+
                 const cardBg = colorScheme === 'dark' ? '#2c2c2e' : '#ffffff';
                 const cardBorder = colorScheme === 'dark' ? '#3a3a3c' : colors.borderColor;
 
@@ -303,22 +331,22 @@ export default function LogrosTab({
                     >
                       {/* Cabecera del Logro */}
                       <View style={styles.progressHeader}>
-                        <View style={[styles.progressIconBg, { backgroundColor: medalla.colorFondo }]}>
+                        <View style={[styles.progressIconBg, { backgroundColor: resolvedColors.colorFondo }]}>
                           <Text style={styles.progressIconText}>{medalla.icono}</Text>
                         </View>
                         <View style={styles.progressTextCol}>
                           <Text style={[styles.progressTitle, { color: colorScheme === 'dark' ? '#ffffff' : colors.textMain }]}>
                             {medalla.nombre}
                           </Text>
-                          <Text style={[styles.progressLevelText, { color: medalla.color }]}>
+                          <Text style={[styles.progressLevelText, { color: resolvedColors.color }]}>
                             Nivel {userLevel} - {currentLevelName}
                           </Text>
                           <Text style={[styles.progressNextText, { color: colorScheme === 'dark' ? '#aeaeb2' : '#8e8e93' }]}>
                             {nextConditionText}
                           </Text>
                         </View>
-                        <View style={[styles.badgeContainer, { backgroundColor: medalla.colorFondo, borderColor: medalla.color }]}>
-                          <Text style={[styles.badgeText, { color: medalla.color }]}>
+                        <View style={[styles.badgeContainer, { backgroundColor: resolvedColors.colorFondo, borderColor: resolvedColors.color }]}>
+                          <Text style={[styles.badgeText, { color: resolvedColors.color }]}>
                             🎖️ Nv. {userLevel}
                           </Text>
                         </View>
@@ -326,12 +354,12 @@ export default function LogrosTab({
 
                       {/* Barra de progreso */}
                       <View style={[styles.progressBarContainer, { backgroundColor: colorScheme === 'dark' ? '#3a3a3c' : '#e5e5ea' }]}>
-                        <View style={[styles.progressBarFill, { width: `${porcentaje}%`, backgroundColor: medalla.color }]} />
+                        <View style={[styles.progressBarFill, { width: `${porcentaje}%`, backgroundColor: resolvedColors.color }]} />
                       </View>
 
                       <View style={styles.progressNumbersRow}>
                         <Text style={styles.progressNumberText}>{progreso} / {meta}</Text>
-                        <Text style={[styles.progressPercentText, { color: medalla.color }]}>{porcentaje}%</Text>
+                        <Text style={[styles.progressPercentText, { color: resolvedColors.color }]}>{porcentaje}%</Text>
                       </View>
 
                       {/* Línea de tiempo de niveles (Timeline) */}
@@ -341,7 +369,7 @@ export default function LogrosTab({
                           style={[
                             styles.timelineLineFill, 
                             { 
-                              backgroundColor: medalla.color, 
+                              backgroundColor: resolvedColors.color, 
                               width: `${Math.max(0, Math.min((userLevel) * 25, 100))}%` 
                             }
                           ]} 
@@ -356,11 +384,11 @@ export default function LogrosTab({
                             let circleBorder = colorScheme === 'dark' ? '#3a3a3c' : '#e5e5ea';
 
                             if (isUnlocked) {
-                              circleBg = medalla.color;
-                              circleBorder = medalla.color;
+                              circleBg = resolvedColors.color;
+                              circleBorder = resolvedColors.color;
                             } else if (isActive) {
                               circleBg = colorScheme === 'dark' ? '#1c1c1e' : '#ffffff';
-                              circleBorder = medalla.color;
+                              circleBorder = resolvedColors.color;
                             }
 
                             return (
@@ -378,7 +406,7 @@ export default function LogrosTab({
                                   {isUnlocked ? (
                                     <Text style={styles.nodeCheck}>✓</Text>
                                   ) : isActive ? (
-                                    <View style={[styles.nodeDot, { backgroundColor: medalla.color }]} />
+                                    <View style={[styles.nodeDot, { backgroundColor: resolvedColors.color }]} />
                                   ) : (
                                     <Text style={[styles.nodeNumber, { color: colorScheme === 'dark' ? '#8e8e93' : '#8e8e93' }]}>
                                       {nivelItem.nivel === 5 ? '👑' : nivelItem.nivel}
@@ -408,16 +436,20 @@ export default function LogrosTab({
             {/* Puntos de paginación */}
             {totalCategorias > 1 && (
               <View style={styles.paginationContainer}>
-                {medallasLista.map((_, index) => (
-                  <TouchableOpacity
-                    key={`dot-${index}`}
-                    onPress={() => handleCategoryPress(index)}
-                    style={[
-                      styles.paginationDot, 
-                      activeIndex === index ? [styles.paginationDotActive, { backgroundColor: activeMedalla.color }] : styles.paginationDotInactive
-                    ]} 
-                  />
-                ))}
+                {medallasLista.map((_, index) => {
+                  const m = medallasLista[index];
+                  const res = getCategoryColors(m.tipo, colorScheme, m.color, m.colorFondo);
+                  return (
+                    <TouchableOpacity
+                      key={`dot-${index}`}
+                      onPress={() => handleCategoryPress(index)}
+                      style={[
+                        styles.paginationDot, 
+                        activeIndex === index ? [styles.paginationDotActive, { backgroundColor: res.color }] : styles.paginationDotInactive
+                      ]} 
+                    />
+                  );
+                })}
               </View>
             )}
           </View>
@@ -460,31 +492,36 @@ const styles = StyleSheet.create({
   medallaCard: {
     borderRadius: 14,
     paddingVertical: 10,
-    paddingHorizontal: 4,
+    paddingHorizontal: 2,
     alignItems: 'center',
     justifyContent: 'center',
-    minHeight: 92,
+    minHeight: 102,
   },
   iconContainer: {
     marginBottom: 4,
     alignItems: 'center',
     justifyContent: 'center',
+    backgroundColor: 'transparent',
   },
   iconMuted: {
     opacity: 0.3,
   },
   medallaIcon: {
     fontSize: 24,
+    backgroundColor: 'transparent',
   },
   medallaName: {
-    fontSize: 10,
+    fontSize: 9,
     fontWeight: 'bold',
     textAlign: 'center',
-    lineHeight: 12,
-    marginBottom: 2,
+    lineHeight: 11,
+    height: 22,
+    marginBottom: 4,
+    backgroundColor: 'transparent',
   },
   levelTag: {
     fontSize: 9,
+    backgroundColor: 'transparent',
   },
   carouselSection: {
     marginTop: 24,

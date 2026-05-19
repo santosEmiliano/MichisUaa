@@ -94,12 +94,11 @@ export default function ProfileScreen() {
   };
 
   // Estadísticas del perfil
-  const avistamientosMedal = userMedals.find(m => m.tipo === 'avistamientos');
-  const levelValue = avistamientosMedal ? `Nv. ${avistamientosMedal.nivel}` : 'Nv. 0';
+  const totalNiveles = userMedals.reduce((sum, m) => sum + m.nivel, 0);
 
   const profileStats = [
     { value: String(sightingsCount), label: 'Avistamientos' },
-    { value: levelValue, label: 'Observador' },
+    { value: `${totalNiveles}`, label: 'Total de logros' },
     { value: rankingPosition !== '--' ? `#${rankingPosition}` : '#--', label: 'Ranking' },
   ];
 
