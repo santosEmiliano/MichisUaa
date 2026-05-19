@@ -142,7 +142,7 @@ export default function ProfileScreen() {
           />
         );
       case 'Logros':
-        return <LogrosTab userMedals={userMedals} />;
+        return <LogrosTab userMedals={userMedals} sightingsCount={sightingsCount} />;
       default:
         return null;
     }
