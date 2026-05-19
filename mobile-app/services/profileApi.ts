@@ -28,7 +28,7 @@ const getUserRanking = async (userId: string | number) => {
 
 const getUserMedals = async (userId: string | number) => {
   try {
-    const response = await apiFetch(`/users/${userId}/medallas`);
+    const response = await apiFetch(`/user/${userId}/medallas`);
     if (response.ok) {
       const data = await response.json();
       return data;

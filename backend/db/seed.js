@@ -1,5 +1,6 @@
 const prisma = require('./prisma');
 const bcrypt = require('bcryptjs');
+const { verificarMedallas } = require('../services/medallas.service');
 
 async function main() {
   // Limpiar base de datos para evitar duplicados en cada seed
@@ -196,6 +197,11 @@ async function main() {
         createdAt: createdAt
       }
     });
+  }
+
+  console.log('Verificando medallas para los usuarios generados...');
+  for (const u of createdUsers) {
+    await verificarMedallas(u.idUsuario);
   }
 
   console.log('Seed completado exitosamente con datos variados y completos.');
