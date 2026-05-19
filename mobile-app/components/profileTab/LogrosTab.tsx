@@ -14,11 +14,13 @@ const { width } = Dimensions.get('window');
 const cardWidth = (width - 32 - 24) / 4;
 const slideWidth = width - 32;
 
+// Helper to get theme-appropriate colors for dark mode high-contrast and light mode
 function getCategoryColors(tipo: string, colorScheme: 'light' | 'dark', baseColor: string, baseColorFondo: string) {
   if (colorScheme === 'light') {
     return { color: baseColor, colorFondo: baseColorFondo };
   }
 
+  // Solid premium high-contrast colors to avoid Android composite rendering bugs with transparency
   switch (tipo) {
     case 'avistamientos':
       return { color: '#FFB74D', colorFondo: '#2d251a' }; 
@@ -178,6 +180,7 @@ export default function LogrosTab({
   const scrollViewRef = useRef<ScrollView>(null);
 
   const [activeIndex, setActiveIndex] = useState(0);
+  const [selectedNivelMap, setSelectedNivelMap] = useState<Record<string, number>>({});
 
   const medallasLista = Object.values(MEDALLAS);
   const totalCategorias = medallasLista.length;
@@ -310,13 +313,18 @@ export default function LogrosTab({
                   meta, 
                   porcentaje, 
                   isCompleted, 
-                  nextConditionText 
+                  nextConditionText,
+                  label
                 } = getCategoryState(medalla, userLevel, progressValue);
 
                 const resolvedColors = getCategoryColors(medalla.tipo, colorScheme, medalla.color, medalla.colorFondo);
 
                 const cardBg = colorScheme === 'dark' ? '#2c2c2e' : '#ffffff';
                 const cardBorder = colorScheme === 'dark' ? '#3a3a3c' : colors.borderColor;
+
+                // Inspect level defaults to next locked level or current max
+                const activeInspectLevel = selectedNivelMap[medalla.tipo] || Math.min(userLevel + 1, 5);
+                const inspectedNivelConfig = medalla.niveles.find(n => n.nivel === activeInspectLevel);
 
                 return (
                   <View key={`progress-${medalla.tipo}`} style={{ width: slideWidth }}>
@@ -379,27 +387,45 @@ export default function LogrosTab({
                           {medalla.niveles.map((nivelItem) => {
                             const isUnlocked = userLevel >= nivelItem.nivel;
                             const isActive = userLevel + 1 === nivelItem.nivel || (userLevel === 5 && nivelItem.nivel === 5);
+                            const isInspected = activeInspectLevel === nivelItem.nivel;
                             
                             let circleBg = colorScheme === 'dark' ? '#2c2c2e' : '#ffffff';
                             let circleBorder = colorScheme === 'dark' ? '#3a3a3c' : '#e5e5ea';
 
                             if (isUnlocked) {
                               circleBg = resolvedColors.color;
-                              circleBorder = resolvedColors.color;
+                              circleBorder = isInspected ? '#ffffff' : resolvedColors.color;
                             } else if (isActive) {
                               circleBg = colorScheme === 'dark' ? '#1c1c1e' : '#ffffff';
+                              circleBorder = resolvedColors.color;
+                            } else if (isInspected) {
+                              circleBg = colorScheme === 'dark' ? '#2c2c2e' : '#ffffff';
                               circleBorder = resolvedColors.color;
                             }
 
                             return (
-                              <View key={`node-${medalla.tipo}-${nivelItem.nivel}`} style={styles.nodeContainer}>
+                              <TouchableOpacity 
+                                key={`node-${medalla.tipo}-${nivelItem.nivel}`} 
+                                style={styles.nodeContainer}
+                                activeOpacity={0.7}
+                                onPress={() => setSelectedNivelMap(prev => ({
+                                  ...prev,
+                                  [medalla.tipo]: nivelItem.nivel
+                                }))}
+                              >
                                 <View 
                                   style={[
                                     styles.nodeCircle, 
                                     { 
                                       backgroundColor: circleBg, 
                                       borderColor: circleBorder,
-                                      borderWidth: isActive ? 2 : 1,
+                                      borderWidth: (isActive || isInspected) ? 2 : 1,
+                                      transform: [{ scale: isInspected ? 1.15 : 1 }],
+                                      elevation: isInspected ? 3 : 0,
+                                      shadowColor: resolvedColors.color,
+                                      shadowOffset: { width: 0, height: 1 },
+                                      shadowOpacity: isInspected ? 0.3 : 0,
+                                      shadowRadius: 2,
                                     }
                                   ]}
                                 >
@@ -407,26 +433,72 @@ export default function LogrosTab({
                                     <Text style={styles.nodeCheck}>✓</Text>
                                   ) : isActive ? (
                                     <View style={[styles.nodeDot, { backgroundColor: resolvedColors.color }]} />
-                                  ) : (
-                                    <Text style={[styles.nodeNumber, { color: colorScheme === 'dark' ? '#8e8e93' : '#8e8e93' }]}>
-                                      {nivelItem.nivel === 5 ? '👑' : nivelItem.nivel}
-                                    </Text>
-                                  )}
+                                  ) : null}
                                 </View>
                                 <Text style={[styles.nodeLabel, { 
-                                  color: (isUnlocked || isActive) ? (colorScheme === 'dark' ? '#ffffff' : colors.textMain) : '#8e8e93',
-                                  fontWeight: (isUnlocked || isActive) ? 'bold' : 'normal'
+                                  color: isInspected 
+                                    ? resolvedColors.color 
+                                    : ((isUnlocked || isActive) ? (colorScheme === 'dark' ? '#ffffff' : colors.textMain) : '#8e8e93'),
+                                  fontWeight: (isUnlocked || isActive || isInspected) ? 'bold' : 'normal'
                                 }]}>
                                   Nv.{nivelItem.nivel}
                                 </Text>
                                 <Text style={styles.nodeCondition}>
                                   {nivelItem.condicion}
                                 </Text>
-                              </View>
+                              </TouchableOpacity>
                             );
                           })}
                         </View>
                       </View>
+
+                      {/* Detalle interactivo del nivel seleccionado (Preview de Descripción) */}
+                      {inspectedNivelConfig && (
+                        <View style={[
+                          styles.inspectCard, 
+                          { 
+                            backgroundColor: colorScheme === 'dark' ? '#1c1c1e' : '#fcfcfc',
+                            borderColor: colorScheme === 'dark' ? '#3a3a3c' : '#e5e5ea',
+                            borderLeftColor: resolvedColors.color
+                          }
+                        ]}>
+                          <View style={styles.inspectHeader}>
+                            <Text style={styles.inspectIcon}>{inspectedNivelConfig.icono}</Text>
+                            <View style={{ flex: 1 }}>
+                              <Text style={[styles.inspectName, { color: colorScheme === 'dark' ? '#ffffff' : colors.textMain }]}>
+                                Nv. {inspectedNivelConfig.nivel} - {inspectedNivelConfig.nombre}
+                              </Text>
+                              <Text style={styles.inspectCondition}>
+                                Requisito: {inspectedNivelConfig.condicion} {label}
+                              </Text>
+                            </View>
+                            <View style={[
+                              styles.statusBadge, 
+                              { 
+                                backgroundColor: userLevel >= inspectedNivelConfig.nivel 
+                                  ? (colorScheme === 'dark' ? 'rgba(76, 217, 100, 0.15)' : '#e8f9ee')
+                                  : (colorScheme === 'dark' ? 'rgba(142, 142, 147, 0.15)' : '#f2f2f7')
+                              }
+                            ]}>
+                              <Text style={[
+                                styles.statusBadgeText, 
+                                { 
+                                  color: userLevel >= inspectedNivelConfig.nivel 
+                                    ? '#34c759' 
+                                    : '#8e8e93' 
+                                }
+                              ]}>
+                                {userLevel >= inspectedNivelConfig.nivel ? 'Desbloqueado ✓' : 'Bloqueado 🔒'}
+                              </Text>
+                            </View>
+                          </View>
+                          {userLevel >= inspectedNivelConfig.nivel && (
+                            <Text style={[styles.inspectDesc, { color: colorScheme === 'dark' ? '#aeaeb2' : '#636366', marginTop: 6 }]}>
+                              {inspectedNivelConfig.descripcion}
+                            </Text>
+                          )}
+                        </View>
+                      )}
                     </View>
                   </View>
                 );
@@ -659,6 +731,45 @@ const styles = StyleSheet.create({
     fontSize: 9,
     color: '#8e8e93',
     marginTop: 1,
+  },
+  inspectCard: {
+    marginTop: 16,
+    borderRadius: 12,
+    borderWidth: 1,
+    borderLeftWidth: 4,
+    padding: 12,
+  },
+  inspectHeader: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 8,
+    marginBottom: 6,
+  },
+  inspectIcon: {
+    fontSize: 20,
+  },
+  inspectName: {
+    fontSize: 13,
+    fontWeight: 'bold',
+  },
+  inspectCondition: {
+    fontSize: 10,
+    color: '#8e8e93',
+    marginTop: 1,
+  },
+  statusBadge: {
+    paddingHorizontal: 8,
+    paddingVertical: 3,
+    borderRadius: 8,
+  },
+  statusBadgeText: {
+    fontSize: 9,
+    fontWeight: 'bold',
+  },
+  inspectDesc: {
+    fontSize: 11,
+    lineHeight: 15,
+    fontStyle: 'italic',
   },
   paginationContainer: {
     flexDirection: 'row',
