@@ -145,8 +145,35 @@ const verificarRacha = async (usuarioId) => {
 };
 
 const verificarColonias = async (usuarioId) => {
-  // TODO: Implementar verificación de que el usuario ha hecho avistamientos de gatos pertenecientes a 5 colonias diferentes
-  return null;
+  try {
+    const existe = await prisma.medalla.findUnique({
+      where: {
+        usuarioId_tipo: { usuarioId: Number(usuarioId), tipo: MEDALLAS.CINCO_COLONIAS }
+      }
+    });
+    if (existe) return null;
+
+    const avistamientos = await prisma.avistamiento.findMany({
+      where: { usuarioId: Number(usuarioId), animalId: { not: null } },
+      include: { animal: { select: { Colonia_idColonia: true } } }
+    });
+
+    const coloniasUnicas = new Set(
+      avistamientos
+        .map(a => a.animal?.Colonia_idColonia)
+        .filter(id => id !== undefined && id !== null)
+    );
+
+    if (coloniasUnicas.size >= 5) {
+      return await prisma.medalla.create({
+        data: { usuarioId: Number(usuarioId), tipo: MEDALLAS.CINCO_COLONIAS }
+      });
+    }
+    return null;
+  } catch (error) {
+    console.error("Error en verificarColonias:", error);
+    return null;
+  }
 };
 
 const verificarNocturno = async (usuarioId) => {

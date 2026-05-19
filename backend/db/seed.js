@@ -170,7 +170,15 @@ async function main() {
       createdAt.setHours(14, 15, 0);
     }
 
-    const randomAnimal = Math.random() > 0.2 ? createdAnimals[Math.floor(Math.random() * createdAnimals.length)] : null; // 20% sin identificar
+    let randomAnimal;
+    if (i >= 10 && i < 17) {
+      // Para Emiliano Santos (i de 10 a 16), aseguramos gatos de colonias distintas para el logro de 5 colonias diferentes
+      const targetColonyId = createdColonies[i - 10].idColonia;
+      randomAnimal = createdAnimals.find(a => a.Colonia_idColonia === targetColonyId) || createdAnimals[0];
+    } else {
+      randomAnimal = Math.random() > 0.2 ? createdAnimals[Math.floor(Math.random() * createdAnimals.length)] : null; // 20% sin identificar
+    }
+
     const randomAdmin = adminUsers[Math.floor(Math.random() * adminUsers.length)];
 
     const latOffset = (Math.random() - 0.5) * 0.005;
