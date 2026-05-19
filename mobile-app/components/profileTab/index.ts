@@ -6,3 +6,4 @@ export { default as RankingTab } from './RankingTab';
 export { default as RankingCard } from './RankingCard';
 export { default as CurrentUserRankingCard } from './CurrentUserRankingCard';
 export { default as RankingPodium } from './RankingPodium';
+export { default as LogrosTab } from './LogrosTab';
