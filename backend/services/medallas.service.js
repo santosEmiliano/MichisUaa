@@ -6,6 +6,8 @@ const MEDALLAS = {
   VERIFICADOS: 'verificados',
   RACHA: 'racha',
   COLONIAS: 'colonias',
+  FAVORITO: 'favorito',
+  NOCTURNO: 'nocturno',
 };
 
 // Función auxiliar para crear o actualizar el nivel de una medalla
@@ -164,6 +166,71 @@ const verificarColonias = async (usuarioId) => {
   }
 };
 
+const verificarFavorito = async (usuarioId) => {
+  try {
+    const grupos = await prisma.avistamiento.groupBy({ // Agrupa avistamientos por animal y obtiene el conteo
+      by: ['animalId'],
+      where: { usuarioId: Number(usuarioId), animalId: { not: null } },
+      _count: { _all: true }
+    });
+
+    // Encontrar el número máximo de reportes para un único gato
+    const maxCount = grupos.reduce((max, g) => Math.max(max, g._count._all), 0);
+
+    let nivel = 0;
+    if (maxCount >= 25) nivel = 5; // 25 avistamientos del mismo gato = nivel 5
+    else if (maxCount >= 15) nivel = 4; // 15 avistamientos = nivel 4
+    else if (maxCount >= 10) nivel = 3; // 10 avistamientos = nivel 3
+    else if (maxCount >= 5) nivel = 2; // 5 avistamientos = nivel 2
+    else if (maxCount >= 3) nivel = 1; // 3 avistamientos = nivel 1
+
+    if (nivel > 0) {
+      return await actualizarNivelMedalla(usuarioId, MEDALLAS.FAVORITO, nivel);
+    }
+    return null;
+  } catch (error) {
+    console.error("Error en verificarFavorito:", error);
+    return null;
+  }
+};
+
+const verificarNocturno = async (usuarioId) => {
+  try {
+    const avistamientos = await prisma.avistamiento.findMany({
+      where: { usuarioId: Number(usuarioId) },
+      select: { createdAt: true }
+    });
+
+    let nocturnosCount = 0;
+    // Formatear la hora ajustada a la zona de Aguascalientes / CDMX
+    const options = { timeZone: 'America/Mexico_City', hour: 'numeric', hour12: false };
+    const formatter = new Intl.DateTimeFormat('en-US', options);
+
+    avistamientos.forEach(a => {
+      const hourString = formatter.format(a.createdAt);
+      const hour = parseInt(hourString, 10);
+      if (hour >= 21 || hour <= 5) { // Horario nocturno de 9 PM a 5 AM
+        nocturnosCount++;
+      }
+    });
+
+    let nivel = 0;
+    if (nocturnosCount >= 30) nivel = 5; // 30 reportes nocturnos = nivel 5
+    else if (nocturnosCount >= 15) nivel = 4; // 15 reportes nocturnos = nivel 4
+    else if (nocturnosCount >= 7) nivel = 3; // 7 reportes nocturnos = nivel 3
+    else if (nocturnosCount >= 3) nivel = 2; // 3 reportes nocturnos = nivel 2
+    else if (nocturnosCount >= 1) nivel = 1; // 1 reporte nocturno = nivel 1
+
+    if (nivel > 0) {
+      return await actualizarNivelMedalla(usuarioId, MEDALLAS.NOCTURNO, nivel);
+    }
+    return null;
+  } catch (error) {
+    console.error("Error en verificarNocturno:", error);
+    return null;
+  }
+};
+
 // Función principal
 const verificarMedallas = async (usuarioId) => {
   try {
@@ -172,6 +239,8 @@ const verificarMedallas = async (usuarioId) => {
       verificarVerificados(usuarioId),
       verificarRacha(usuarioId),
       verificarColonias(usuarioId),
+      verificarFavorito(usuarioId),
+      verificarNocturno(usuarioId),
     ]);
 
     const nuevas = resultados.filter(Boolean); // devuelve solo las que se actualizaron o crearon
