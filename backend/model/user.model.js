@@ -98,6 +98,7 @@ async function getUserMedals(id) {
       where: { usuarioId: Number(id) },
       select: {
         tipo: true,
+        nivel: true,
         ganadaAt: true
       }
     });

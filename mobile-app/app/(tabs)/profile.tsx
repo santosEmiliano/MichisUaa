@@ -26,7 +26,7 @@ export default function ProfileScreen() {
   const [rankingPosition, setRankingPosition] = useState<string | number>('--');
   const [totalUsersCount, setTotalUsersCount] = useState<number>(0);
   const [topRankings, setTopRankings] = useState<any[]>([]);
-  const [userMedals, setUserMedals] = useState<string[]>([]);
+  const [userMedals, setUserMedals] = useState<{ tipo: string; nivel: number }[]>([]);
 
   useFocusEffect(
     useCallback(() => {
@@ -53,7 +53,10 @@ export default function ProfileScreen() {
               }
 
               if (Array.isArray(medalsData)) {
-                setUserMedals(medalsData.map((m: any) => m.tipo));
+                setUserMedals(medalsData.map((m: any) => ({ 
+                  tipo: m.tipo, 
+                  nivel: typeof m.nivel === 'number' ? m.nivel : 1 
+                })));
               }
             }
           }
@@ -91,9 +94,12 @@ export default function ProfileScreen() {
   };
 
   // Estadísticas del perfil
+  const avistamientosMedal = userMedals.find(m => m.tipo === 'avistamientos');
+  const levelValue = avistamientosMedal ? `Nv. ${avistamientosMedal.nivel}` : 'Nv. 0';
+
   const profileStats = [
     { value: String(sightingsCount), label: 'Avistamientos' },
-    { value: String(userMedals.length), label: 'Medallas' },
+    { value: levelValue, label: 'Observador' },
     { value: rankingPosition !== '--' ? `#${rankingPosition}` : '#--', label: 'Ranking' },
   ];
 
@@ -142,7 +148,7 @@ export default function ProfileScreen() {
           />
         );
       case 'Logros':
-        return <LogrosTab userMedals={userMedals} sightingsCount={sightingsCount} />;
+        return <LogrosTab userMedals={userMedals} sightingsCount={sightingsCount} sightings={sightings} />;
       default:
         return null;
     }
