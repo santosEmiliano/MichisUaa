@@ -1,5 +1,6 @@
 const sightingFunctions = require("../model/sightings.model");
 const cloudFunctions = require("../utils/cloudinary");
+const { verificarMedallas } = require("../services/medallas.service");
 
 // GET ALL
 const readSightings = async (req, res) => {
@@ -56,6 +57,15 @@ const registerSighting = async (req, res) => {
     }
 
     const newSighting = await sightingFunctions.createSighting(req.body);
+
+    // Verificar medallas en segundo plano — no bloquea la respuesta al cliente
+    verificarMedallas(usuarioId)
+      .then(nuevas => {
+        if (nuevas.length > 0) {
+          console.log(`Usuario ${usuarioId} ganó nuevas medallas: ${nuevas.map(m => m.tipo).join(', ')}`);
+        }
+      })
+      .catch(err => console.error("Error en la verificación de medallas en segundo plano:", err));
 
     return res.status(201).json({
       mensaje: "Avistamiento registrado correctamente",
