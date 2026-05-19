@@ -26,7 +26,22 @@ const getUserRanking = async (userId: string | number) => {
   }
 };
 
+const getUserMedals = async (userId: string | number) => {
+  try {
+    const response = await apiFetch(`/users/${userId}/medallas`);
+    if (response.ok) {
+      const data = await response.json();
+      return data;
+    }
+    return [];
+  } catch (error) {
+    console.error("Error al obtener medallas del usuario:", error);
+    return [];
+  }
+};
+
 export {
   getSightingsByUser,
   getUserRanking,
+  getUserMedals,
 };
