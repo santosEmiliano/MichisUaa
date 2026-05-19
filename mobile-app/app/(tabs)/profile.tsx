@@ -7,9 +7,9 @@ import { router, useFocusEffect } from 'expo-router';
 import Colors from '@/constants/Colors';
 import { useColorScheme } from '@/components/useColorScheme';
 import { getSession, clearSession } from '@/services/sessionStorage';
-import { getSightingsByUser, getUserRanking } from '@/services/profileApi';
+import { getSightingsByUser, getUserRanking, getUserMedals } from '@/services/profileApi';
 import { getTopRankings } from '@/services/rankings';
-import { ProfileHeader, ProfileStats, SightingHistoryTab, RankingTab } from '@/components/profileTab';
+import { ProfileHeader, ProfileStats, SightingHistoryTab, RankingTab, LogrosTab } from '@/components/profileTab';
 import TabSelector from '@/components/TabSelector';
 
 export default function ProfileScreen() {
@@ -26,6 +26,7 @@ export default function ProfileScreen() {
   const [rankingPosition, setRankingPosition] = useState<string | number>('--');
   const [totalUsersCount, setTotalUsersCount] = useState<number>(0);
   const [topRankings, setTopRankings] = useState<any[]>([]);
+  const [userMedals, setUserMedals] = useState<{ tipo: string; nivel: number }[]>([]);
 
   useFocusEffect(
     useCallback(() => {
@@ -38,13 +39,24 @@ export default function ProfileScreen() {
             if (session.userEmail) setUserEmail(session.userEmail);
 
             if (session.userId) {
-              const rankData = await getUserRanking(session.userId);
+              const [rankData, medalsData] = await Promise.all([
+                getUserRanking(session.userId),
+                getUserMedals(session.userId)
+              ]);
+
               if (rankData?.posicion) {
                 setRankingPosition(rankData.posicion);
                 if (rankData.totalUsuarios) setTotalUsersCount(rankData.totalUsuarios);
               } else {
                 setRankingPosition('--');
                 if (rankData?.totalUsuarios) setTotalUsersCount(rankData.totalUsuarios);
+              }
+
+              if (Array.isArray(medalsData)) {
+                setUserMedals(medalsData.map((m: any) => ({ 
+                  tipo: m.tipo, 
+                  nivel: typeof m.nivel === 'number' ? m.nivel : 1 
+                })));
               }
             }
           }
@@ -82,9 +94,11 @@ export default function ProfileScreen() {
   };
 
   // Estadísticas del perfil
+  const totalNiveles = userMedals.reduce((sum, m) => sum + m.nivel, 0);
+
   const profileStats = [
     { value: String(sightingsCount), label: 'Avistamientos' },
-    { value: '0', label: 'Medallas' },
+    { value: `${totalNiveles}`, label: 'Total de logros' },
     { value: rankingPosition !== '--' ? `#${rankingPosition}` : '#--', label: 'Ranking' },
   ];
 
@@ -133,6 +147,7 @@ export default function ProfileScreen() {
           />
         );
       case 'Logros':
+        return <LogrosTab userMedals={userMedals} sightingsCount={sightingsCount} sightings={sightings} />;
       default:
         return null;
     }

@@ -30,6 +30,13 @@ router.post(
   userFunctions.logout
 );
 
+//Ruta GET de medallas de un usuario por ID
+router.get(
+  "/:id/medallas",
+  token.verifyToken,
+  userFunctions.getUserMedals
+);
+
 //Ruta PUT de updateUser
 router.put(
   "/:id",

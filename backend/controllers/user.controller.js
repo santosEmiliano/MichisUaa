@@ -128,11 +128,23 @@ const removeUser = async (req, res) => {
   }
 }
 
+const getUserMedals = async (req, res) => {
+  try {
+    const { id } = req.params;
+    const medallas = await userModel.getUserMedals(Number(id));
+    return res.status(200).json(medallas);
+  } catch (error) {
+    console.error("Error al obtener medallas del usuario:", error);
+    return res.status(500).json({ mensaje: "Error al obtener medallas del usuario" });
+  }
+};
+
 module.exports = {
     createUser,
     login,
     logout,
     obtainUsers,
     updateUser,
-    removeUser
+    removeUser,
+    getUserMedals
 }

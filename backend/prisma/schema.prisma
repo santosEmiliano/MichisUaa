@@ -58,6 +58,7 @@ model Usuario {
   avistamientosRegistrados Avistamiento[] @relation("RegistradoPor")
   avistamientosVerificados Avistamiento[] @relation("VerificadoPor")
   usuariosCols             UsuarioCol[]
+  medallas                 Medalla[]
 
   @@map("Usuario")
 }
@@ -92,3 +93,17 @@ model Avistamiento {
 
   @@map("Avistamiento")
 }
+
+model Medalla {
+  id        Int      @id @default(autoincrement())
+  usuarioId Int
+  tipo      String   @db.VarChar(50)
+  nivel     Int      @default(1)
+  ganadaAt  DateTime @default(now())
+
+  usuario Usuario @relation(fields: [usuarioId], references: [idUsuario], onDelete: Cascade)
+
+  @@unique([usuarioId, tipo])
+  @@map("Medalla")
+}
+

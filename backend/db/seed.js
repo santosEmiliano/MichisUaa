@@ -1,5 +1,6 @@
 const prisma = require('./prisma');
 const bcrypt = require('bcryptjs');
+const { verificarMedallas } = require('../services/medallas.service');
 
 async function main() {
   // Limpiar base de datos para evitar duplicados en cada seed
@@ -145,16 +146,43 @@ async function main() {
   const baseLng = -102.314;
 
   for (let i = 0; i < 30; i++) {
-    const randomUser = createdUsers[Math.floor(Math.random() * createdUsers.length)];
-    const randomAnimal = Math.random() > 0.2 ? createdAnimals[Math.floor(Math.random() * createdAnimals.length)] : null; // 20% sin identificar
+    let randomUser;
+    let daysAgo;
+    const createdAt = new Date();
+
+    if (i < createdUsers.length) {
+      // 0 a 9: uno a cada usuario creado, nocturno (11:30 PM)
+      randomUser = createdUsers[i];
+      daysAgo = Math.floor(Math.random() * 60);
+      createdAt.setDate(createdAt.getDate() - daysAgo);
+      createdAt.setHours(23, 30, 0);
+    } else if (i >= 10 && i < 17) {
+      // 10 a 16 (7 avistamientos): asignados a Emiliano Santos (createdUsers[1]) para la racha de 7 días
+      randomUser = createdUsers[1];
+      daysAgo = i - 10; // 0, 1, 2, 3, 4, 5, 6 días atrás
+      createdAt.setDate(createdAt.getDate() - daysAgo);
+      createdAt.setHours(14, 15, 0);
+    } else {
+      // 17 en adelante: aleatorio
+      randomUser = createdUsers[Math.floor(Math.random() * createdUsers.length)];
+      daysAgo = Math.floor(Math.random() * 60);
+      createdAt.setDate(createdAt.getDate() - daysAgo);
+      createdAt.setHours(14, 15, 0);
+    }
+
+    let randomAnimal;
+    if (i >= 10 && i < 17) {
+      // Para Emiliano Santos (i de 10 a 16), aseguramos gatos de colonias distintas para el logro de 5 colonias diferentes
+      const targetColonyId = createdColonies[i - 10].idColonia;
+      randomAnimal = createdAnimals.find(a => a.Colonia_idColonia === targetColonyId) || createdAnimals[0];
+    } else {
+      randomAnimal = Math.random() > 0.2 ? createdAnimals[Math.floor(Math.random() * createdAnimals.length)] : null; // 20% sin identificar
+    }
+
     const randomAdmin = adminUsers[Math.floor(Math.random() * adminUsers.length)];
 
     const latOffset = (Math.random() - 0.5) * 0.005;
     const lngOffset = (Math.random() - 0.5) * 0.005;
-    
-    const daysAgo = Math.floor(Math.random() * 60); // Hace 0 a 60 días
-    const createdAt = new Date();
-    createdAt.setDate(createdAt.getDate() - daysAgo);
 
     // Tipos de estado: Pendiente, Verificado, Rechazado
     const statusRand = Math.random();
@@ -196,6 +224,11 @@ async function main() {
         createdAt: createdAt
       }
     });
+  }
+
+  console.log('Verificando medallas para los usuarios generados...');
+  for (const u of createdUsers) {
+    await verificarMedallas(u.idUsuario);
   }
 
   console.log('Seed completado exitosamente con datos variados y completos.');
