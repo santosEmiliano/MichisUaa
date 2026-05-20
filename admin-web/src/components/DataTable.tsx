@@ -5,7 +5,7 @@ import type { FilterDef } from "../types/models";
 
 export interface ColumnDef<T> {
   header: string;
-  searchKey?: keyof T;
+  searchKey?: keyof T | (keyof T)[];
   render: (row: T) => React.ReactNode;
 }
 
@@ -37,9 +37,10 @@ export const DataTable = <T extends object>({
   const [query, setQuery] = useState("");
   const [page, setPage] = useState(1);
 
-  const searchKeys = columns
-    .filter((c) => c.searchKey !== undefined)
-    .map((c) => c.searchKey as keyof T);
+  const searchKeys: (keyof T)[] = columns.flatMap((c) => {
+    if (c.searchKey === undefined) return [];
+    return Array.isArray(c.searchKey) ? c.searchKey : [c.searchKey];
+  });
 
   const filtered = useMemo(() => {
     if (!query.trim()) return data;
