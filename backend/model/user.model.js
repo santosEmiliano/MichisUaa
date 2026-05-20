@@ -46,15 +46,10 @@ async function getUsers() {
   }
 }
 
-async function occupied(nombre, email) {
+async function occupied(email) {
   try {
     const user = await prisma.usuario.findFirst({
-      where: {
-        OR: [
-          { email: email },
-          { nombre: nombre }
-        ]
-      }
+      where: { email: email }
     });
 
     return user ? user.idUsuario : null;

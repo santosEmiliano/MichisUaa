@@ -12,11 +12,11 @@ const createUser = async (req, res) => {
       return res.status(400).json({ mensaje: "datos incompletos" });
     }
 
-    const coincidencia = await userModel.occupied(nombre, email);
+    const coincidencia = await userModel.occupied(email);
     if (coincidencia) {
       return res
         .status(400)
-        .json({ message: "Nombre o correo ya ocupados" });
+        .json({ message: "El correo ya esta vinculado a una cuenta" });
     }
     
     const saltos = await bcrypt.genSalt(10); 
