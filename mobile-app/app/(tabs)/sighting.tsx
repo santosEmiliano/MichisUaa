@@ -1,16 +1,39 @@
 import React, { useState, useEffect } from 'react';
-import { StyleSheet, View, Text, TouchableOpacity, ScrollView, SafeAreaView, Image, Alert } from 'react-native';
+import { StyleSheet, View, Text, TouchableOpacity, ScrollView, SafeAreaView, Image, Alert, Modal } from 'react-native';
 import { Ionicons } from '@expo/vector-icons';
 import Colors from '@/constants/Colors';
 import { router } from 'expo-router';
 import * as ImagePicker from 'expo-image-picker';
 import * as Location from 'expo-location';
-import MapView, { Marker } from 'react-native-maps';
+import MapView, { Marker, Region } from 'react-native-maps';
 
 export default function SightingScreen() {
   const [imageUri, setImageUri] = useState<string | null>(null);
   const [locationName, setLocationName] = useState<string>('Obteniendo ubicación...');
   const [locationCoords, setLocationCoords] = useState<{ latitude: number, longitude: number } | null>(null);
+
+  // Estados para el Modal del Mapa
+  const [isMapModalVisible, setMapModalVisible] = useState(false);
+  const [tempRegion, setTempRegion] = useState<Region | null>(null);
+  const [isDragging, setIsDragging] = useState(false);
+
+  // Función reutilizable para Geocodificación Inversa (convertir GPS a Texto)
+  const performReverseGeocode = async (latitude: number, longitude: number) => {
+    try {
+      let geocode = await Location.reverseGeocodeAsync({ latitude, longitude });
+      if (geocode && geocode.length > 0) {
+        const place = geocode[0];
+        const poi = place.name && place.name !== place.street ? place.name + ', ' : '';
+        const street = place.street || 'Ubicación desconocida';
+        const cityOrRegion = place.city || place.subregion || place.region || '';
+        setLocationName(`${poi}${street}${cityOrRegion ? ', ' + cityOrRegion : ''}`);
+      } else {
+        setLocationName('Dirección no encontrada');
+      }
+    } catch (error) {
+      setLocationName('Error al procesar dirección');
+    }
+  };
 
   useEffect(() => {
     (async () => {
@@ -26,23 +49,7 @@ export default function SightingScreen() {
           latitude: location.coords.latitude,
           longitude: location.coords.longitude,
         });
-        
-        let geocode = await Location.reverseGeocodeAsync({
-          latitude: location.coords.latitude,
-          longitude: location.coords.longitude,
-        });
-
-        if (geocode && geocode.length > 0) {
-          const place = geocode[0];
-          // place.name contiene Puntos de Interés (ej. "Edificio 54", "Centro de Ciencias Básicas")
-          const poi = place.name && place.name !== place.street ? place.name + ', ' : '';
-          const street = place.street || 'Ubicación desconocida';
-          const cityOrRegion = place.city || place.subregion || place.region || '';
-
-          setLocationName(`${poi}${street}${cityOrRegion ? ', ' + cityOrRegion : ''}`);
-        } else {
-          setLocationName('Dirección no encontrada');
-        }
+        await performReverseGeocode(location.coords.latitude, location.coords.longitude);
       } catch (error) {
         setLocationName('Error al obtener ubicación');
       }
@@ -63,11 +70,37 @@ export default function SightingScreen() {
   };
 
   const handleCameraPress = () => {
-    Alert.alert('Mensaje', 'La funcionalidad de tomar fotos con la cámara será implementada próximamente.');
+    Alert.alert('Información', 'La funcionalidad de tomar fotos con la cámara será implementada próximamente.');
   };
 
-  const handleChangeLocation = () => {
-    Alert.alert('Mensaje', 'La selección manual en el mapa se implementará próximamente.');
+  // --- Lógica del Mapa Interactivo ---
+  const openMapModal = () => {
+    if (locationCoords) {
+      setTempRegion({
+        ...locationCoords,
+        latitudeDelta: 0.003,
+        longitudeDelta: 0.003,
+      });
+      setMapModalVisible(true);
+    } else {
+      Alert.alert('Espera', 'Aún estamos obteniendo tu ubicación inicial.');
+    }
+  };
+
+  const handleRegionChangeComplete = (region: Region) => {
+    setTempRegion(region);
+  };
+
+  const confirmLocation = async () => {
+    if (tempRegion) {
+      setLocationCoords({
+        latitude: tempRegion.latitude,
+        longitude: tempRegion.longitude,
+      });
+      setMapModalVisible(false);
+      setLocationName('Actualizando dirección...');
+      await performReverseGeocode(tempRegion.latitude, tempRegion.longitude);
+    }
   };
 
   return (
@@ -85,13 +118,13 @@ export default function SightingScreen() {
 
         {/* Foto del avistamiento */}
         <View style={styles.section}>
-          <Text style={styles.sectionTitle}>Foto del avistamiento</Text>
-
+          <Text style={styles.sectionTitle}>Foto del avistamiento <Text style={styles.asterisk}>*</Text></Text>
+          
           <View style={styles.photoPreviewBox}>
             <View style={styles.badge}>
               <Text style={styles.badgeText}>Vista previa</Text>
             </View>
-
+            
             {imageUri ? (
               <Image source={{ uri: imageUri }} style={styles.previewImage} />
             ) : (
@@ -114,7 +147,7 @@ export default function SightingScreen() {
         {/* Ubicación */}
         <View style={styles.section}>
           <Text style={styles.sectionTitle}>Ubicación</Text>
-
+          
           <View style={styles.locationBox}>
             <View style={styles.mapPlaceholder}>
               {locationCoords ? (
@@ -146,13 +179,61 @@ export default function SightingScreen() {
                 <View style={styles.greenDot} />
                 <Text style={styles.locationText} numberOfLines={1}>{locationName}</Text>
               </View>
-              <TouchableOpacity onPress={handleChangeLocation}>
+              <TouchableOpacity onPress={openMapModal} hitSlop={{ top: 10, bottom: 10, left: 10, right: 10 }}>
                 <Text style={styles.changeText}>Cambiar</Text>
               </TouchableOpacity>
             </View>
           </View>
         </View>
       </ScrollView>
+
+      {/* Modal Interactivo de Mapa */}
+      <Modal
+        visible={isMapModalVisible}
+        transparent={true}
+        animationType="fade"
+        onRequestClose={() => setMapModalVisible(false)}
+      >
+        <View style={styles.modalOverlay}>
+          <View style={styles.modalContent}>
+            <Text style={styles.modalTitle}>Ajustar ubicación</Text>
+            
+            <View style={styles.modalMapContainer}>
+              {tempRegion && (
+                <MapView
+                  style={styles.fullMap}
+                  initialRegion={tempRegion}
+                  onRegionChange={() => setIsDragging(true)}
+                  onRegionChangeComplete={(region) => {
+                    handleRegionChangeComplete(region);
+                    setIsDragging(false);
+                  }}
+                  showsUserLocation={true}
+                />
+              )}
+              {/* Pin central fijo */}
+              <View style={styles.centerPinContainer} pointerEvents="none">
+                <View style={[
+                  styles.customMarkerLarge,
+                  isDragging && { transform: [{ scale: 0.7 }], opacity: 0.7 }
+                ]}>
+                  <Ionicons name="location-sharp" size={28} color={Colors.dark.textWhite} />
+                </View>
+              </View>
+            </View>
+
+            <View style={styles.modalButtonsRow}>
+              <TouchableOpacity style={styles.modalCancelButton} onPress={() => setMapModalVisible(false)}>
+                <Text style={styles.modalCancelText}>Cancelar</Text>
+              </TouchableOpacity>
+              <TouchableOpacity style={styles.modalConfirmButton} onPress={confirmLocation}>
+                <Text style={styles.modalConfirmText}>Confirmar</Text>
+              </TouchableOpacity>
+            </View>
+          </View>
+        </View>
+      </Modal>
+
     </SafeAreaView>
   );
 }
@@ -296,6 +377,18 @@ const styles = StyleSheet.create({
     shadowRadius: 3,
     elevation: 5,
   },
+  customMarkerLarge: {
+    backgroundColor: Colors.dark.accentOrange,
+    padding: 10,
+    borderRadius: 30,
+    borderWidth: 3,
+    borderColor: Colors.dark.textWhite,
+    shadowColor: '#000',
+    shadowOffset: { width: 0, height: 4 },
+    shadowOpacity: 0.4,
+    shadowRadius: 5,
+    elevation: 8,
+  },
   mapEmoji: {
     fontSize: 40,
   },
@@ -330,5 +423,90 @@ const styles = StyleSheet.create({
     color: Colors.dark.accentOrange,
     fontSize: 14,
     fontWeight: '600',
+  },
+  // Modal Styles
+  modalOverlay: {
+    flex: 1,
+    backgroundColor: 'rgba(0, 0, 0, 0.65)', // Fondo oscurecido
+    justifyContent: 'center',
+    alignItems: 'center',
+    padding: 20,
+  },
+  modalContent: {
+    width: '100%',
+    height: '75%', // Rectángulo alargado verticalmente
+    backgroundColor: Colors.dark.bgPanel,
+    borderRadius: 24,
+    overflow: 'hidden',
+    borderWidth: 1,
+    borderColor: Colors.dark.borderColor,
+    shadowColor: '#000',
+    shadowOffset: { width: 0, height: 10 },
+    shadowOpacity: 0.5,
+    shadowRadius: 15,
+    elevation: 10,
+  },
+  modalTitle: {
+    color: Colors.dark.textWhite,
+    fontSize: 18,
+    fontWeight: 'bold',
+    textAlign: 'center',
+    paddingVertical: 16,
+    borderBottomWidth: 1,
+    borderBottomColor: Colors.dark.borderColor,
+    backgroundColor: Colors.dark.bgDark, // Contraste en el header del modal
+  },
+  modalMapContainer: {
+    flex: 1,
+    position: 'relative',
+    backgroundColor: Colors.dark.fondoGrisOscuro,
+  },
+  fullMap: {
+    width: '100%',
+    height: '100%',
+  },
+  centerPinContainer: {
+    position: 'absolute',
+    top: '50%',
+    left: '50%',
+    // Centrar con precisión dependiendo del tamaño del icono (padding 10 + size 28 + borde 3 = ~54px diameter -> -27 margin)
+    marginLeft: -27,
+    marginTop: -27,
+    zIndex: 10,
+  },
+  modalButtonsRow: {
+    flexDirection: 'row',
+    padding: 16,
+    gap: 15,
+    borderTopWidth: 1,
+    borderTopColor: Colors.dark.borderColor,
+    backgroundColor: Colors.dark.bgDark,
+  },
+  modalCancelButton: {
+    flex: 1,
+    paddingVertical: 14,
+    borderRadius: 12,
+    borderWidth: 1,
+    borderColor: Colors.dark.borderColor,
+    alignItems: 'center',
+    justifyContent: 'center',
+  },
+  modalCancelText: {
+    color: Colors.dark.textWhite,
+    fontWeight: 'bold',
+    fontSize: 16,
+  },
+  modalConfirmButton: {
+    flex: 1,
+    paddingVertical: 14,
+    borderRadius: 12,
+    backgroundColor: Colors.dark.accentOrange,
+    alignItems: 'center',
+    justifyContent: 'center',
+  },
+  modalConfirmText: {
+    color: Colors.dark.textWhite,
+    fontWeight: 'bold',
+    fontSize: 16,
   },
 });
