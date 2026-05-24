@@ -1,12 +1,46 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { StyleSheet, View, Text, TouchableOpacity, ScrollView, SafeAreaView, Image, Alert } from 'react-native';
 import { Ionicons } from '@expo/vector-icons';
 import Colors from '@/constants/Colors';
 import { router } from 'expo-router';
 import * as ImagePicker from 'expo-image-picker';
+import * as Location from 'expo-location';
 
 export default function SightingScreen() {
   const [imageUri, setImageUri] = useState<string | null>(null);
+  const [locationName, setLocationName] = useState<string>('Obteniendo ubicación...');
+
+  useEffect(() => {
+    (async () => {
+      let { status } = await Location.requestForegroundPermissionsAsync();
+      if (status !== 'granted') {
+        setLocationName('Permiso de GPS denegado');
+        return;
+      }
+
+      try {
+        let location = await Location.getCurrentPositionAsync({});
+        let geocode = await Location.reverseGeocodeAsync({
+          latitude: location.coords.latitude,
+          longitude: location.coords.longitude,
+        });
+
+        if (geocode && geocode.length > 0) {
+          const place = geocode[0];
+          // place.name contiene Puntos de Interés (ej. "Edificio 54", "Centro de Ciencias Básicas")
+          const poi = place.name && place.name !== place.street ? place.name + ', ' : '';
+          const street = place.street || 'Ubicación desconocida';
+          const cityOrRegion = place.city || place.subregion || place.region || '';
+
+          setLocationName(`${poi}${street}${cityOrRegion ? ', ' + cityOrRegion : ''}`);
+        } else {
+          setLocationName('Dirección no encontrada');
+        }
+      } catch (error) {
+        setLocationName('Error al obtener ubicación');
+      }
+    })();
+  }, []);
 
   const pickImage = async () => {
     let result = await ImagePicker.launchImageLibraryAsync({
@@ -23,6 +57,10 @@ export default function SightingScreen() {
 
   const handleCameraPress = () => {
     Alert.alert('Mensaje', 'La funcionalidad de tomar fotos con la cámara será implementada próximamente.');
+  };
+
+  const handleChangeLocation = () => {
+    Alert.alert('Mensaje', 'La selección manual en el mapa se implementará próximamente.');
   };
 
   return (
@@ -77,9 +115,9 @@ export default function SightingScreen() {
             <View style={styles.locationStrip}>
               <View style={styles.locationStripLeft}>
                 <View style={styles.greenDot} />
-                <Text style={styles.locationText}>Entrada sur, Ed. 108</Text>
+                <Text style={styles.locationText} numberOfLines={1}>{locationName}</Text>
               </View>
-              <TouchableOpacity>
+              <TouchableOpacity onPress={handleChangeLocation}>
                 <Text style={styles.changeText}>Cambiar</Text>
               </TouchableOpacity>
             </View>
@@ -227,6 +265,8 @@ const styles = StyleSheet.create({
   locationStripLeft: {
     flexDirection: 'row',
     alignItems: 'center',
+    flex: 1,
+    marginRight: 10,
   },
   greenDot: {
     width: 10,
@@ -239,6 +279,7 @@ const styles = StyleSheet.create({
     color: Colors.dark.textWhite,
     fontSize: 14,
     fontWeight: '600',
+    flexShrink: 1,
   },
   changeText: {
     color: Colors.dark.accentOrange,
