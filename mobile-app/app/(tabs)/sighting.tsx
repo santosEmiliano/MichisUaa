@@ -1,10 +1,30 @@
-import React from 'react';
-import { StyleSheet, View, Text, TouchableOpacity, ScrollView, SafeAreaView } from 'react-native';
+import React, { useState } from 'react';
+import { StyleSheet, View, Text, TouchableOpacity, ScrollView, SafeAreaView, Image, Alert } from 'react-native';
 import { Ionicons } from '@expo/vector-icons';
 import Colors from '@/constants/Colors';
 import { router } from 'expo-router';
+import * as ImagePicker from 'expo-image-picker';
 
 export default function SightingScreen() {
+  const [imageUri, setImageUri] = useState<string | null>(null);
+
+  const pickImage = async () => {
+    let result = await ImagePicker.launchImageLibraryAsync({
+      mediaTypes: ['images'],
+      allowsEditing: true,
+      aspect: [4, 3],
+      quality: 0.8,
+    });
+
+    if (!result.canceled) {
+      setImageUri(result.assets[0].uri);
+    }
+  };
+
+  const handleCameraPress = () => {
+    Alert.alert('Mensaje', 'La funcionalidad de tomar fotos con la cámara será implementada próximamente.');
+  };
+
   return (
     <SafeAreaView style={styles.safeArea}>
       <ScrollView contentContainerStyle={styles.container}>
@@ -26,15 +46,20 @@ export default function SightingScreen() {
             <View style={styles.badge}>
               <Text style={styles.badgeText}>Vista previa</Text>
             </View>
-            <Text style={styles.emoji}>😸</Text>
+
+            {imageUri ? (
+              <Image source={{ uri: imageUri }} style={styles.previewImage} />
+            ) : (
+              <Text style={styles.emoji}>😸</Text>
+            )}
           </View>
 
           <View style={styles.photoButtonsRow}>
-            <TouchableOpacity style={styles.cameraButton} activeOpacity={0.8}>
+            <TouchableOpacity style={styles.cameraButton} activeOpacity={0.8} onPress={handleCameraPress}>
               <Ionicons name="camera-outline" size={20} color={Colors.dark.textWhite} />
               <Text style={styles.cameraButtonText}>Cámara</Text>
             </TouchableOpacity>
-            <TouchableOpacity style={styles.galleryButton} activeOpacity={0.6}>
+            <TouchableOpacity style={styles.galleryButton} activeOpacity={0.6} onPress={pickImage}>
               <Ionicons name="image-outline" size={20} color={Colors.dark.textWhite} />
               <Text style={styles.galleryButtonText}>Galería</Text>
             </TouchableOpacity>
@@ -115,6 +140,12 @@ const styles = StyleSheet.create({
     position: 'relative',
     borderWidth: 1,
     borderColor: Colors.dark.borderColor,
+    overflow: 'hidden',
+  },
+  previewImage: {
+    width: '100%',
+    height: '100%',
+    resizeMode: 'cover',
   },
   badge: {
     position: 'absolute',
@@ -124,6 +155,7 @@ const styles = StyleSheet.create({
     paddingHorizontal: 10,
     paddingVertical: 5,
     borderRadius: 12,
+    zIndex: 10,
   },
   badgeText: {
     color: Colors.dark.textSecondary,
