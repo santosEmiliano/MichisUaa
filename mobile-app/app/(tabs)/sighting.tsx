@@ -5,10 +5,12 @@ import Colors from '@/constants/Colors';
 import { router } from 'expo-router';
 import * as ImagePicker from 'expo-image-picker';
 import * as Location from 'expo-location';
+import MapView, { Marker } from 'react-native-maps';
 
 export default function SightingScreen() {
   const [imageUri, setImageUri] = useState<string | null>(null);
   const [locationName, setLocationName] = useState<string>('Obteniendo ubicación...');
+  const [locationCoords, setLocationCoords] = useState<{ latitude: number, longitude: number } | null>(null);
 
   useEffect(() => {
     (async () => {
@@ -20,6 +22,11 @@ export default function SightingScreen() {
 
       try {
         let location = await Location.getCurrentPositionAsync({});
+        setLocationCoords({
+          latitude: location.coords.latitude,
+          longitude: location.coords.longitude,
+        });
+        
         let geocode = await Location.reverseGeocodeAsync({
           latitude: location.coords.latitude,
           longitude: location.coords.longitude,
@@ -110,7 +117,29 @@ export default function SightingScreen() {
 
           <View style={styles.locationBox}>
             <View style={styles.mapPlaceholder}>
-              <Text style={styles.mapEmoji}>📌</Text>
+              {locationCoords ? (
+                <MapView
+                  style={styles.miniMap}
+                  region={{
+                    latitude: locationCoords.latitude,
+                    longitude: locationCoords.longitude,
+                    latitudeDelta: 0.003,
+                    longitudeDelta: 0.003,
+                  }}
+                  scrollEnabled={false}
+                  zoomEnabled={false}
+                  pitchEnabled={false}
+                  rotateEnabled={false}
+                >
+                  <Marker coordinate={locationCoords}>
+                    <View style={styles.customMarker}>
+                      <Ionicons name="paw" size={18} color={Colors.dark.textWhite} />
+                    </View>
+                  </Marker>
+                </MapView>
+              ) : (
+                <Text style={styles.mapEmoji}>📌</Text>
+              )}
             </View>
             <View style={styles.locationStrip}>
               <View style={styles.locationStripLeft}>
@@ -250,6 +279,22 @@ const styles = StyleSheet.create({
     height: 120,
     justifyContent: 'center',
     alignItems: 'center',
+  },
+  miniMap: {
+    width: '100%',
+    height: '100%',
+  },
+  customMarker: {
+    backgroundColor: Colors.dark.accentOrange,
+    padding: 6,
+    borderRadius: 20,
+    borderWidth: 2,
+    borderColor: Colors.dark.textWhite,
+    shadowColor: '#000',
+    shadowOffset: { width: 0, height: 2 },
+    shadowOpacity: 0.3,
+    shadowRadius: 3,
+    elevation: 5,
   },
   mapEmoji: {
     fontSize: 40,
