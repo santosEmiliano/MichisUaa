@@ -250,10 +250,13 @@ export default function WebRegisterForm({ onBackToLogin }: Props) {
       </TouchableOpacity>
 
       {/* Términos Modal */}
-      <Modal visible={showTerms} transparent animationType="slide" onRequestClose={() => setShowTerms(false)}>
+      <Modal visible={showTerms} transparent animationType="fade" onRequestClose={() => setShowTerms(false)}>
         <View style={styles.modalOverlay}>
-          <View style={[styles.modalCard, { backgroundColor: colors.fondoGrisOscuro, borderColor: colors.borderColor }]}>
-            <View style={[styles.dragHandle, { backgroundColor: colors.borderColor }]} />
+          <View style={[
+            styles.modalCard, 
+            { backgroundColor: colorScheme === 'dark' ? 'rgba(30,30,30,0.85)' : 'rgba(255,255,255,0.9)', borderColor: colors.borderColor },
+            Platform.OS === 'web' && { backdropFilter: 'blur(20px)', WebkitBackdropFilter: 'blur(20px)' } as any
+          ]}>
             <View style={styles.modalHeader}>
               <View style={styles.modalIconWrap}>
                 <Ionicons name="document-text" size={22} color="#e8893c" />
@@ -265,6 +268,7 @@ export default function WebRegisterForm({ onBackToLogin }: Props) {
             </View>
             <View style={styles.modalDivider} />
             <ScrollView style={styles.modalScroll} showsVerticalScrollIndicator={false}>
+              {/* Sección 1 */}
               <View style={styles.termRow}>
                 <View style={styles.termBadge}><Text style={styles.termBadgeText}>1</Text></View>
                 <Text style={[styles.termSection, { color: colors.textMain }]}>Propósito de la aplicación</Text>
@@ -272,27 +276,59 @@ export default function WebRegisterForm({ onBackToLogin }: Props) {
               <Text style={[styles.termText, { color: colors.textSecondary }]}>
                 MichisUAA es una plataforma comunitaria destinada exclusivamente al registro, seguimiento y cuidado de las colonias felinas dentro del campus de la Universidad Autónoma de Aguascalientes. Su uso es estrictamente benéfico y de carácter universitario.
               </Text>
+
+              {/* Sección 2 */}
               <View style={styles.termRow}>
-                <View style={[styles.termBadge, styles.termBadgeDanger]}><Text style={styles.termBadgeText}>2</Text></View>
+                <View style={styles.termBadge}><Text style={styles.termBadgeText}>2</Text></View>
+                <Text style={[styles.termSection, { color: colors.textMain }]}>Uso aceptable</Text>
+              </View>
+              <Text style={[styles.termText, { color: colors.textSecondary }]}>
+                El usuario se compromete a utilizar la aplicación de forma responsable. Está permitido: reportar avistamientos de gatos del campus, consultar información de las colonias y colaborar con los administradores de la comunidad.
+              </Text>
+
+              {/* Sección 3 — Destacada */}
+              <View style={styles.termRow}>
+                <View style={[styles.termBadge, styles.termBadgeDanger]}><Text style={styles.termBadgeText}>3</Text></View>
                 <Text style={[styles.termSection, { color: colors.textMain }]}>Conductas prohibidas</Text>
               </View>
               <View style={[styles.termWarningBox, { borderColor: 'rgba(232,137,60,0.3)', backgroundColor: 'rgba(232,137,60,0.07)' }]}>
                 <Text style={[styles.termText, { color: colors.textSecondary }]}>
-                  Queda estrictamente prohibido:{`\n`}
-                  <Text style={{ color: colors.accentOrange }}>•</Text>{` Subir fotografías o datos de personas sin consentimiento.\n`}
-                  <Text style={{ color: colors.accentOrange }}>•</Text>{` Publicar contenido ofensivo o discriminatorio.\n`}
+                  Queda estrictamente prohibido:{`\n\n`}
+                  <Text style={{ color: colors.accentOrange }}>•</Text>{` Subir fotografías, datos personales o cualquier información identificable de cualquier persona —sea o no miembro de la universidad— sin su consentimiento explícito.\n\n`}
+                  <Text style={{ color: colors.accentOrange }}>•</Text>{` Publicar, compartir o almacenar contenido explícito, ilegal, ofensivo, discriminatorio o que atente contra la dignidad de cualquier persona.\n\n`}
+                  <Text style={{ color: colors.accentOrange }}>•</Text>{` Usar la plataforma con fines distintos al cuidado y monitoreo felino.\n\n`}
                   <Text style={{ color: colors.accentOrange }}>•</Text>{` Suplantar identidades o crear cuentas falsas.`}
                 </Text>
               </View>
+
+              {/* Sección 4 */}
               <View style={styles.termRow}>
-                <View style={styles.termBadge}><Text style={styles.termBadgeText}>3</Text></View>
+                <View style={styles.termBadge}><Text style={styles.termBadgeText}>4</Text></View>
+                <Text style={[styles.termSection, { color: colors.textMain }]}>Deslinde de responsabilidad</Text>
+              </View>
+              <Text style={[styles.termText, { color: colors.textSecondary }]}>
+                El equipo de desarrollo y los administradores de MichisUAA no se hacen responsables del uso indebido que los usuarios hagan de la plataforma. Cualquier contenido publicado es responsabilidad exclusiva de quien lo genera. El incumplimiento de estos términos puede resultar en la suspensión inmediata de la cuenta y, de ser necesario, en el reporte a las autoridades universitarias competentes.
+              </Text>
+
+              {/* Sección 5 */}
+              <View style={styles.termRow}>
+                <View style={styles.termBadge}><Text style={styles.termBadgeText}>5</Text></View>
+                <Text style={[styles.termSection, { color: colors.textMain }]}>Privacidad de datos</Text>
+              </View>
+              <Text style={[styles.termText, { color: colors.textSecondary }]}>
+                Los datos proporcionados al registrarse (nombre y correo institucional) se utilizarán únicamente para identificarte dentro de la plataforma. Los datos no serán comercializados ni compartidos con terceros ajenos al funcionamiento técnico de la plataforma.
+              </Text>
+
+              {/* Sección 6 */}
+              <View style={styles.termRow}>
+                <View style={styles.termBadge}><Text style={styles.termBadgeText}>6</Text></View>
                 <Text style={[styles.termSection, { color: colors.textMain }]}>Aceptación</Text>
               </View>
               <Text style={[styles.termText, { color: colors.textSecondary, marginBottom: 8 }]}>
                 Al presionar <Text style={{ color: colors.accentOrange, fontWeight: '600' }}>"Acepto y crear cuenta"</Text> confirmas que has leído, entendido y aceptado estos términos y condiciones en su totalidad.
               </Text>
             </ScrollView>
-            <View style={[styles.modalDivider, { marginBottom: 16 }]} />
+            <View style={[styles.modalDivider, { marginBottom: 24 }]} />
             <View style={styles.modalButtons}>
               <TouchableOpacity style={[styles.modalBtnCancel, { borderColor: colors.borderColor }]} onPress={() => setShowTerms(false)}>
                 <Text style={[styles.modalBtnCancelText, { color: colors.textSecondary }]}>Cancelar</Text>
@@ -321,15 +357,14 @@ const styles = StyleSheet.create({
   hintText: { fontSize: 12, fontWeight: '500' },
   button: { borderRadius: 8, paddingVertical: 15, alignItems: 'center', marginTop: 12 },
   buttonText: { color: '#ffffff', fontSize: 16, fontWeight: '700' },
-  modalOverlay: { flex: 1, backgroundColor: 'rgba(0,0,0,0.65)', justifyContent: 'flex-end' },
-  modalCard: { borderTopLeftRadius: 28, borderTopRightRadius: 28, borderWidth: 1, paddingHorizontal: 22, paddingTop: 12, paddingBottom: 32, maxHeight: '88%' },
-  dragHandle: { width: 40, height: 4, borderRadius: 2, alignSelf: 'center', marginBottom: 20 },
+  modalOverlay: { flex: 1, backgroundColor: 'rgba(0,0,0,0.65)', justifyContent: 'center', alignItems: 'center', padding: 24 },
+  modalCard: { borderRadius: 24, borderWidth: 1, paddingHorizontal: 32, paddingTop: 32, paddingBottom: 32, width: '100%', maxWidth: 600, maxHeight: '90%', flexShrink: 1 },
   modalHeader: { flexDirection: 'row', alignItems: 'center', gap: 14, marginBottom: 16 },
   modalIconWrap: { width: 44, height: 44, borderRadius: 12, backgroundColor: 'rgba(232,137,60,0.15)', justifyContent: 'center', alignItems: 'center' },
   modalTitle: { fontSize: 18, fontWeight: '800', marginBottom: 2 },
   modalSubtitle: { fontSize: 12 },
   modalDivider: { height: 1.5, backgroundColor: '#e8893c', opacity: 0.25, marginBottom: 12 },
-  modalScroll: { maxHeight: 360, marginBottom: 8 },
+  modalScroll: { flexShrink: 1, marginBottom: 24 },
   termRow: { flexDirection: 'row', alignItems: 'center', gap: 10, marginTop: 16, marginBottom: 6 },
   termBadge: { width: 22, height: 22, borderRadius: 11, backgroundColor: '#e8893c', justifyContent: 'center', alignItems: 'center' },
   termBadgeDanger: { backgroundColor: '#c0392b' },
