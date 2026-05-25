@@ -34,7 +34,12 @@
     "web": {
       "bundler": "metro",
       "output": "static",
-      "favicon": "./assets/images/MichisUAALogo.png"
+      "favicon": "./assets/images/MichisUAALogo.png",
+      "config": {
+        "googleMaps": {
+          "apiKey": "AIzaSyADQzw2MMrv-xRAen2KOZOErAF8j2rDu-U"
+        }
+      }
     },
     "plugins": [
       "expo-router",
