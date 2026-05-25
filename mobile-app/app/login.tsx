@@ -12,6 +12,7 @@ import { registrarPushToken } from '@/hooks/useAuth';
 // Utils
 import { showAlert } from '@/utils/alerts';
 import WebBackground from '@/components/WebBackground';
+import WebRegisterForm from '@/components/WebRegisterForm';
 
 export default function LoginScreen() {
   const colorScheme = useColorScheme() ?? 'light';
@@ -26,6 +27,23 @@ export default function LoginScreen() {
   const [password, setPassword] = useState('');
   const [loading, setLoading] = useState(false);
   const [focusedInput, setFocusedInput] = useState<'email' | 'password' | null>(null);
+
+  const [isRegistering, setIsRegistering] = useState(false);
+  const [animating, setAnimating] = useState(false);
+
+  const toggleForm = () => {
+    if (Platform.OS === 'web') {
+      setAnimating(true);
+      setTimeout(() => {
+        setIsRegistering(!isRegistering);
+        setTimeout(() => {
+          setAnimating(false);
+        }, 50);
+      }, 200);
+    } else {
+      router.push('/register');
+    }
+  };
 
   const onLoginPress = async () => {
     // Validación de correo vacío
@@ -78,14 +96,20 @@ export default function LoginScreen() {
           Platform.OS === 'web' && { transform: [{ scale }] }
         ]}>
           {/* Header */}
-          <View style={styles.header}>
-            <Image 
-              source={require('../assets/images/MichisUAALogo.png')} 
-              style={styles.logo}
-              resizeMode="contain"
-            />
-            <Text style={[styles.title, { color: colors.textMain }]}>MichisUAA</Text>
-            <Text style={[styles.subtitle, { color: colors.textSecondary }]}>Colonias felinas del campus</Text>
+          <View style={[styles.header, Platform.OS === 'web' && { transition: 'opacity 0.2s ease', opacity: animating ? 0 : 1 } as any]}>
+            {(!isRegistering || Platform.OS !== 'web') && (
+              <Image 
+                source={require('../assets/images/MichisUAALogo.png')} 
+                style={styles.logo}
+                resizeMode="contain"
+              />
+            )}
+            <Text style={[styles.title, { color: colors.textMain }]}>
+              {isRegistering ? "Únete a MichisUAA" : "MichisUAA"}
+            </Text>
+            <Text style={[styles.subtitle, { color: colors.textSecondary }]}>
+              {isRegistering ? "Ayuda a cuidar las colonias del campus" : "Colonias felinas del campus"}
+            </Text>
           </View>
 
           {/* Card */}
@@ -113,94 +137,106 @@ export default function LoginScreen() {
               } as any} />
             )}
             
-            <View style={styles.inputGroup}>
-              <Text style={[styles.label, { color: colors.textSecondary }]}>Correo electrónico:</Text>
-              <TextInput 
-                style={[
-                  styles.input, 
-                  { 
-                    backgroundColor: colorScheme === 'dark' ? colors.fondoGris : colors.fondoGrisOscuro, 
-                    borderColor: focusedInput === 'email' ? colors.accentOrange : colors.borderColor,
-                    color: colors.textMain
-                  },
-                  Platform.OS === 'web' && {
-                    outlineStyle: 'none',
-                    transition: 'border-color 0.15s, box-shadow 0.15s, background-color 0.15s',
-                    ...(focusedInput === 'email' ? {
-                      boxShadow: '0 0 0 2px rgba(232, 137, 60, 0.15)',
-                      backgroundColor: colors.bgHover || (colorScheme === 'dark' ? 'rgba(255,255,255,0.03)' : 'rgba(0,0,0,0.05)')
-                    } : {})
-                  } as any
-                ]}
-                placeholder="usuario@edu.uaa.mx"
-                placeholderTextColor={colors.textSecondary}
-                value={email}
-                onChangeText={setEmail}
-                onFocus={() => setFocusedInput('email')}
-                onBlur={() => setFocusedInput(null)}
-                keyboardType="email-address"
-                autoCapitalize="none"
-              />
+            <View style={[Platform.OS === 'web' && { transition: 'opacity 0.2s ease', opacity: animating ? 0 : 1, width: '100%' } as any]}>
+              {isRegistering && Platform.OS === 'web' ? (
+                <WebRegisterForm onBackToLogin={toggleForm} />
+              ) : (
+                <>
+                  <View style={styles.inputGroup}>
+                    <Text style={[styles.label, { color: colors.textSecondary }]}>Correo electrónico:</Text>
+                    <TextInput 
+                      style={[
+                        styles.input, 
+                        { 
+                          backgroundColor: colorScheme === 'dark' ? colors.fondoGris : colors.fondoGrisOscuro, 
+                          borderColor: focusedInput === 'email' ? colors.accentOrange : colors.borderColor,
+                          color: colors.textMain
+                        },
+                        Platform.OS === 'web' && {
+                          outlineStyle: 'none',
+                          transition: 'border-color 0.15s, box-shadow 0.15s, background-color 0.15s',
+                          ...(focusedInput === 'email' ? {
+                            boxShadow: '0 0 0 2px rgba(232, 137, 60, 0.15)',
+                            backgroundColor: colors.bgHover || (colorScheme === 'dark' ? 'rgba(255,255,255,0.03)' : 'rgba(0,0,0,0.05)')
+                          } : {})
+                        } as any
+                      ]}
+                      placeholder="usuario@edu.uaa.mx"
+                      placeholderTextColor={colors.textSecondary}
+                      value={email}
+                      onChangeText={setEmail}
+                      onFocus={() => setFocusedInput('email')}
+                      onBlur={() => setFocusedInput(null)}
+                      keyboardType="email-address"
+                      autoCapitalize="none"
+                    />
+                  </View>
+
+                  <View style={styles.inputGroup}>
+                    <Text style={[styles.label, { color: colors.textSecondary }]}>Contraseña:</Text>
+                    <TextInput 
+                      style={[
+                        styles.input, 
+                        { 
+                          backgroundColor: colorScheme === 'dark' ? colors.fondoGris : colors.fondoGrisOscuro, 
+                          borderColor: focusedInput === 'password' ? colors.accentOrange : colors.borderColor,
+                          color: colors.textMain
+                        },
+                        Platform.OS === 'web' && {
+                          outlineStyle: 'none',
+                          transition: 'border-color 0.15s, box-shadow 0.15s, background-color 0.15s',
+                          ...(focusedInput === 'password' ? {
+                            boxShadow: '0 0 0 2px rgba(232, 137, 60, 0.15)',
+                            backgroundColor: colors.bgHover || (colorScheme === 'dark' ? 'rgba(255,255,255,0.03)' : 'rgba(0,0,0,0.05)')
+                          } : {})
+                        } as any
+                      ]}
+                      placeholder="******************"
+                      placeholderTextColor={colors.textSecondary}
+                      value={password}
+                      onChangeText={setPassword}
+                      onFocus={() => setFocusedInput('password')}
+                      onBlur={() => setFocusedInput(null)}
+                      secureTextEntry
+                    />
+                  </View>
+
+                  <TouchableOpacity style={styles.forgotPassword}>
+                    <Text style={[styles.forgotPasswordText, { color: colors.accentOrange }]}>
+                      Olvidaste tu contraseña?
+                    </Text>
+                  </TouchableOpacity>
+
+                  <TouchableOpacity 
+                    style={[
+                      styles.loginButton, 
+                      { backgroundColor: colors.accentOrange },
+                      Platform.OS === 'web' && {
+                        backgroundImage: 'linear-gradient(to right, #e8893c, #d8aa71)',
+                        boxShadow: '0 4px 14px 0 rgba(232, 137, 60, 0.39)',
+                      } as any,
+                      loading && { opacity: 0.7 }
+                    ]} 
+                    onPress={onLoginPress}
+                    disabled={loading}
+                  >
+                    <Text style={styles.loginButtonText}>
+                      {loading ? "Cargando..." : "Iniciar Sesión"}
+                    </Text>
+                  </TouchableOpacity>
+                </>
+              )}
             </View>
-
-            <View style={styles.inputGroup}>
-              <Text style={[styles.label, { color: colors.textSecondary }]}>Contraseña:</Text>
-              <TextInput 
-                style={[
-                  styles.input, 
-                  { 
-                    backgroundColor: colorScheme === 'dark' ? colors.fondoGris : colors.fondoGrisOscuro, 
-                    borderColor: focusedInput === 'password' ? colors.accentOrange : colors.borderColor,
-                    color: colors.textMain
-                  },
-                  Platform.OS === 'web' && {
-                    outlineStyle: 'none',
-                    transition: 'border-color 0.15s, box-shadow 0.15s, background-color 0.15s',
-                    ...(focusedInput === 'password' ? {
-                      boxShadow: '0 0 0 2px rgba(232, 137, 60, 0.15)',
-                      backgroundColor: colors.bgHover || (colorScheme === 'dark' ? 'rgba(255,255,255,0.03)' : 'rgba(0,0,0,0.05)')
-                    } : {})
-                  } as any
-                ]}
-                placeholder="******************"
-                placeholderTextColor={colors.textSecondary}
-                value={password}
-                onChangeText={setPassword}
-                onFocus={() => setFocusedInput('password')}
-                onBlur={() => setFocusedInput(null)}
-                secureTextEntry
-              />
-            </View>
-
-            <TouchableOpacity style={styles.forgotPassword}>
-              <Text style={[styles.forgotPasswordText, { color: colors.accentOrange }]}>
-                Olvidaste tu contraseña?
-              </Text>
-            </TouchableOpacity>
-
-            <TouchableOpacity 
-              style={[
-                styles.loginButton, 
-                { backgroundColor: colors.accentOrange },
-                Platform.OS === 'web' && {
-                  backgroundImage: 'linear-gradient(to right, #e8893c, #d8aa71)',
-                  boxShadow: '0 4px 14px 0 rgba(232, 137, 60, 0.39)',
-                } as any,
-                loading && { opacity: 0.7 }
-              ]} 
-              onPress={onLoginPress}
-              disabled={loading}
-            >
-              <Text style={styles.loginButtonText}>
-                {loading ? "Cargando..." : "Iniciar Sesión"}
-              </Text>
-            </TouchableOpacity>
           </View>
 
-          <View style={styles.footer}>
-            <Text style={{ color: colors.textSecondary, fontSize: 14 }}>¿Primera vez? </Text>
-            <TouchableOpacity onPress={() => router.push('/register')}>
-              <Text style={{ color: colors.accentOrange, fontSize: 14, fontWeight: '500' }}>Regístrate gratis</Text>
+          <View style={[styles.footer, Platform.OS === 'web' && { transition: 'opacity 0.2s ease', opacity: animating ? 0 : 1 } as any]}>
+            <Text style={{ color: colors.textSecondary, fontSize: 14 }}>
+              {isRegistering ? "¿Ya tienes cuenta? " : "¿Primera vez? "}
+            </Text>
+            <TouchableOpacity onPress={toggleForm}>
+              <Text style={{ color: colors.accentOrange, fontSize: 14, fontWeight: '500' }}>
+                {isRegistering ? "Inicia sesión" : "Regístrate gratis"}
+              </Text>
             </TouchableOpacity>
           </View>
 
