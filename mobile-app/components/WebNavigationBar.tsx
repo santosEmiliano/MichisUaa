@@ -1,7 +1,8 @@
 import React from 'react';
-import { View, Text, TouchableOpacity, useColorScheme, Platform } from 'react-native';
+import { View, Text, TouchableOpacity, Platform } from 'react-native';
 import FontAwesome from '@expo/vector-icons/FontAwesome';
 import Colors from '@/constants/Colors';
+import { useColorScheme } from '@/components/useColorScheme';
 
 export default function WebNavigationBar({ state, descriptors, navigation }: any) {
   const theme = useColorScheme() ?? 'light';
