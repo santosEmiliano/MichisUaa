@@ -177,49 +177,39 @@ export default function MapScreen() {
     <View style={styles.container}>
       <MapView
         ref={mapRef}
-        key={activeFilter} 
+        provider="google"
         style={styles.map}
-        initialRegion={mapRegion}
+        initialRegion={UAA_REGION}
         onRegionChangeComplete={(region) => setMapRegion(region)}
-        showsUserLocation={true}
-        showsMyLocationButton={true}
         renderCluster={renderCluster}
-        animationEnabled={false}
-        radius={15} 
-        maxZoom={18}
+        showsUserLocation={true}
+        clusterColor="#F28C38"
       >
         {filteredAnimals.map((animal) => {
-          let borderColor = '#4CAF50'; // Verificado por defecto
-          if (animal.estado === 'Desaparecido') borderColor = '#F44336';
-          else if (animal.estado === 'NoRegistrado') borderColor = '#FF9800';
-
+          const statusColor = animal.estado === 'Verificado' ? '#4CAF50' : animal.estado === 'Desaparecido' ? '#F44336' : '#FF9800';
+          
           return (
             <Marker
-              key={`animal-stable-${animal.originalIndex}`}
+              key={animal._id || `animal-${animal.originalIndex}`}
               coordinate={{
-                latitude: animal.coordenadas!.latitud,
-                longitude: animal.coordenadas!.longitud,
+                latitude: Number(animal.coordenadas.latitud),
+                longitude: Number(animal.coordenadas.longitud),
               }}
               tracksViewChanges={false}
             >
-              <View style={[styles.customMarker, { borderColor, backgroundColor: theme === 'dark' ? colors.bgPanel : 'white' }]}>
-                {animal.foto_url ? (
-                  <Image source={{ uri: animal.foto_url }} style={styles.markerImage} />
+              <View style={[styles.customMarker, { borderColor: statusColor }]}>
+                {animal.foto ? (
+                  <Image source={{ uri: animal.foto }} style={styles.markerImage} />
                 ) : (
-                  <Text style={[styles.markerText, { color: colors.textMain }]}>?</Text>
+                  <Text style={styles.markerText}>{animal.nombre?.charAt(0) || '?'}</Text>
                 )}
               </View>
-
               <Callout tooltip>
-                <View style={[styles.calloutContainer, { backgroundColor: colors.bgPanel, borderColor: colors.borderColor, borderWidth: theme === 'dark' ? 1 : 0 }]}>
-                  {animal.foto_url && (
-                    <Image source={{ uri: animal.foto_url }} style={styles.calloutImage} />
-                  )}
-                  <Text style={[styles.calloutTitle, { color: colors.textMain }]}>{animal.nombre}</Text>
-                  <Text style={[styles.calloutText, { color: colors.textSecondary }]}>Colonia: {animal.colonia}</Text>
-                  <Text style={[styles.calloutStatus, { color: borderColor }]}>
-                    {animal.estado === 'NoRegistrado' ? 'No Registrado' : animal.estado}
-                  </Text>
+                <View style={styles.calloutContainer}>
+                  {animal.foto && <Image source={{ uri: animal.foto }} style={styles.calloutImage} />}
+                  <Text style={styles.calloutTitle}>{animal.nombre}</Text>
+                  <Text style={styles.calloutText}>{animal.raza}</Text>
+                  <Text style={[styles.calloutStatus, { color: statusColor }]}>{animal.estado}</Text>
                 </View>
               </Callout>
             </Marker>
