@@ -33,14 +33,27 @@ EXPO_PUBLIC_BACKEND_IP=192.168.X.X
 ```
 *(Se puede obtener la dirección ejecutando `ipconfig` en sistemas Windows o `ifconfig` en sistemas Unix).*
 
-### 3. Compilación Nativa
+### 3. Compilación Nativa (Local)
 El comando habitual de desarrollo (`npx expo start`) no es suficiente para cargar los binarios requeridos por los módulos nativos. Es mandatorio compilar la aplicación para la plataforma destino utilizando:
 ```bash
 npx expo run:android
 ```
-Este comando inicializará el proceso de Gradle, compilará el código fuente nativo e instalará la aplicación directamente en el emulador configurado.
+Este comando inicializará el proceso de Gradle, compilará el código fuente nativo e instalará la aplicación directamente en el emulador configurado. Requiere Android Studio y JDK.
 
-### 4. Distribución de Versiones de Prueba (Testing)
+### 4. Alternativa: Desarrollo en la Nube (Expo Dev Client)
+Si un desarrollador no puede instalar Android Studio localmente, puede generar una compilación de desarrollo (Development Build) en los servidores en la nube de Expo. 
+1. Ejecutar el siguiente comando para generar la compilación en la nube:
+   ```bash
+   eas build --profile development --platform android
+   ```
+2. Descargar el archivo `.apk` resultante e instalarlo en un celular físico o emulador.
+3. Iniciar el servidor de empaquetado normal:
+   ```bash
+   npx expo start
+   ```
+4. Escanear el código QR desde el celular (o presionar `a` en la terminal) para inyectar el código local dentro de la aplicación nativa construida en la nube.
+
+### 5. Distribución de Versiones de Prueba (Testing)
 En caso de requerir que miembros del equipo (QA, Diseño) prueben la aplicación sin configurar el entorno de Android Studio, se debe generar un artefacto instalable (`.apk`). Para ello, ejecutar:
 ```bash
 eas build -p android --profile development
