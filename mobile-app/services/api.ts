@@ -9,7 +9,7 @@ let isNavigatingToLogin = false;
 
 export const BASE_URL =
   Platform.OS === "web"
-    ? "http://localhost:3000"
+    ? `http://${window.location.hostname}:3000`
     : `http://${BACKEND_IP}:3000`;
 
 export const apiFetch = async (
