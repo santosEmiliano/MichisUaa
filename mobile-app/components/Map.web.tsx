@@ -3,14 +3,45 @@ import { View } from 'react-native';
 import { Map, Overlay } from 'pigeon-maps';
 
 export const MapView = React.forwardRef((props: any, ref: any) => {
-  const region = props.region || props.initialRegion;
-  const center = region ? [region.latitude, region.longitude] : [21.9135, -102.3164];
-  
+  const initialCenter = props.initialRegion 
+    ? [props.initialRegion.latitude, props.initialRegion.longitude] 
+    : [21.9135, -102.3164];
+    
+  const [internalCenter, setInternalCenter] = useState<[number, number]>(initialCenter as [number, number]);
+  const [internalZoom, setInternalZoom] = useState<number>(16);
+
+  // Simulamos la API nativa de react-native-maps para que el botón de recentrar funcione en web
+  React.useImperativeHandle(ref, () => ({
+    animateToRegion: (region: any, duration?: number) => {
+      const newCenter: [number, number] = [region.latitude, region.longitude];
+      setInternalCenter(newCenter);
+      setInternalZoom(16); // Volvemos al zoom default al recentrar
+      if (props.onRegionChangeComplete) {
+        props.onRegionChangeComplete(region);
+      }
+    }
+  }));
+
+  // Notificamos a la app móvil cuando el usuario mueve el mapa web manualmente
+  const handleBoundsChanged = ({ center, zoom }: any) => {
+    setInternalCenter(center);
+    setInternalZoom(zoom); // Guardamos el zoom actual del usuario
+    if (props.onRegionChangeComplete) {
+      props.onRegionChangeComplete({
+        latitude: center[0],
+        longitude: center[1],
+        latitudeDelta: 0.015,
+        longitudeDelta: 0.015,
+      });
+    }
+  };
+
   return (
     <View style={[{flex: 1, backgroundColor: '#f0f0f0'}, props.style]}>
       <Map 
-        center={center as [number, number]} 
-        zoom={16} 
+        center={internalCenter} 
+        zoom={internalZoom} 
+        onBoundsChanged={handleBoundsChanged}
         mouseEvents={true}
         touchEvents={true}
       >
