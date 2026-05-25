@@ -258,11 +258,20 @@ export default function MapScreen() {
             opacity: opacityAnim,
             transform: [{ translateY: slideAnim }]
           },
-          Platform.OS === 'web' && { left: 0, right: 0, alignItems: 'center', top: 100 } as any
+          Platform.OS === 'web' && { top: 100 } as any
         ]}
         pointerEvents={showFilters ? "auto" : "none"}
       >
-        <ScrollView horizontal showsHorizontalScrollIndicator={false} contentContainerStyle={{ gap: 10 }}>
+        <ScrollView 
+          horizontal 
+          showsHorizontalScrollIndicator={false} 
+          contentContainerStyle={{ 
+            gap: 10, 
+            paddingHorizontal: 20, 
+            flexGrow: 1, 
+            justifyContent: (Platform.OS === 'web' && !isSmallScreen) ? 'center' : 'flex-start' 
+          }}
+        >
           {['Todos', 'Activos', 'No Registrados', 'Desaparecidos'].map((filter) => (
             <TouchableOpacity
               key={filter}
@@ -379,8 +388,8 @@ const styles = StyleSheet.create({
   filtersContainer: {
     position: 'absolute',
     top: 125,
-    left: 20,
-    right: 20,
+    left: 0,
+    right: 0,
     zIndex: 1,
   },
   filterButton: {
