@@ -129,6 +129,7 @@ async function modifyUser(id, data) {
     if (data.email !== undefined) updateData.email = data.email;
     if (data.password !== undefined) updateData.password = data.password;
     if (data.admin !== undefined) updateData.admin = data.admin;
+    if (data.pushToken !== undefined) updateData.pushToken = data.pushToken;
     if (data.coloniasIds !== undefined && Array.isArray(data.coloniasIds)) {
       let colonias = [];
       colonias = data.coloniasIds.map((id) => {

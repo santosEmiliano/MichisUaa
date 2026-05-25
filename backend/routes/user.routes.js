@@ -53,6 +53,13 @@ router.delete(
   userFunctions.removeUser
 )
 
+// Ruta PUT para registrar/actualizar token push
+router.put(
+  "/push-token",
+  token.verifyToken,
+  userFunctions.updatePushToken
+);
+
 // -------------------------------------------- DE PRUEBA --------------------------------------------
 // ENDPOINT QUE RETORNA LA INFORMACION DEL USUARIO SEGUN SU ID
 router.get("/login", (req, res) => {
