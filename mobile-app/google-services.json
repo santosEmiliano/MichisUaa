@@ -1,0 +1,29 @@
+{
+  "project_info": {
+    "project_number": "261653393240",
+    "project_id": "michisuaa-5cd3c",
+    "storage_bucket": "michisuaa-5cd3c.firebasestorage.app"
+  },
+  "client": [
+    {
+      "client_info": {
+        "mobilesdk_app_id": "1:261653393240:android:21f4cbf1e60e743259ff2d",
+        "android_client_info": {
+          "package_name": "com.anonymous.mobileapp"
+        }
+      },
+      "oauth_client": [],
+      "api_key": [
+        {
+          "current_key": "AIzaSyAP_0cfMMKD3p7E9Z_jI8z9KgIebOd76xs"
+        }
+      ],
+      "services": {
+        "appinvite_service": {
+          "other_platform_oauth_client": []
+        }
+      }
+    }
+  ],
+  "configuration_version": "1"
+}

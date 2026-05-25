@@ -22,7 +22,14 @@
         "backgroundColor": "#162422"
       },
       "edgeToEdgeEnabled": true,
-      "predictiveBackGestureEnabled": false
+      "predictiveBackGestureEnabled": false,
+      "package": "com.anonymous.mobileapp",
+      "googleServicesFile": "./google-services.json",
+      "config": {
+        "googleMaps": {
+          "apiKey": "AIzaSyADQzw2MMrv-xRAen2KOZOErAF8j2rDu-U"
+        }
+      }
     },
     "web": {
       "bundler": "metro",
@@ -35,6 +42,12 @@
     ],
     "experiments": {
       "typedRoutes": true
+    },
+    "extra": {
+      "router": {},
+      "eas": {
+        "projectId": "ae6860a4-c3b5-4965-810d-f82793137456"
+      }
     }
   }
 }

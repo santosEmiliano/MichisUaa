@@ -13,6 +13,15 @@ enum EstadoAnimal {
   NoRegistrado
 }
 
+enum TipoNotificacion {
+  avistamiento_nuevo
+  avistamiento_verificado
+  avistamiento_rechazado
+  gato_desaparecido
+  gato_nuevo
+  sistema
+}
+
 model Colonia {
   idColonia   Int      @id @default(autoincrement())
   nombre      String   @db.VarChar(100)
@@ -53,12 +62,14 @@ model Usuario {
   email     String   @unique @db.VarChar(80)
   password  String   @db.VarChar(150)
   admin     Boolean  @default(false) @db.TinyInt
+  pushToken String?  @unique @db.VarChar(255)
   createdAt DateTime @default(now()) @map("created_at")
 
   avistamientosRegistrados Avistamiento[] @relation("RegistradoPor")
   avistamientosVerificados Avistamiento[] @relation("VerificadoPor")
   usuariosCols             UsuarioCol[]
   medallas                 Medalla[]
+  notificaciones           Notificacion[]
 
   @@map("Usuario")
 }
@@ -79,8 +90,8 @@ model Avistamiento {
   usuarioId      Int
   animalId       Int?
   verificadoPor  Int?
-  foto_url             String?      @db.VarChar(160)
-  foto_id              String?      @db.VarChar(160)
+  foto_url       String?  @db.VarChar(160)
+  foto_id        String?  @db.VarChar(160)
   descripcion    String?  @db.VarChar(400)
   verificado     Boolean  @default(false)
   longitud       Decimal  @db.Decimal(10, 7)
@@ -107,3 +118,17 @@ model Medalla {
   @@map("Medalla")
 }
 
+model Notificacion {
+  id          Int              @id @default(autoincrement())
+  usuarioId   Int
+  tipo        TipoNotificacion
+  titulo      String           @db.VarChar(120)
+  descripcion String           @db.VarChar(300)
+  leida       Boolean          @default(false)
+  url         String?          @db.VarChar(200)
+  createdAt   DateTime         @default(now()) @map("created_at")
+
+  usuario Usuario @relation(fields: [usuarioId], references: [idUsuario], onDelete: Cascade)
+
+  @@map("Notificacion")
+}
