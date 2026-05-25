@@ -11,6 +11,7 @@ import { registrarPushToken } from '@/hooks/useAuth';
 
 // Utils
 import { showAlert } from '@/utils/alerts';
+import WebBackground from '@/components/WebBackground';
 
 export default function LoginScreen() {
   const colorScheme = useColorScheme() ?? 'light';
@@ -19,6 +20,7 @@ export default function LoginScreen() {
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
   const [loading, setLoading] = useState(false);
+  const [focusedInput, setFocusedInput] = useState<'email' | 'password' | null>(null);
 
   const onLoginPress = async () => {
     // Validación de correo vacío
@@ -61,8 +63,9 @@ export default function LoginScreen() {
 
   return (
     <SafeAreaView style={[styles.safeArea, { backgroundColor: colors.bgDark }]}>
+      <WebBackground />
       <KeyboardAvoidingView 
-        style={styles.container} 
+        style={[styles.container, Platform.OS === 'web' && { zIndex: 10 } as any]} 
         behavior={Platform.OS === 'ios' ? 'padding' : 'height'}
       >
         <View style={styles.content}>
@@ -78,7 +81,29 @@ export default function LoginScreen() {
           </View>
 
           {/* Card */}
-          <View style={[styles.card, { backgroundColor: colors.bgPanel, borderColor: colors.borderColor }]}>
+          <View style={[
+            styles.card, 
+            { backgroundColor: colors.bgPanel, borderColor: colors.borderColor },
+            Platform.OS === 'web' && {
+              backgroundColor: colorScheme === 'dark' ? 'rgba(22, 36, 34, 0.6)' : 'rgba(255, 255, 255, 0.7)',
+              backdropFilter: 'blur(24px)',
+              WebkitBackdropFilter: 'blur(24px)',
+              boxShadow: '0 8px 32px 0 rgba(0,0,0,0.2)',
+              borderWidth: 1,
+              borderColor: colorScheme === 'dark' ? 'rgba(255, 255, 255, 0.08)' : 'rgba(0, 0, 0, 0.1)',
+              overflow: 'hidden'
+            } as any
+          ]}>
+            {Platform.OS === 'web' && (
+              <View style={{
+                position: 'absolute',
+                top: 0,
+                left: 0,
+                right: 0,
+                height: 1,
+                backgroundImage: 'linear-gradient(90deg, transparent, #e8893c, #c28c46, transparent)'
+              } as any} />
+            )}
             
             <View style={styles.inputGroup}>
               <Text style={[styles.label, { color: colors.textSecondary }]}>Correo electrónico:</Text>
@@ -87,14 +112,24 @@ export default function LoginScreen() {
                   styles.input, 
                   { 
                     backgroundColor: colorScheme === 'dark' ? colors.fondoGris : colors.fondoGrisOscuro, 
-                    borderColor: colors.borderColor,
+                    borderColor: focusedInput === 'email' ? colors.accentOrange : colors.borderColor,
                     color: colors.textMain
-                  }
+                  },
+                  Platform.OS === 'web' && {
+                    outlineStyle: 'none',
+                    transition: 'border-color 0.15s, box-shadow 0.15s, background-color 0.15s',
+                    ...(focusedInput === 'email' ? {
+                      boxShadow: '0 0 0 2px rgba(232, 137, 60, 0.15)',
+                      backgroundColor: colors.bgHover || (colorScheme === 'dark' ? 'rgba(255,255,255,0.03)' : 'rgba(0,0,0,0.05)')
+                    } : {})
+                  } as any
                 ]}
                 placeholder="usuario@edu.uaa.mx"
                 placeholderTextColor={colors.textSecondary}
                 value={email}
                 onChangeText={setEmail}
+                onFocus={() => setFocusedInput('email')}
+                onBlur={() => setFocusedInput(null)}
                 keyboardType="email-address"
                 autoCapitalize="none"
               />
@@ -107,14 +142,24 @@ export default function LoginScreen() {
                   styles.input, 
                   { 
                     backgroundColor: colorScheme === 'dark' ? colors.fondoGris : colors.fondoGrisOscuro, 
-                    borderColor: colors.borderColor,
+                    borderColor: focusedInput === 'password' ? colors.accentOrange : colors.borderColor,
                     color: colors.textMain
-                  }
+                  },
+                  Platform.OS === 'web' && {
+                    outlineStyle: 'none',
+                    transition: 'border-color 0.15s, box-shadow 0.15s, background-color 0.15s',
+                    ...(focusedInput === 'password' ? {
+                      boxShadow: '0 0 0 2px rgba(232, 137, 60, 0.15)',
+                      backgroundColor: colors.bgHover || (colorScheme === 'dark' ? 'rgba(255,255,255,0.03)' : 'rgba(0,0,0,0.05)')
+                    } : {})
+                  } as any
                 ]}
                 placeholder="******************"
                 placeholderTextColor={colors.textSecondary}
                 value={password}
                 onChangeText={setPassword}
+                onFocus={() => setFocusedInput('password')}
+                onBlur={() => setFocusedInput(null)}
                 secureTextEntry
               />
             </View>
@@ -129,6 +174,10 @@ export default function LoginScreen() {
               style={[
                 styles.loginButton, 
                 { backgroundColor: colors.accentOrange },
+                Platform.OS === 'web' && {
+                  backgroundImage: 'linear-gradient(to right, #e8893c, #d8aa71)',
+                  boxShadow: '0 4px 14px 0 rgba(232, 137, 60, 0.39)',
+                } as any,
                 loading && { opacity: 0.7 }
               ]} 
               onPress={onLoginPress}
