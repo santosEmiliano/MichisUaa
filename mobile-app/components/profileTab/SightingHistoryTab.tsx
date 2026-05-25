@@ -1,5 +1,5 @@
-import React, { useState } from 'react';
-import { StyleSheet, View, Text, ScrollView, TouchableOpacity, Image, Modal, Pressable, useWindowDimensions } from 'react-native';
+import React, { useState, useEffect, useRef } from 'react';
+import { StyleSheet, View, Text, ScrollView, TouchableOpacity, Image, Modal, Pressable, useWindowDimensions, Animated } from 'react-native';
 
 import Colors from '@/constants/Colors';
 import { useColorScheme } from '@/components/useColorScheme';
@@ -65,7 +65,82 @@ function formatDate(dateString: string): string {
   return `${day} de ${monthNames[date.getMonth()]} · ${time}`;
 }
 
+const AnimatedSightingCard = ({ sighting, index, itemsPerRow, setSelectedPhoto, colors }: any) => {
+  const opacityAnim = useRef(new Animated.Value(0)).current;
+  const translateYAnim = useRef(new Animated.Value(20)).current;
 
+  useEffect(() => {
+    Animated.parallel([
+      Animated.timing(opacityAnim, {
+        toValue: 1,
+        duration: 400,
+        delay: index * 50,
+        useNativeDriver: true,
+      }),
+      Animated.timing(translateYAnim, {
+        toValue: 0,
+        duration: 400,
+        delay: index * 50,
+        useNativeDriver: true,
+      })
+    ]).start();
+  }, [index]);
+
+  const status = getStatus(sighting);
+  const statusColors = getStatusColor(status);
+  const catName = sighting.animal?.nombre || 'No identificado';
+  const location = sighting.animal?.colonia?.zona || 'Ubicación desconocida';
+  
+  const cardWidthStyle = `${100 / itemsPerRow}%` as any;
+
+  return (
+    <Animated.View style={{ width: cardWidthStyle, paddingHorizontal: 6, marginBottom: 12, opacity: opacityAnim, transform: [{ translateY: translateYAnim }] }}>
+      <View style={[styles.card, { backgroundColor: colors.bgCard }]}>
+        {sighting.foto_url ? (
+          <TouchableOpacity onPress={() => setSelectedPhoto(sighting.foto_url)} activeOpacity={0.85}>
+            <Image
+              source={{ uri: sighting.foto_url }}
+              style={styles.sightingImage}
+              resizeMode="cover"
+            />
+          </TouchableOpacity>
+        ) : (
+          <View style={[styles.sightingImage, styles.sightingImagePlaceholder, { backgroundColor: colors.fondoGris }]}>
+            <Text style={styles.placeholderEmoji}>🐱</Text>
+          </View>
+        )}
+
+        <View style={styles.cardContent}>
+          <View style={styles.cardTitleRow}>
+            <Text style={[styles.catName, { color: colors.textMain }]} numberOfLines={1}>
+              {catName}
+            </Text>
+            <View style={[styles.statusBadge, { backgroundColor: statusColors.bg }]}>
+              <Text style={[styles.statusText, { color: statusColors.text }]}>{status}</Text>
+            </View>
+          </View>
+
+          <View style={styles.locationRow}>
+            <Text style={{ fontSize: 12 }}>📍</Text>
+            <Text style={[styles.locationText, { color: colors.textSecondary }]} numberOfLines={1}>
+              {location}
+            </Text>
+          </View>
+
+          <Text style={[styles.dateText, { color: colors.textSecondary }]}>
+            {formatDate(sighting.createdAt)}
+          </Text>
+
+          {sighting.descripcion && (
+            <Text style={[styles.descriptionText, { color: colors.textSecondary }]} numberOfLines={2}>
+              {sighting.descripcion}
+            </Text>
+          )}
+        </View>
+      </View>
+    </Animated.View>
+  );
+};
 
 export default function SightingHistoryTab({ sightings }: SightingHistoryTabProps) {
   const colorScheme = useColorScheme() ?? 'light';
@@ -152,61 +227,17 @@ export default function SightingHistoryTab({ sightings }: SightingHistoryTabProp
           </View>
         ) : (
           <View style={{ flexDirection: 'row', flexWrap: 'wrap', marginHorizontal: -6 }}>
-            {filtered.map((sighting) => {
-              const status = getStatus(sighting);
-              const statusColors = getStatusColor(status);
-              const catName = sighting.animal?.nombre || 'No identificado';
-              const location = sighting.animal?.colonia?.zona || 'Ubicación desconocida';
-              
+            {filtered.map((sighting, index) => {
               const itemsPerRow = width >= 1024 ? 3 : (width >= 768 ? 2 : 1);
-              const cardWidthStyle = `${100 / itemsPerRow}%` as any;
-
               return (
-                <View key={sighting.idAvistamiento} style={{ width: cardWidthStyle, paddingHorizontal: 6, marginBottom: 12 }}>
-                  <View style={[styles.card, { backgroundColor: colors.bgCard }]}>
-                    {sighting.foto_url ? (
-                      <TouchableOpacity onPress={() => setSelectedPhoto(sighting.foto_url)} activeOpacity={0.85}>
-                        <Image
-                          source={{ uri: sighting.foto_url }}
-                          style={styles.sightingImage}
-                          resizeMode="cover"
-                        />
-                      </TouchableOpacity>
-                    ) : (
-                      <View style={[styles.sightingImage, styles.sightingImagePlaceholder, { backgroundColor: colors.fondoGris }]}>
-                        <Text style={styles.placeholderEmoji}>🐱</Text>
-                      </View>
-                    )}
-
-                    <View style={styles.cardContent}>
-                      <View style={styles.cardTitleRow}>
-                        <Text style={[styles.catName, { color: colors.textMain }]} numberOfLines={1}>
-                          {catName}
-                        </Text>
-                        <View style={[styles.statusBadge, { backgroundColor: statusColors.bg }]}>
-                          <Text style={[styles.statusText, { color: statusColors.text }]}>{status}</Text>
-                        </View>
-                      </View>
-
-                      <View style={styles.locationRow}>
-                        <Text style={{ fontSize: 12 }}>📍</Text>
-                        <Text style={[styles.locationText, { color: colors.textSecondary }]} numberOfLines={1}>
-                          {location}
-                        </Text>
-                      </View>
-
-                      <Text style={[styles.dateText, { color: colors.textSecondary }]}>
-                        {formatDate(sighting.createdAt)}
-                      </Text>
-
-                      {sighting.descripcion && (
-                        <Text style={[styles.descriptionText, { color: colors.textSecondary }]} numberOfLines={2}>
-                          {sighting.descripcion}
-                        </Text>
-                      )}
-                    </View>
-                  </View>
-                </View>
+                <AnimatedSightingCard
+                  key={sighting.idAvistamiento}
+                  sighting={sighting}
+                  index={index}
+                  itemsPerRow={itemsPerRow}
+                  setSelectedPhoto={setSelectedPhoto}
+                  colors={colors}
+                />
               );
             })}
           </View>
