@@ -1,4 +1,4 @@
-import { StyleSheet, View, Text, TextInput, TouchableOpacity, KeyboardAvoidingView, Platform, SafeAreaView, Image } from 'react-native';
+import { StyleSheet, View, Text, TextInput, TouchableOpacity, KeyboardAvoidingView, Platform, SafeAreaView, Image, useWindowDimensions } from 'react-native';
 import Colors from '@/constants/Colors';
 import { useColorScheme } from '@/components/useColorScheme';
 import { useState } from 'react';
@@ -16,6 +16,11 @@ import WebBackground from '@/components/WebBackground';
 export default function LoginScreen() {
   const colorScheme = useColorScheme() ?? 'light';
   const colors = Colors[colorScheme];
+  const { height, width } = useWindowDimensions();
+
+  // Escala dinámica para web:
+  // Si la ventana mide menos de 850px de alto o 450px de ancho, el contenedor se encogerá proporcionalmente.
+  const scale = Platform.OS === 'web' ? Math.min(1, height / 850, width / 450) : 1;
 
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
@@ -68,7 +73,10 @@ export default function LoginScreen() {
         style={[styles.container, Platform.OS === 'web' && { zIndex: 10 } as any]} 
         behavior={Platform.OS === 'ios' ? 'padding' : 'height'}
       >
-        <View style={styles.content}>
+        <View style={[
+          styles.content,
+          Platform.OS === 'web' && { transform: [{ scale }] }
+        ]}>
           {/* Header */}
           <View style={styles.header}>
             <Image 
@@ -213,7 +221,7 @@ const styles = StyleSheet.create({
     flex: 1,
     justifyContent: 'center',
     alignItems: 'center',
-    padding: 24,
+    paddingHorizontal: 24,
     width: '100%',
   },
   header: {
