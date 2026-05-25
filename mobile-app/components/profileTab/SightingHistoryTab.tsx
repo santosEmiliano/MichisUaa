@@ -233,7 +233,7 @@ const styles = StyleSheet.create({
   },
   cardList: {
     paddingHorizontal: 16,
-    paddingBottom: 24,
+    paddingBottom: 120,
   },
   emptyContainer: {
     paddingVertical: 40,

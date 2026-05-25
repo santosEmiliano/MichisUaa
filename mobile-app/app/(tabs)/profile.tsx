@@ -189,7 +189,6 @@ export default function ProfileScreen() {
 const styles = StyleSheet.create({
   screen: {
     flex: 1,
-    paddingBottom: 120,
   },
   loadingContainer: {
     padding: 30,
