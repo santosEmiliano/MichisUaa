@@ -1,5 +1,5 @@
 import React, { useState, useEffect, useMemo, useRef, useCallback } from 'react';
-import { StyleSheet, View, Text, TextInput, TouchableOpacity, Alert, Image, Animated, useColorScheme, ScrollView, Platform } from 'react-native';
+import { StyleSheet, View, Text, TextInput, TouchableOpacity, Alert, Image, Animated, useColorScheme, ScrollView, Platform, useWindowDimensions } from 'react-native';
 import { useFocusEffect } from 'expo-router';
 import * as Location from 'expo-location';
 import { MapClustering as MapView, Marker, Callout } from '@/components/Map';
@@ -19,10 +19,12 @@ export default function MapScreen() {
   const [location, setLocation] = useState<Location.LocationObject | null>(null);
   const [searchText, setSearchText] = useState('');
   const [activeFilter, setActiveFilter] = useState('Todos');
-  const [showFilters, setShowFilters] = useState(false);
+  const [showFilters, setShowFilters] = useState(true);
 
   const theme = useColorScheme() ?? 'light';
   const colors = Colors[theme];
+  const { width } = useWindowDimensions();
+  const isSmallScreen = width < 768;
 
   // Valores animados de Filtros
   const slideAnim = useRef(new Animated.Value(-20)).current;
@@ -51,14 +53,18 @@ export default function MapScreen() {
 
   useEffect(() => {
     (async () => {
-      let { status } = await Location.requestForegroundPermissionsAsync();
-      if (status !== 'granted') {
-        Alert.alert('Permiso denegado', 'No se puede mostrar tu ubicación actual en el mapa.');
-        return;
-      }
+      try {
+        let { status } = await Location.requestForegroundPermissionsAsync();
+        if (status !== 'granted') {
+          console.warn('Permiso de ubicación denegado.');
+          return;
+        }
 
-      let currentLocation = await Location.getCurrentPositionAsync({});
-      setLocation(currentLocation);
+        let currentLocation = await Location.getCurrentPositionAsync({});
+        setLocation(currentLocation);
+      } catch (error) {
+        console.warn("No se pudo obtener la ubicación:", error);
+      }
     })();
   }, []);
 
@@ -289,19 +295,19 @@ export default function MapScreen() {
           borderColor: colors.borderColor,
           borderWidth: theme === 'dark' ? 1 : 0
         },
-        Platform.OS === 'web' && { padding: 24, borderRadius: 16, bottom: 30, left: 30, backdropFilter: 'blur(10px)', boxShadow: '0 8px 32px rgba(0,0,0,0.1)' } as any
+        Platform.OS === 'web' && { padding: isSmallScreen ? 14 : 24, borderRadius: 16, bottom: 110, left: isSmallScreen ? 10 : 30, backdropFilter: 'blur(10px)', boxShadow: '0 8px 32px rgba(0,0,0,0.1)' } as any
       ]}>
-        <View style={[styles.legendItem, Platform.OS === 'web' && { marginVertical: 8 } as any]}>
-          <View style={[styles.legendDot, { backgroundColor: '#4CAF50' }, Platform.OS === 'web' && { width: 16, height: 16, borderRadius: 8, marginRight: 12 } as any]} />
-          <Text style={[styles.legendText, { color: colors.textMain }, Platform.OS === 'web' && { fontSize: 16, fontWeight: '600' } as any]}>Verificado</Text>
+        <View style={[styles.legendItem, Platform.OS === 'web' && { marginVertical: isSmallScreen ? 4 : 8 } as any]}>
+          <View style={[styles.legendDot, { backgroundColor: '#4CAF50' }, Platform.OS === 'web' && { width: isSmallScreen ? 12 : 16, height: isSmallScreen ? 12 : 16, borderRadius: isSmallScreen ? 6 : 8, marginRight: 12 } as any]} />
+          <Text style={[styles.legendText, { color: colors.textMain }, Platform.OS === 'web' && { fontSize: isSmallScreen ? 13 : 16, fontWeight: '600' } as any]}>Verificado</Text>
         </View>
-        <View style={[styles.legendItem, Platform.OS === 'web' && { marginVertical: 8 } as any]}>
-          <View style={[styles.legendDot, { backgroundColor: '#FF9800' }, Platform.OS === 'web' && { width: 16, height: 16, borderRadius: 8, marginRight: 12 } as any]} />
-          <Text style={[styles.legendText, { color: colors.textMain }, Platform.OS === 'web' && { fontSize: 16, fontWeight: '600' } as any]}>No Registrado</Text>
+        <View style={[styles.legendItem, Platform.OS === 'web' && { marginVertical: isSmallScreen ? 4 : 8 } as any]}>
+          <View style={[styles.legendDot, { backgroundColor: '#FF9800' }, Platform.OS === 'web' && { width: isSmallScreen ? 12 : 16, height: isSmallScreen ? 12 : 16, borderRadius: isSmallScreen ? 6 : 8, marginRight: 12 } as any]} />
+          <Text style={[styles.legendText, { color: colors.textMain }, Platform.OS === 'web' && { fontSize: isSmallScreen ? 13 : 16, fontWeight: '600' } as any]}>No Registrado</Text>
         </View>
-        <View style={[styles.legendItem, Platform.OS === 'web' && { marginVertical: 8 } as any]}>
-          <View style={[styles.legendDot, { backgroundColor: '#F44336' }, Platform.OS === 'web' && { width: 16, height: 16, borderRadius: 8, marginRight: 12 } as any]} />
-          <Text style={[styles.legendText, { color: colors.textMain }, Platform.OS === 'web' && { fontSize: 16, fontWeight: '600' } as any]}>Desaparecido</Text>
+        <View style={[styles.legendItem, Platform.OS === 'web' && { marginVertical: isSmallScreen ? 4 : 8 } as any]}>
+          <View style={[styles.legendDot, { backgroundColor: '#F44336' }, Platform.OS === 'web' && { width: isSmallScreen ? 12 : 16, height: isSmallScreen ? 12 : 16, borderRadius: isSmallScreen ? 6 : 8, marginRight: 12 } as any]} />
+          <Text style={[styles.legendText, { color: colors.textMain }, Platform.OS === 'web' && { fontSize: isSmallScreen ? 13 : 16, fontWeight: '600' } as any]}>Desaparecido</Text>
         </View>
       </Animated.View>
 
@@ -400,7 +406,7 @@ const styles = StyleSheet.create({
   },
   legendContainer: {
     position: 'absolute',
-    bottom: 20,
+    bottom: 110,
     left: 20,
     backgroundColor: 'rgba(255, 255, 255, 0.9)',
     padding: 10,
@@ -500,7 +506,7 @@ const styles = StyleSheet.create({
   },
   recenterContainer: {
     position: 'absolute',
-    bottom: 20,
+    bottom: 110,
     right: 20,
     zIndex: 1,
   },
