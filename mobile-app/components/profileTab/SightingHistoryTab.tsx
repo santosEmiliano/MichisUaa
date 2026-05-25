@@ -1,5 +1,5 @@
 import React, { useState } from 'react';
-import { StyleSheet, View, Text, ScrollView, TouchableOpacity, Image, Modal, Pressable } from 'react-native';
+import { StyleSheet, View, Text, ScrollView, TouchableOpacity, Image, Modal, Pressable, useWindowDimensions } from 'react-native';
 
 import Colors from '@/constants/Colors';
 import { useColorScheme } from '@/components/useColorScheme';
@@ -70,6 +70,7 @@ function formatDate(dateString: string): string {
 export default function SightingHistoryTab({ sightings }: SightingHistoryTabProps) {
   const colorScheme = useColorScheme() ?? 'light';
   const colors = Colors[colorScheme];
+  const { width } = useWindowDimensions();
   const [activeFilter, setActiveFilter] = useState('Todos');
   const [selectedPhoto, setSelectedPhoto] = useState<string | null>(null);
 
@@ -85,12 +86,15 @@ export default function SightingHistoryTab({ sightings }: SightingHistoryTabProp
 
   return (
     <View style={styles.container}>
-      {/* Filtros horizontales */}
-      <View style={{ flexGrow: 0 }}>
+      {/* Filtros horizontales y Contador */}
+      <View style={{ flexGrow: 0, paddingHorizontal: 16, paddingTop: 16 }}>
+        <Text style={{ fontSize: 14, fontWeight: 'bold', color: colors.textMain, marginBottom: 8 }}>
+          Tus Avistamientos ({sightings.length})
+        </Text>
         <ScrollView
           horizontal
           showsHorizontalScrollIndicator={false}
-          contentContainerStyle={styles.filtersContainer}
+          contentContainerStyle={{ gap: 8, paddingBottom: 12 }}
         >
           {FILTERS.map((filter) => {
             const isActive = filter === activeFilter;
@@ -147,61 +151,65 @@ export default function SightingHistoryTab({ sightings }: SightingHistoryTabProp
             </Text>
           </View>
         ) : (
-          filtered.map((sighting) => {
-            const status = getStatus(sighting);
-            const statusColors = getStatusColor(status);
-            const catName = sighting.animal?.nombre || 'No identificado';
-            const location = sighting.animal?.colonia?.zona || 'Ubicación desconocida';
+          <View style={{ flexDirection: 'row', flexWrap: 'wrap', marginHorizontal: -6 }}>
+            {filtered.map((sighting) => {
+              const status = getStatus(sighting);
+              const statusColors = getStatusColor(status);
+              const catName = sighting.animal?.nombre || 'No identificado';
+              const location = sighting.animal?.colonia?.zona || 'Ubicación desconocida';
+              
+              const itemsPerRow = width >= 1024 ? 3 : (width >= 768 ? 2 : 1);
+              const cardWidthStyle = `${100 / itemsPerRow}%` as any;
 
-            return (
-              <View
-                key={sighting.idAvistamiento}
-                style={[styles.card, { backgroundColor: colors.bgCard }]}
-              >
-                {sighting.foto_url ? (
-                  <TouchableOpacity onPress={() => setSelectedPhoto(sighting.foto_url)} activeOpacity={0.85}>
-                    <Image
-                      source={{ uri: sighting.foto_url }}
-                      style={styles.sightingImage}
-                      resizeMode="cover"
-                    />
-                  </TouchableOpacity>
-                ) : (
-                  <View style={[styles.sightingImage, styles.sightingImagePlaceholder, { backgroundColor: colors.fondoGris }]}>
-                    <Text style={styles.placeholderEmoji}>🐱</Text>
-                  </View>
-                )}
+              return (
+                <View key={sighting.idAvistamiento} style={{ width: cardWidthStyle, paddingHorizontal: 6, marginBottom: 12 }}>
+                  <View style={[styles.card, { backgroundColor: colors.bgCard }]}>
+                    {sighting.foto_url ? (
+                      <TouchableOpacity onPress={() => setSelectedPhoto(sighting.foto_url)} activeOpacity={0.85}>
+                        <Image
+                          source={{ uri: sighting.foto_url }}
+                          style={styles.sightingImage}
+                          resizeMode="cover"
+                        />
+                      </TouchableOpacity>
+                    ) : (
+                      <View style={[styles.sightingImage, styles.sightingImagePlaceholder, { backgroundColor: colors.fondoGris }]}>
+                        <Text style={styles.placeholderEmoji}>🐱</Text>
+                      </View>
+                    )}
 
-                <View style={styles.cardContent}>
-                  <View style={styles.cardTitleRow}>
-                    <Text style={[styles.catName, { color: colors.textMain }]} numberOfLines={1}>
-                      {catName}
-                    </Text>
-                    <View style={[styles.statusBadge, { backgroundColor: statusColors.bg }]}>
-                      <Text style={[styles.statusText, { color: statusColors.text }]}>{status}</Text>
+                    <View style={styles.cardContent}>
+                      <View style={styles.cardTitleRow}>
+                        <Text style={[styles.catName, { color: colors.textMain }]} numberOfLines={1}>
+                          {catName}
+                        </Text>
+                        <View style={[styles.statusBadge, { backgroundColor: statusColors.bg }]}>
+                          <Text style={[styles.statusText, { color: statusColors.text }]}>{status}</Text>
+                        </View>
+                      </View>
+
+                      <View style={styles.locationRow}>
+                        <Text style={{ fontSize: 12 }}>📍</Text>
+                        <Text style={[styles.locationText, { color: colors.textSecondary }]} numberOfLines={1}>
+                          {location}
+                        </Text>
+                      </View>
+
+                      <Text style={[styles.dateText, { color: colors.textSecondary }]}>
+                        {formatDate(sighting.createdAt)}
+                      </Text>
+
+                      {sighting.descripcion && (
+                        <Text style={[styles.descriptionText, { color: colors.textSecondary }]} numberOfLines={2}>
+                          {sighting.descripcion}
+                        </Text>
+                      )}
                     </View>
                   </View>
-
-                  <View style={styles.locationRow}>
-                    <Text style={{ fontSize: 12 }}>📍</Text>
-                    <Text style={[styles.locationText, { color: colors.textSecondary }]} numberOfLines={1}>
-                      {location}
-                    </Text>
-                  </View>
-
-                  <Text style={[styles.dateText, { color: colors.textSecondary }]}>
-                    {formatDate(sighting.createdAt)}
-                  </Text>
-
-                  {sighting.descripcion && (
-                    <Text style={[styles.descriptionText, { color: colors.textSecondary }]} numberOfLines={2}>
-                      {sighting.descripcion}
-                    </Text>
-                  )}
                 </View>
-              </View>
-            );
-          })
+              );
+            })}
+          </View>
         )}
       </ScrollView>
     </View>
@@ -212,13 +220,7 @@ const styles = StyleSheet.create({
   container: {
     flex: 1,
   },
-  filtersContainer: {
-    flexDirection: 'row',
-    paddingHorizontal: 16,
-    paddingVertical: 12,
-    gap: 8,
-    alignItems: 'center',
-  },
+
   filterChip: {
     paddingHorizontal: 14,
     paddingVertical: 6,
@@ -246,7 +248,7 @@ const styles = StyleSheet.create({
     flexDirection: 'row',
     borderRadius: 14,
     padding: 14,
-    marginBottom: 10,
+    height: '100%',
     alignItems: 'flex-start',
     gap: 12,
   },
