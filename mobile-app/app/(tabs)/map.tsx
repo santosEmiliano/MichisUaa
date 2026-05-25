@@ -1,5 +1,5 @@
 import React, { useState, useEffect, useMemo, useRef, useCallback } from 'react';
-import { StyleSheet, View, Text, TextInput, TouchableOpacity, Alert, Image, Animated, useColorScheme, ScrollView } from 'react-native';
+import { StyleSheet, View, Text, TextInput, TouchableOpacity, Alert, Image, Animated, useColorScheme, ScrollView, Platform } from 'react-native';
 import { useFocusEffect } from 'expo-router';
 import * as Location from 'expo-location';
 import { MapClustering as MapView, Marker, Callout } from '@/components/Map';
@@ -222,9 +222,14 @@ export default function MapScreen() {
         {
           opacity: entranceFadeAnim,
           transform: [{ translateY: entranceSlideTopAnim }]
-        }
+        },
+        Platform.OS === 'web' && { left: 0, right: 0, alignItems: 'center', top: 30 } as any
       ]}>
-        <View style={[styles.searchBox, { backgroundColor: colors.bgPanel, borderColor: colors.borderColor, borderWidth: theme === 'dark' ? 1 : 0 }]}>
+        <View style={[
+          styles.searchBox, 
+          { backgroundColor: theme === 'dark' ? 'rgba(30,30,30,0.85)' : 'rgba(255,255,255,0.9)', borderColor: colors.borderColor, borderWidth: theme === 'dark' ? 1 : 0 },
+          Platform.OS === 'web' && { width: '90%', maxWidth: 600, paddingVertical: 14, borderRadius: 30, backdropFilter: 'blur(10px)', boxShadow: '0 8px 32px rgba(0,0,0,0.1)' } as any
+        ]}>
           <FontAwesome name="search" size={20} color={colors.textSecondary} style={styles.searchIcon} />
           <TextInput
             style={[styles.searchInput, { color: colors.textMain }]}
@@ -245,7 +250,8 @@ export default function MapScreen() {
           {
             opacity: opacityAnim,
             transform: [{ translateY: slideAnim }]
-          }
+          },
+          Platform.OS === 'web' && { left: 0, right: 0, alignItems: 'center', top: 100 } as any
         ]}
         pointerEvents={showFilters ? "auto" : "none"}
       >
@@ -279,22 +285,23 @@ export default function MapScreen() {
         {
           opacity: entranceFadeAnim,
           transform: [{ translateY: entranceSlideBottomAnim }],
-          backgroundColor: theme === 'dark' ? colors.bgPanel : 'rgba(255, 255, 255, 0.9)',
+          backgroundColor: theme === 'dark' ? 'rgba(30,30,30,0.85)' : 'rgba(255, 255, 255, 0.9)',
           borderColor: colors.borderColor,
           borderWidth: theme === 'dark' ? 1 : 0
-        }
+        },
+        Platform.OS === 'web' && { padding: 24, borderRadius: 16, bottom: 30, left: 30, backdropFilter: 'blur(10px)', boxShadow: '0 8px 32px rgba(0,0,0,0.1)' } as any
       ]}>
-        <View style={styles.legendItem}>
-          <View style={[styles.legendDot, { backgroundColor: '#4CAF50' }]} />
-          <Text style={[styles.legendText, { color: colors.textMain }]}>Verificado</Text>
+        <View style={[styles.legendItem, Platform.OS === 'web' && { marginVertical: 8 } as any]}>
+          <View style={[styles.legendDot, { backgroundColor: '#4CAF50' }, Platform.OS === 'web' && { width: 16, height: 16, borderRadius: 8, marginRight: 12 } as any]} />
+          <Text style={[styles.legendText, { color: colors.textMain }, Platform.OS === 'web' && { fontSize: 16, fontWeight: '600' } as any]}>Verificado</Text>
         </View>
-        <View style={styles.legendItem}>
-          <View style={[styles.legendDot, { backgroundColor: '#FF9800' }]} />
-          <Text style={[styles.legendText, { color: colors.textMain }]}>No Registrado</Text>
+        <View style={[styles.legendItem, Platform.OS === 'web' && { marginVertical: 8 } as any]}>
+          <View style={[styles.legendDot, { backgroundColor: '#FF9800' }, Platform.OS === 'web' && { width: 16, height: 16, borderRadius: 8, marginRight: 12 } as any]} />
+          <Text style={[styles.legendText, { color: colors.textMain }, Platform.OS === 'web' && { fontSize: 16, fontWeight: '600' } as any]}>No Registrado</Text>
         </View>
-        <View style={styles.legendItem}>
-          <View style={[styles.legendDot, { backgroundColor: '#F44336' }]} />
-          <Text style={[styles.legendText, { color: colors.textMain }]}>Desaparecido</Text>
+        <View style={[styles.legendItem, Platform.OS === 'web' && { marginVertical: 8 } as any]}>
+          <View style={[styles.legendDot, { backgroundColor: '#F44336' }, Platform.OS === 'web' && { width: 16, height: 16, borderRadius: 8, marginRight: 12 } as any]} />
+          <Text style={[styles.legendText, { color: colors.textMain }, Platform.OS === 'web' && { fontSize: 16, fontWeight: '600' } as any]}>Desaparecido</Text>
         </View>
       </Animated.View>
 
