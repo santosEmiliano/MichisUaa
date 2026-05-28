@@ -1,4 +1,4 @@
-import { StyleSheet, View, Text, TextInput, TouchableOpacity, KeyboardAvoidingView, Platform, SafeAreaView, Image } from 'react-native';
+import { StyleSheet, View, Text, TextInput, TouchableOpacity, KeyboardAvoidingView, Platform, SafeAreaView, Image, useWindowDimensions } from 'react-native';
 import Colors from '@/constants/Colors';
 import { useColorScheme } from '@/components/useColorScheme';
 import { useState } from 'react';
@@ -7,17 +7,43 @@ import { router } from 'expo-router';
 // Servicios
 import { handleLogin } from '@/services/authApi';
 import { saveSession, getSession } from '@/services/sessionStorage';
+import { registrarPushToken } from '@/hooks/useAuth';
 
 // Utils
 import { showAlert } from '@/utils/alerts';
+import WebBackground from '@/components/WebBackground';
+import WebRegisterForm from '@/components/WebRegisterForm';
 
 export default function LoginScreen() {
   const colorScheme = useColorScheme() ?? 'light';
   const colors = Colors[colorScheme];
+  const { height, width } = useWindowDimensions();
+
+  // Escala dinámica para web:
+  // Si la ventana mide menos de 850px de alto o 450px de ancho, el contenedor se encogerá proporcionalmente.
+  const scale = Platform.OS === 'web' ? Math.min(1, height / 850, width / 450) : 1;
 
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
   const [loading, setLoading] = useState(false);
+  const [focusedInput, setFocusedInput] = useState<'email' | 'password' | null>(null);
+
+  const [isRegistering, setIsRegistering] = useState(false);
+  const [animating, setAnimating] = useState(false);
+
+  const toggleForm = () => {
+    if (Platform.OS === 'web') {
+      setAnimating(true);
+      setTimeout(() => {
+        setIsRegistering(!isRegistering);
+        setTimeout(() => {
+          setAnimating(false);
+        }, 50);
+      }, 200);
+    } else {
+      router.push('/register');
+    }
+  };
 
   const onLoginPress = async () => {
     // Validación de correo vacío
@@ -45,6 +71,9 @@ export default function LoginScreen() {
       // Guardar sesión de forma segura (SecureStore en móvil, localStorage en web)
       await saveSession(result.token, result.datos.id, result.datos.nombre, email.trim());
 
+      // Registrar token push después de un inicio de sesión exitoso
+      registrarPushToken().catch(err => console.error("Error al registrar push token:", err));
+
       // Redirigir al primer tab, reemplazando el historial de navegación
       // para que el usuario no pueda volver al login con el botón "Atrás"
       router.replace('/(tabs)');
@@ -57,89 +86,157 @@ export default function LoginScreen() {
 
   return (
     <SafeAreaView style={[styles.safeArea, { backgroundColor: colors.bgDark }]}>
+      <WebBackground />
       <KeyboardAvoidingView 
-        style={styles.container} 
+        style={[styles.container, Platform.OS === 'web' && { zIndex: 10 } as any]} 
         behavior={Platform.OS === 'ios' ? 'padding' : 'height'}
       >
-        <View style={styles.content}>
+        <View style={[
+          styles.content,
+          Platform.OS === 'web' && { transform: [{ scale }] }
+        ]}>
           {/* Header */}
-          <View style={styles.header}>
-            <Image 
-              source={require('../assets/images/MichisUAALogo.png')} 
-              style={styles.logo}
-              resizeMode="contain"
-            />
-            <Text style={[styles.title, { color: colors.textMain }]}>MichisUAA</Text>
-            <Text style={[styles.subtitle, { color: colors.textSecondary }]}>Colonias felinas del campus</Text>
+          <View style={[styles.header, Platform.OS === 'web' && { transition: 'opacity 0.2s ease', opacity: animating ? 0 : 1 } as any]}>
+            {(!isRegistering || Platform.OS !== 'web') && (
+              <Image 
+                source={require('../assets/images/MichisUAALogo.png')} 
+                style={styles.logo}
+                resizeMode="contain"
+              />
+            )}
+            <Text style={[styles.title, { color: colors.textMain }]}>
+              {isRegistering ? "Únete a MichisUAA" : "MichisUAA"}
+            </Text>
+            <Text style={[styles.subtitle, { color: colors.textSecondary }]}>
+              {isRegistering ? "Ayuda a cuidar las colonias del campus" : "Colonias felinas del campus"}
+            </Text>
           </View>
 
           {/* Card */}
-          <View style={[styles.card, { backgroundColor: colors.bgPanel, borderColor: colors.borderColor }]}>
+          <View style={[
+            styles.card, 
+            { backgroundColor: colors.bgPanel, borderColor: colors.borderColor },
+            Platform.OS === 'web' && {
+              backgroundColor: colorScheme === 'dark' ? 'rgba(22, 36, 34, 0.6)' : 'rgba(255, 255, 255, 0.7)',
+              backdropFilter: 'blur(24px)',
+              WebkitBackdropFilter: 'blur(24px)',
+              boxShadow: '0 8px 32px 0 rgba(0,0,0,0.2)',
+              borderWidth: 1,
+              borderColor: colorScheme === 'dark' ? 'rgba(255, 255, 255, 0.08)' : 'rgba(0, 0, 0, 0.1)',
+              overflow: 'hidden'
+            } as any
+          ]}>
+            {Platform.OS === 'web' && (
+              <View style={{
+                position: 'absolute',
+                top: 0,
+                left: 0,
+                right: 0,
+                height: 1,
+                backgroundImage: 'linear-gradient(90deg, transparent, #e8893c, #c28c46, transparent)'
+              } as any} />
+            )}
             
-            <View style={styles.inputGroup}>
-              <Text style={[styles.label, { color: colors.textSecondary }]}>Correo electrónico:</Text>
-              <TextInput 
-                style={[
-                  styles.input, 
-                  { 
-                    backgroundColor: colorScheme === 'dark' ? colors.fondoGris : colors.fondoGrisOscuro, 
-                    borderColor: colors.borderColor,
-                    color: colors.textMain
-                  }
-                ]}
-                placeholder="usuario@edu.uaa.mx"
-                placeholderTextColor={colors.textSecondary}
-                value={email}
-                onChangeText={setEmail}
-                keyboardType="email-address"
-                autoCapitalize="none"
-              />
+            <View style={[Platform.OS === 'web' && { transition: 'opacity 0.2s ease', opacity: animating ? 0 : 1, width: '100%' } as any]}>
+              {isRegistering && Platform.OS === 'web' ? (
+                <WebRegisterForm onBackToLogin={toggleForm} />
+              ) : (
+                <>
+                  <View style={styles.inputGroup}>
+                    <Text style={[styles.label, { color: colors.textSecondary }]}>Correo electrónico:</Text>
+                    <TextInput 
+                      style={[
+                        styles.input, 
+                        { 
+                          backgroundColor: colorScheme === 'dark' ? colors.fondoGris : colors.fondoGrisOscuro, 
+                          borderColor: focusedInput === 'email' ? colors.accentOrange : colors.borderColor,
+                          color: colors.textMain
+                        },
+                        Platform.OS === 'web' && {
+                          outlineStyle: 'none',
+                          transition: 'border-color 0.15s, box-shadow 0.15s, background-color 0.15s',
+                          ...(focusedInput === 'email' ? {
+                            boxShadow: '0 0 0 2px rgba(232, 137, 60, 0.15)',
+                            backgroundColor: colors.bgHover || (colorScheme === 'dark' ? 'rgba(255,255,255,0.03)' : 'rgba(0,0,0,0.05)')
+                          } : {})
+                        } as any
+                      ]}
+                      placeholder="usuario@edu.uaa.mx"
+                      placeholderTextColor={colors.textSecondary}
+                      value={email}
+                      onChangeText={setEmail}
+                      onFocus={() => setFocusedInput('email')}
+                      onBlur={() => setFocusedInput(null)}
+                      keyboardType="email-address"
+                      autoCapitalize="none"
+                    />
+                  </View>
+
+                  <View style={styles.inputGroup}>
+                    <Text style={[styles.label, { color: colors.textSecondary }]}>Contraseña:</Text>
+                    <TextInput 
+                      style={[
+                        styles.input, 
+                        { 
+                          backgroundColor: colorScheme === 'dark' ? colors.fondoGris : colors.fondoGrisOscuro, 
+                          borderColor: focusedInput === 'password' ? colors.accentOrange : colors.borderColor,
+                          color: colors.textMain
+                        },
+                        Platform.OS === 'web' && {
+                          outlineStyle: 'none',
+                          transition: 'border-color 0.15s, box-shadow 0.15s, background-color 0.15s',
+                          ...(focusedInput === 'password' ? {
+                            boxShadow: '0 0 0 2px rgba(232, 137, 60, 0.15)',
+                            backgroundColor: colors.bgHover || (colorScheme === 'dark' ? 'rgba(255,255,255,0.03)' : 'rgba(0,0,0,0.05)')
+                          } : {})
+                        } as any
+                      ]}
+                      placeholder="******************"
+                      placeholderTextColor={colors.textSecondary}
+                      value={password}
+                      onChangeText={setPassword}
+                      onFocus={() => setFocusedInput('password')}
+                      onBlur={() => setFocusedInput(null)}
+                      secureTextEntry
+                    />
+                  </View>
+
+                  <TouchableOpacity style={styles.forgotPassword}>
+                    <Text style={[styles.forgotPasswordText, { color: colors.accentOrange }]}>
+                      Olvidaste tu contraseña?
+                    </Text>
+                  </TouchableOpacity>
+
+                  <TouchableOpacity 
+                    style={[
+                      styles.loginButton, 
+                      { backgroundColor: colors.accentOrange },
+                      Platform.OS === 'web' && {
+                        backgroundImage: 'linear-gradient(to right, #e8893c, #d8aa71)',
+                        boxShadow: '0 4px 14px 0 rgba(232, 137, 60, 0.39)',
+                      } as any,
+                      loading && { opacity: 0.7 }
+                    ]} 
+                    onPress={onLoginPress}
+                    disabled={loading}
+                  >
+                    <Text style={styles.loginButtonText}>
+                      {loading ? "Cargando..." : "Iniciar Sesión"}
+                    </Text>
+                  </TouchableOpacity>
+                </>
+              )}
             </View>
-
-            <View style={styles.inputGroup}>
-              <Text style={[styles.label, { color: colors.textSecondary }]}>Contraseña:</Text>
-              <TextInput 
-                style={[
-                  styles.input, 
-                  { 
-                    backgroundColor: colorScheme === 'dark' ? colors.fondoGris : colors.fondoGrisOscuro, 
-                    borderColor: colors.borderColor,
-                    color: colors.textMain
-                  }
-                ]}
-                placeholder="******************"
-                placeholderTextColor={colors.textSecondary}
-                value={password}
-                onChangeText={setPassword}
-                secureTextEntry
-              />
-            </View>
-
-            <TouchableOpacity style={styles.forgotPassword}>
-              <Text style={[styles.forgotPasswordText, { color: colors.accentOrange }]}>
-                Olvidaste tu contraseña?
-              </Text>
-            </TouchableOpacity>
-
-            <TouchableOpacity 
-              style={[
-                styles.loginButton, 
-                { backgroundColor: colors.accentOrange },
-                loading && { opacity: 0.7 }
-              ]} 
-              onPress={onLoginPress}
-              disabled={loading}
-            >
-              <Text style={styles.loginButtonText}>
-                {loading ? "Cargando..." : "Iniciar Sesión"}
-              </Text>
-            </TouchableOpacity>
           </View>
 
-          <View style={styles.footer}>
-            <Text style={{ color: colors.textSecondary, fontSize: 14 }}>¿Primera vez? </Text>
-            <TouchableOpacity onPress={() => router.push('/register')}>
-              <Text style={{ color: colors.accentOrange, fontSize: 14, fontWeight: '500' }}>Regístrate gratis</Text>
+          <View style={[styles.footer, Platform.OS === 'web' && { transition: 'opacity 0.2s ease', opacity: animating ? 0 : 1 } as any]}>
+            <Text style={{ color: colors.textSecondary, fontSize: 14 }}>
+              {isRegistering ? "¿Ya tienes cuenta? " : "¿Primera vez? "}
+            </Text>
+            <TouchableOpacity onPress={toggleForm}>
+              <Text style={{ color: colors.accentOrange, fontSize: 14, fontWeight: '500' }}>
+                {isRegistering ? "Inicia sesión" : "Regístrate gratis"}
+              </Text>
             </TouchableOpacity>
           </View>
 
@@ -160,7 +257,7 @@ const styles = StyleSheet.create({
     flex: 1,
     justifyContent: 'center',
     alignItems: 'center',
-    padding: 24,
+    paddingHorizontal: 24,
     width: '100%',
   },
   header: {

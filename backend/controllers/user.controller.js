@@ -139,6 +139,28 @@ const getUserMedals = async (req, res) => {
   }
 };
 
+const updatePushToken = async (req, res) => {
+  try {
+    const { token } = req.body;
+    const idUsuario = req.userId;
+
+    if (!token) {
+      return res.status(400).json({ mensaje: "Token no proporcionado" });
+    }
+
+    const updated = await userModel.modifyUser(idUsuario, { pushToken: token });
+
+    if (!updated) {
+      return res.status(500).json({ mensaje: "Error al actualizar el token push" });
+    }
+
+    return res.status(200).json({ mensaje: "Token push registrado con éxito" });
+  } catch (error) {
+    console.error("Error al actualizar token push:", error);
+    return res.status(500).json({ mensaje: "Error interno del servidor" });
+  }
+};
+
 module.exports = {
     createUser,
     login,
@@ -146,5 +168,6 @@ module.exports = {
     obtainUsers,
     updateUser,
     removeUser,
-    getUserMedals
+    getUserMedals,
+    updatePushToken
 }

@@ -9,7 +9,7 @@ import { useColorScheme } from '@/components/useColorScheme';
 import { getSession, clearSession } from '@/services/sessionStorage';
 import { getSightingsByUser, getUserRanking, getUserMedals } from '@/services/profileApi';
 import { getTopRankings } from '@/services/rankings';
-import { ProfileHeader, ProfileStats, SightingHistoryTab, RankingTab, LogrosTab } from '@/components/profileTab';
+import { ProfileHeader, SightingHistoryTab, RankingTab, LogrosTab } from '@/components/profileTab';
 import TabSelector from '@/components/TabSelector';
 
 export default function ProfileScreen() {
@@ -93,15 +93,6 @@ export default function ProfileScreen() {
     return name.substring(0, 2).toUpperCase();
   };
 
-  // Estadísticas del perfil
-  const totalNiveles = userMedals.reduce((sum, m) => sum + m.nivel, 0);
-
-  const profileStats = [
-    { value: String(sightingsCount), label: 'Avistamientos' },
-    { value: `${totalNiveles}`, label: 'Total de logros' },
-    { value: rankingPosition !== '--' ? `#${rankingPosition}` : '#--', label: 'Ranking' },
-  ];
-
   const performLogout = async () => {
     try {
       await clearSession();
@@ -167,8 +158,8 @@ export default function ProfileScreen() {
               userName={userName}
               userEmail={userEmail}
               initials={getInitials(userName)}
+              onLogout={handleLogout}
             />
-            <ProfileStats stats={profileStats} />
             <TabSelector
               tabs={['Logros', 'Historial', 'Ranking']}
               activeTab={activeTab}
@@ -179,17 +170,6 @@ export default function ProfileScreen() {
           {/* Contenido del tab seleccionado */}
           {renderTabContent()}
 
-          {/* Botón de Cerrar Sesión al final de la pantalla */}
-          <View style={styles.logoutContainer}>
-            <TouchableOpacity
-              style={styles.logoutButton}
-              onPress={handleLogout}
-              activeOpacity={0.8}
-            >
-              <Ionicons name="log-out-outline" size={20} color="#c0392b" />
-              <Text style={styles.logoutText}>Cerrar sesión</Text>
-            </TouchableOpacity>
-          </View>
         </>
       )}
     </View>

@@ -1,0 +1,10 @@
+{
+  "android": {
+    "package": "com.anonymous.backend"
+  },
+  "extra": {
+    "eas": {
+      "projectId": "e6016e79-9696-4f54-a201-e5988d59bfb7"
+    }
+  }
+}
