@@ -1,5 +1,5 @@
 import React, { useState, useRef } from 'react';
-import { StyleSheet, View, Text, ScrollView, Dimensions, TouchableOpacity } from 'react-native';
+import { StyleSheet, View, Text, ScrollView, TouchableOpacity, useWindowDimensions } from 'react-native';
 import Colors from '@/constants/Colors';
 import { useColorScheme } from '@/components/useColorScheme';
 import { MEDALLAS, MedallaConfig } from '@/constants/medals';
@@ -9,10 +9,6 @@ interface LogrosTabProps {
   sightingsCount?: number;
   sightings?: any[];
 }
-
-const { width } = Dimensions.get('window');
-const cardWidth = (width - 32 - 24) / 4;
-const slideWidth = width - 32;
 
 // Helper to get theme-appropriate colors for dark mode high-contrast and light mode
 function getCategoryColors(tipo: string, colorScheme: 'light' | 'dark', baseColor: string, baseColorFondo: string) {
@@ -194,17 +190,33 @@ export default function LogrosTab({
 
   const activeMedalla = medallasLista[activeIndex];
 
+  const { width } = useWindowDimensions();
+  const paddingHorizontal = 16;
+  const slideWidth = width - (paddingHorizontal * 2);
+  const gap = 8;
+  const cardWidth = (slideWidth - (gap * 3)) / 4;
+
+  const itemsPerSlide = width >= 1024 ? 4 : (width >= 768 ? 2 : 1);
+  const totalSlides = Math.ceil(totalCategorias / itemsPerSlide);
+
+  const carouselSlides = [];
+  for (let i = 0; i < totalCategorias; i += itemsPerSlide) {
+    carouselSlides.push(medallasLista.slice(i, i + itemsPerSlide));
+  }
+
   const handleScroll = (event: any) => {
     const slideSize = event.nativeEvent.layoutMeasurement.width;
-    const index = Math.round(event.nativeEvent.contentOffset.x / slideSize);
-    if (index >= 0 && index < totalCategorias && index !== activeIndex) {
-      setActiveIndex(index);
+    const slideIndex = Math.round(event.nativeEvent.contentOffset.x / slideSize);
+    const newCategoryIndex = slideIndex * itemsPerSlide;
+    if (newCategoryIndex >= 0 && newCategoryIndex < totalCategorias && Math.floor(activeIndex / itemsPerSlide) !== slideIndex) {
+      setActiveIndex(newCategoryIndex);
     }
   };
 
   const handleCategoryPress = (index: number) => {
     setActiveIndex(index);
-    scrollViewRef.current?.scrollTo({ x: index * slideWidth, animated: true });
+    const slideIndex = Math.floor(index / itemsPerSlide);
+    scrollViewRef.current?.scrollTo({ x: slideIndex * slideWidth, animated: true });
   };
 
   return (
@@ -303,221 +315,240 @@ export default function LogrosTab({
               showsHorizontalScrollIndicator={false}
               onMomentumScrollEnd={handleScroll}
             >
-              {medallasLista.map((medalla) => {
-                const userLevel = medalLevelMap.get(medalla.tipo) || 0;
-                const progressValue = getCategoryProgressValue(medalla.tipo, sightings, sightingsCount);
-                const { 
-                  currentLevelName, 
-                  nextLevelName, 
-                  progreso, 
-                  meta, 
-                  porcentaje, 
-                  isCompleted, 
-                  nextConditionText,
-                  label
-                } = getCategoryState(medalla, userLevel, progressValue);
+              {carouselSlides.map((slideChunk, chunkIndex) => (
+                <View 
+                  key={`slide-${chunkIndex}`} 
+                  style={{ 
+                    width: slideWidth, 
+                    flexDirection: 'row', 
+                    flexWrap: 'wrap', 
+                    justifyContent: 'space-between'
+                  }}
+                >
+                  {slideChunk.map((medalla) => {
+                    const userLevel = medalLevelMap.get(medalla.tipo) || 0;
+                    const progressValue = getCategoryProgressValue(medalla.tipo, sightings, sightingsCount);
+                    const { 
+                      currentLevelName, 
+                      nextLevelName, 
+                      progreso, 
+                      meta, 
+                      porcentaje, 
+                      isCompleted, 
+                      nextConditionText,
+                      label
+                    } = getCategoryState(medalla, userLevel, progressValue);
 
-                const resolvedColors = getCategoryColors(medalla.tipo, colorScheme, medalla.color, medalla.colorFondo);
+                    const resolvedColors = getCategoryColors(medalla.tipo, colorScheme, medalla.color, medalla.colorFondo);
 
-                const cardBg = colorScheme === 'dark' ? '#2c2c2e' : '#ffffff';
-                const cardBorder = colorScheme === 'dark' ? '#3a3a3c' : colors.borderColor;
+                    const cardBg = colorScheme === 'dark' ? '#2c2c2e' : '#ffffff';
+                    const cardBorder = colorScheme === 'dark' ? '#3a3a3c' : colors.borderColor;
 
-                // Inspect level defaults to next locked level or current max
-                const activeInspectLevel = selectedNivelMap[medalla.tipo] || Math.min(userLevel + 1, 5);
-                const inspectedNivelConfig = medalla.niveles.find(n => n.nivel === activeInspectLevel);
+                    const activeInspectLevel = selectedNivelMap[medalla.tipo] || Math.min(userLevel + 1, 5);
+                    const inspectedNivelConfig = medalla.niveles.find(n => n.nivel === activeInspectLevel);
 
-                return (
-                  <View key={`progress-${medalla.tipo}`} style={{ width: slideWidth }}>
-                    <View 
-                      style={[
-                        styles.progressCard, 
-                        { 
-                          backgroundColor: cardBg, 
-                          borderColor: cardBorder 
-                        }
-                      ]}
-                    >
-                      {/* Cabecera del Logro */}
-                      <View style={styles.progressHeader}>
-                        <View style={[styles.progressIconBg, { backgroundColor: resolvedColors.colorFondo }]}>
-                          <Text style={styles.progressIconText}>{medalla.icono}</Text>
-                        </View>
-                        <View style={styles.progressTextCol}>
-                          <Text style={[styles.progressTitle, { color: colorScheme === 'dark' ? '#ffffff' : colors.textMain }]}>
-                            {medalla.nombre}
-                          </Text>
-                          <Text style={[styles.progressLevelText, { color: resolvedColors.color }]}>
-                            Nivel {userLevel} - {currentLevelName}
-                          </Text>
-                          <Text style={[styles.progressNextText, { color: colorScheme === 'dark' ? '#aeaeb2' : '#8e8e93' }]}>
-                            {nextConditionText}
-                          </Text>
-                        </View>
-                        <View style={[styles.badgeContainer, { backgroundColor: resolvedColors.colorFondo, borderColor: resolvedColors.color }]}>
-                          <Text style={[styles.badgeText, { color: resolvedColors.color }]}>
-                            🎖️ Nv. {userLevel}
-                          </Text>
-                        </View>
-                      </View>
+                    const progGap = 16;
+                    const progCardWidth = itemsPerSlide >= 2 
+                      ? (slideWidth - progGap) / 2 
+                      : slideWidth;
 
-                      {/* Barra de progreso */}
-                      <View style={[styles.progressBarContainer, { backgroundColor: colorScheme === 'dark' ? '#3a3a3c' : '#e5e5ea' }]}>
-                        <View style={[styles.progressBarFill, { width: `${porcentaje}%`, backgroundColor: resolvedColors.color }]} />
-                      </View>
-
-                      <View style={styles.progressNumbersRow}>
-                        <Text style={styles.progressNumberText}>{progreso} / {meta}</Text>
-                        <Text style={[styles.progressPercentText, { color: resolvedColors.color }]}>{porcentaje}%</Text>
-                      </View>
-
-                      {/* Línea de tiempo de niveles (Timeline) */}
-                      <View style={styles.timelineWrapper}>
-                        <View style={[styles.timelineLine, { backgroundColor: colorScheme === 'dark' ? '#3a3a3c' : '#e5e5ea' }]} />
+                    return (
+                      <View key={`progress-${medalla.tipo}`} style={{ width: progCardWidth, marginBottom: 16 }}>
                         <View 
                           style={[
-                            styles.timelineLineFill, 
+                            styles.progressCard, 
                             { 
-                              backgroundColor: resolvedColors.color, 
-                              width: `${Math.max(0, Math.min((userLevel) * 25, 100))}%` 
+                              backgroundColor: cardBg, 
+                              borderColor: cardBorder 
                             }
-                          ]} 
-                        />
-                        
-                        <View style={styles.timelineNodesRow}>
-                          {medalla.niveles.map((nivelItem) => {
-                            const isUnlocked = userLevel >= nivelItem.nivel;
-                            const isActive = userLevel + 1 === nivelItem.nivel || (userLevel === 5 && nivelItem.nivel === 5);
-                            const isInspected = activeInspectLevel === nivelItem.nivel;
-                            
-                            let circleBg = colorScheme === 'dark' ? '#2c2c2e' : '#ffffff';
-                            let circleBorder = colorScheme === 'dark' ? '#3a3a3c' : '#e5e5ea';
-
-                            if (isUnlocked) {
-                              circleBg = resolvedColors.color;
-                              circleBorder = isInspected ? '#ffffff' : resolvedColors.color;
-                            } else if (isActive) {
-                              circleBg = colorScheme === 'dark' ? '#1c1c1e' : '#ffffff';
-                              circleBorder = resolvedColors.color;
-                            } else if (isInspected) {
-                              circleBg = colorScheme === 'dark' ? '#2c2c2e' : '#ffffff';
-                              circleBorder = resolvedColors.color;
-                            }
-
-                            return (
-                              <TouchableOpacity 
-                                key={`node-${medalla.tipo}-${nivelItem.nivel}`} 
-                                style={styles.nodeContainer}
-                                activeOpacity={0.7}
-                                onPress={() => setSelectedNivelMap(prev => ({
-                                  ...prev,
-                                  [medalla.tipo]: nivelItem.nivel
-                                }))}
-                              >
-                                <View 
-                                  style={[
-                                    styles.nodeCircle, 
-                                    { 
-                                      backgroundColor: circleBg, 
-                                      borderColor: circleBorder,
-                                      borderWidth: (isActive || isInspected) ? 2 : 1,
-                                      transform: [{ scale: isInspected ? 1.15 : 1 }],
-                                      elevation: isInspected ? 3 : 0,
-                                      shadowColor: resolvedColors.color,
-                                      shadowOffset: { width: 0, height: 1 },
-                                      shadowOpacity: isInspected ? 0.3 : 0,
-                                      shadowRadius: 2,
-                                    }
-                                  ]}
-                                >
-                                  {isUnlocked ? (
-                                    <Text style={styles.nodeCheck}>✓</Text>
-                                  ) : isActive ? (
-                                    <View style={[styles.nodeDot, { backgroundColor: resolvedColors.color }]} />
-                                  ) : null}
-                                </View>
-                                <Text style={[styles.nodeLabel, { 
-                                  color: isInspected 
-                                    ? resolvedColors.color 
-                                    : ((isUnlocked || isActive) ? (colorScheme === 'dark' ? '#ffffff' : colors.textMain) : '#8e8e93'),
-                                  fontWeight: (isUnlocked || isActive || isInspected) ? 'bold' : 'normal'
-                                }]}>
-                                  Nv.{nivelItem.nivel}
-                                </Text>
-                                <Text style={styles.nodeCondition}>
-                                  {nivelItem.condicion}
-                                </Text>
-                              </TouchableOpacity>
-                            );
-                          })}
-                        </View>
-                      </View>
-
-                      {/* Detalle interactivo del nivel seleccionado (Preview de Descripción) */}
-                      {inspectedNivelConfig && (
-                        <View style={[
-                          styles.inspectCard, 
-                          { 
-                            backgroundColor: colorScheme === 'dark' ? '#1c1c1e' : '#fcfcfc',
-                            borderColor: colorScheme === 'dark' ? '#3a3a3c' : '#e5e5ea',
-                            borderLeftColor: resolvedColors.color
-                          }
-                        ]}>
-                          <View style={styles.inspectHeader}>
-                            <Text style={styles.inspectIcon}>{inspectedNivelConfig.icono}</Text>
-                            <View style={{ flex: 1 }}>
-                              <Text style={[styles.inspectName, { color: colorScheme === 'dark' ? '#ffffff' : colors.textMain }]}>
-                                Nv. {inspectedNivelConfig.nivel} - {inspectedNivelConfig.nombre}
+                          ]}
+                        >
+                          {/* Cabecera del Logro */}
+                          <View style={styles.progressHeader}>
+                            <View style={[styles.progressIconBg, { backgroundColor: resolvedColors.colorFondo }]}>
+                              <Text style={styles.progressIconText}>{medalla.icono}</Text>
+                            </View>
+                            <View style={styles.progressTextCol}>
+                              <Text style={[styles.progressTitle, { color: colorScheme === 'dark' ? '#ffffff' : colors.textMain }]}>
+                                {medalla.nombre}
                               </Text>
-                              <Text style={styles.inspectCondition}>
-                                Requisito: {inspectedNivelConfig.condicion} {label}
+                              <Text style={[styles.progressLevelText, { color: resolvedColors.color }]}>
+                                Nivel {userLevel} - {currentLevelName}
+                              </Text>
+                              <Text style={[styles.progressNextText, { color: colorScheme === 'dark' ? '#aeaeb2' : '#8e8e93' }]}>
+                                {nextConditionText}
                               </Text>
                             </View>
-                            <View style={[
-                              styles.statusBadge, 
-                              { 
-                                backgroundColor: userLevel >= inspectedNivelConfig.nivel 
-                                  ? (colorScheme === 'dark' ? 'rgba(76, 217, 100, 0.15)' : '#e8f9ee')
-                                  : (colorScheme === 'dark' ? 'rgba(142, 142, 147, 0.15)' : '#f2f2f7')
-                              }
-                            ]}>
-                              <Text style={[
-                                styles.statusBadgeText, 
-                                { 
-                                  color: userLevel >= inspectedNivelConfig.nivel 
-                                    ? '#34c759' 
-                                    : '#8e8e93' 
-                                }
-                              ]}>
-                                {userLevel >= inspectedNivelConfig.nivel ? 'Desbloqueado ✓' : 'Bloqueado 🔒'}
+                            <View style={[styles.badgeContainer, { backgroundColor: resolvedColors.colorFondo, borderColor: resolvedColors.color }]}>
+                              <Text style={[styles.badgeText, { color: resolvedColors.color }]}>
+                                🎖️ Nv. {userLevel}
                               </Text>
                             </View>
                           </View>
-                          {userLevel >= inspectedNivelConfig.nivel && (
-                            <Text style={[styles.inspectDesc, { color: colorScheme === 'dark' ? '#aeaeb2' : '#636366', marginTop: 6 }]}>
-                              {inspectedNivelConfig.descripcion}
-                            </Text>
+
+                          {/* Barra de progreso */}
+                          <View style={[styles.progressBarContainer, { backgroundColor: colorScheme === 'dark' ? '#3a3a3c' : '#e5e5ea' }]}>
+                            <View style={[styles.progressBarFill, { width: `${porcentaje}%`, backgroundColor: resolvedColors.color }]} />
+                          </View>
+
+                          <View style={styles.progressNumbersRow}>
+                            <Text style={styles.progressNumberText}>{progreso} / {meta}</Text>
+                            <Text style={[styles.progressPercentText, { color: resolvedColors.color }]}>{porcentaje}%</Text>
+                          </View>
+
+                          {/* Línea de tiempo de niveles (Timeline) */}
+                          <View style={styles.timelineWrapper}>
+                            <View style={[styles.timelineLine, { backgroundColor: colorScheme === 'dark' ? '#3a3a3c' : '#e5e5ea' }]} />
+                            <View 
+                              style={[
+                                styles.timelineLineFill, 
+                                { 
+                                  backgroundColor: resolvedColors.color, 
+                                  width: `${Math.max(0, Math.min((userLevel) * 25, 100))}%` 
+                                }
+                              ]} 
+                            />
+                            
+                            <View style={styles.timelineNodesRow}>
+                              {medalla.niveles.map((nivelItem) => {
+                                const isUnlocked = userLevel >= nivelItem.nivel;
+                                const isActive = userLevel + 1 === nivelItem.nivel || (userLevel === 5 && nivelItem.nivel === 5);
+                                const isInspected = activeInspectLevel === nivelItem.nivel;
+                                
+                                let circleBg = colorScheme === 'dark' ? '#2c2c2e' : '#ffffff';
+                                let circleBorder = colorScheme === 'dark' ? '#3a3a3c' : '#e5e5ea';
+
+                                if (isUnlocked) {
+                                  circleBg = resolvedColors.color;
+                                  circleBorder = isInspected ? '#ffffff' : resolvedColors.color;
+                                } else if (isActive) {
+                                  circleBg = colorScheme === 'dark' ? '#1c1c1e' : '#ffffff';
+                                  circleBorder = resolvedColors.color;
+                                } else if (isInspected) {
+                                  circleBg = colorScheme === 'dark' ? '#2c2c2e' : '#ffffff';
+                                  circleBorder = resolvedColors.color;
+                                }
+
+                                return (
+                                  <TouchableOpacity 
+                                    key={`node-${medalla.tipo}-${nivelItem.nivel}`} 
+                                    style={styles.nodeContainer}
+                                    activeOpacity={0.7}
+                                    onPress={() => setSelectedNivelMap(prev => ({
+                                      ...prev,
+                                      [medalla.tipo]: nivelItem.nivel
+                                    }))}
+                                  >
+                                    <View 
+                                      style={[
+                                        styles.nodeCircle, 
+                                        { 
+                                          backgroundColor: circleBg, 
+                                          borderColor: circleBorder,
+                                          borderWidth: (isActive || isInspected) ? 2 : 1,
+                                          transform: [{ scale: isInspected ? 1.15 : 1 }],
+                                          elevation: isInspected ? 3 : 0,
+                                          shadowColor: resolvedColors.color,
+                                          shadowOffset: { width: 0, height: 1 },
+                                          shadowOpacity: isInspected ? 0.3 : 0,
+                                          shadowRadius: 2,
+                                        }
+                                      ]}
+                                    >
+                                      {isUnlocked ? (
+                                        <Text style={styles.nodeCheck}>✓</Text>
+                                      ) : isActive ? (
+                                        <View style={[styles.nodeDot, { backgroundColor: resolvedColors.color }]} />
+                                      ) : null}
+                                    </View>
+                                    <Text style={[styles.nodeLabel, { 
+                                      color: isInspected 
+                                        ? resolvedColors.color 
+                                        : ((isUnlocked || isActive) ? (colorScheme === 'dark' ? '#ffffff' : colors.textMain) : '#8e8e93'),
+                                      fontWeight: (isUnlocked || isActive || isInspected) ? 'bold' : 'normal'
+                                    }]}>
+                                      Nv.{nivelItem.nivel}
+                                    </Text>
+                                    <Text style={styles.nodeCondition}>
+                                      {nivelItem.condicion}
+                                    </Text>
+                                  </TouchableOpacity>
+                                );
+                              })}
+                            </View>
+                          </View>
+
+                          {/* Detalle interactivo del nivel seleccionado */}
+                          {inspectedNivelConfig && (
+                            <View style={[
+                              styles.inspectCard, 
+                              { 
+                                backgroundColor: colorScheme === 'dark' ? '#1c1c1e' : '#fcfcfc',
+                                borderColor: colorScheme === 'dark' ? '#3a3a3c' : '#e5e5ea',
+                                borderLeftColor: resolvedColors.color
+                              }
+                            ]}>
+                              <View style={styles.inspectHeader}>
+                                <Text style={styles.inspectIcon}>{inspectedNivelConfig.icono}</Text>
+                                <View style={{ flex: 1 }}>
+                                  <Text style={[styles.inspectName, { color: colorScheme === 'dark' ? '#ffffff' : colors.textMain }]}>
+                                    Nv. {inspectedNivelConfig.nivel} - {inspectedNivelConfig.nombre}
+                                  </Text>
+                                  <Text style={styles.inspectCondition}>
+                                    Requisito: {inspectedNivelConfig.condicion} {label}
+                                  </Text>
+                                </View>
+                                <View style={[
+                                  styles.statusBadge, 
+                                  { 
+                                    backgroundColor: userLevel >= inspectedNivelConfig.nivel 
+                                      ? (colorScheme === 'dark' ? 'rgba(76, 217, 100, 0.15)' : '#e8f9ee')
+                                      : (colorScheme === 'dark' ? 'rgba(142, 142, 147, 0.15)' : '#f2f2f7')
+                                  }
+                                ]}>
+                                  <Text style={[
+                                    styles.statusBadgeText, 
+                                    { 
+                                      color: userLevel >= inspectedNivelConfig.nivel 
+                                        ? '#34c759' 
+                                        : '#8e8e93' 
+                                    }
+                                  ]}>
+                                    {userLevel >= inspectedNivelConfig.nivel ? 'Desbloqueado ✓' : 'Bloqueado 🔒'}
+                                  </Text>
+                                </View>
+                              </View>
+                              {userLevel >= inspectedNivelConfig.nivel && (
+                                <Text style={[styles.inspectDesc, { color: colorScheme === 'dark' ? '#aeaeb2' : '#636366', marginTop: 6 }]}>
+                                  {inspectedNivelConfig.descripcion}
+                                </Text>
+                              )}
+                            </View>
                           )}
                         </View>
-                      )}
-                    </View>
-                  </View>
-                );
-              })}
+                      </View>
+                    );
+                  })}
+                </View>
+              ))}
             </ScrollView>
 
             {/* Puntos de paginación */}
-            {totalCategorias > 1 && (
+            {totalSlides > 1 && (
               <View style={styles.paginationContainer}>
-                {medallasLista.map((_, index) => {
-                  const m = medallasLista[index];
-                  const res = getCategoryColors(m.tipo, colorScheme, m.color, m.colorFondo);
+                {carouselSlides.map((_, slideIndex) => {
+                  const currentSlideActiveIndex = Math.floor(activeIndex / itemsPerSlide);
+                  const isSlideActive = currentSlideActiveIndex === slideIndex;
+                  const firstItemOfSlide = carouselSlides[slideIndex][0];
+                  const res = getCategoryColors(firstItemOfSlide.tipo, colorScheme, firstItemOfSlide.color, firstItemOfSlide.colorFondo);
+                  
                   return (
                     <TouchableOpacity
-                      key={`dot-${index}`}
-                      onPress={() => handleCategoryPress(index)}
+                      key={`dot-${slideIndex}`}
+                      onPress={() => handleCategoryPress(slideIndex * itemsPerSlide)}
                       style={[
                         styles.paginationDot, 
-                        activeIndex === index ? [styles.paginationDotActive, { backgroundColor: res.color }] : styles.paginationDotInactive
+                        isSlideActive ? [styles.paginationDotActive, { backgroundColor: res.color }] : styles.paginationDotInactive
                       ]} 
                     />
                   );
@@ -538,7 +569,7 @@ const styles = StyleSheet.create({
   content: {
     paddingHorizontal: 16,
     paddingVertical: 16,
-    paddingBottom: 32,
+    paddingBottom: 120,
   },
   sectionHeader: {
     flexDirection: 'row',

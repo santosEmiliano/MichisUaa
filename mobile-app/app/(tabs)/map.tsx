@@ -1,11 +1,12 @@
 import React, { useState, useEffect, useMemo, useRef, useCallback } from 'react';
-import { StyleSheet, View, Text, TextInput, TouchableOpacity, Alert, Image, Animated, useColorScheme, ScrollView } from 'react-native';
+import { StyleSheet, View, Text, TextInput, TouchableOpacity, Alert, Image, Animated, ScrollView, Platform, useWindowDimensions } from 'react-native';
 import { useFocusEffect } from 'expo-router';
 import * as Location from 'expo-location';
 import { MapClustering as MapView, Marker, Callout } from '@/components/Map';
 import FontAwesome from '@expo/vector-icons/FontAwesome';
 import { getPublicAnimals, AnimalPublic } from '@/services/mapApi';
 import Colors from '@/constants/Colors';
+import { useColorScheme } from '@/components/useColorScheme';
 
 // Coordenadas de la UAA
 const UAA_REGION = {
@@ -19,10 +20,12 @@ export default function MapScreen() {
   const [location, setLocation] = useState<Location.LocationObject | null>(null);
   const [searchText, setSearchText] = useState('');
   const [activeFilter, setActiveFilter] = useState('Todos');
-  const [showFilters, setShowFilters] = useState(false);
+  const [showFilters, setShowFilters] = useState(true);
 
   const theme = useColorScheme() ?? 'light';
   const colors = Colors[theme];
+  const { width } = useWindowDimensions();
+  const isSmallScreen = width < 768;
 
   // Valores animados de Filtros
   const slideAnim = useRef(new Animated.Value(-20)).current;
@@ -51,14 +54,18 @@ export default function MapScreen() {
 
   useEffect(() => {
     (async () => {
-      let { status } = await Location.requestForegroundPermissionsAsync();
-      if (status !== 'granted') {
-        Alert.alert('Permiso denegado', 'No se puede mostrar tu ubicación actual en el mapa.');
-        return;
-      }
+      try {
+        let { status } = await Location.requestForegroundPermissionsAsync();
+        if (status !== 'granted') {
+          console.warn('Permiso de ubicación denegado.');
+          return;
+        }
 
-      let currentLocation = await Location.getCurrentPositionAsync({});
-      setLocation(currentLocation);
+        let currentLocation = await Location.getCurrentPositionAsync({});
+        setLocation(currentLocation);
+      } catch (error) {
+        console.warn("No se pudo obtener la ubicación:", error);
+      }
     })();
   }, []);
 
@@ -222,9 +229,14 @@ export default function MapScreen() {
         {
           opacity: entranceFadeAnim,
           transform: [{ translateY: entranceSlideTopAnim }]
-        }
+        },
+        Platform.OS === 'web' && { left: 0, right: 0, alignItems: 'center', top: 30 } as any
       ]}>
-        <View style={[styles.searchBox, { backgroundColor: colors.bgPanel, borderColor: colors.borderColor, borderWidth: theme === 'dark' ? 1 : 0 }]}>
+        <View style={[
+          styles.searchBox, 
+          { backgroundColor: theme === 'dark' ? 'rgba(30,30,30,0.85)' : 'rgba(255,255,255,0.9)', borderColor: colors.borderColor, borderWidth: theme === 'dark' ? 1 : 0 },
+          Platform.OS === 'web' && { width: '90%', maxWidth: 600, paddingVertical: 14, borderRadius: 30, backdropFilter: 'blur(10px)', boxShadow: '0 8px 32px rgba(0,0,0,0.1)' } as any
+        ]}>
           <FontAwesome name="search" size={20} color={colors.textSecondary} style={styles.searchIcon} />
           <TextInput
             style={[styles.searchInput, { color: colors.textMain }]}
@@ -245,11 +257,21 @@ export default function MapScreen() {
           {
             opacity: opacityAnim,
             transform: [{ translateY: slideAnim }]
-          }
+          },
+          Platform.OS === 'web' && { top: 100 } as any
         ]}
         pointerEvents={showFilters ? "auto" : "none"}
       >
-        <ScrollView horizontal showsHorizontalScrollIndicator={false} contentContainerStyle={{ gap: 10 }}>
+        <ScrollView 
+          horizontal 
+          showsHorizontalScrollIndicator={false} 
+          contentContainerStyle={{ 
+            gap: 10, 
+            paddingHorizontal: 20, 
+            flexGrow: 1, 
+            justifyContent: (Platform.OS === 'web' && !isSmallScreen) ? 'center' : 'flex-start' 
+          }}
+        >
           {['Todos', 'Activos', 'No Registrados', 'Desaparecidos'].map((filter) => (
             <TouchableOpacity
               key={filter}
@@ -279,22 +301,23 @@ export default function MapScreen() {
         {
           opacity: entranceFadeAnim,
           transform: [{ translateY: entranceSlideBottomAnim }],
-          backgroundColor: theme === 'dark' ? colors.bgPanel : 'rgba(255, 255, 255, 0.9)',
+          backgroundColor: theme === 'dark' ? 'rgba(30,30,30,0.85)' : 'rgba(255, 255, 255, 0.9)',
           borderColor: colors.borderColor,
           borderWidth: theme === 'dark' ? 1 : 0
-        }
+        },
+        Platform.OS === 'web' && { padding: isSmallScreen ? 14 : 24, borderRadius: 16, bottom: 110, left: isSmallScreen ? 10 : 30, backdropFilter: 'blur(10px)', boxShadow: '0 8px 32px rgba(0,0,0,0.1)' } as any
       ]}>
-        <View style={styles.legendItem}>
-          <View style={[styles.legendDot, { backgroundColor: '#4CAF50' }]} />
-          <Text style={[styles.legendText, { color: colors.textMain }]}>Verificado</Text>
+        <View style={[styles.legendItem, Platform.OS === 'web' && { marginVertical: isSmallScreen ? 4 : 8 } as any]}>
+          <View style={[styles.legendDot, { backgroundColor: '#4CAF50' }, Platform.OS === 'web' && { width: isSmallScreen ? 12 : 16, height: isSmallScreen ? 12 : 16, borderRadius: isSmallScreen ? 6 : 8, marginRight: 12 } as any]} />
+          <Text style={[styles.legendText, { color: colors.textMain }, Platform.OS === 'web' && { fontSize: isSmallScreen ? 13 : 16, fontWeight: '600' } as any]}>Verificado</Text>
         </View>
-        <View style={styles.legendItem}>
-          <View style={[styles.legendDot, { backgroundColor: '#FF9800' }]} />
-          <Text style={[styles.legendText, { color: colors.textMain }]}>No Registrado</Text>
+        <View style={[styles.legendItem, Platform.OS === 'web' && { marginVertical: isSmallScreen ? 4 : 8 } as any]}>
+          <View style={[styles.legendDot, { backgroundColor: '#FF9800' }, Platform.OS === 'web' && { width: isSmallScreen ? 12 : 16, height: isSmallScreen ? 12 : 16, borderRadius: isSmallScreen ? 6 : 8, marginRight: 12 } as any]} />
+          <Text style={[styles.legendText, { color: colors.textMain }, Platform.OS === 'web' && { fontSize: isSmallScreen ? 13 : 16, fontWeight: '600' } as any]}>No Registrado</Text>
         </View>
-        <View style={styles.legendItem}>
-          <View style={[styles.legendDot, { backgroundColor: '#F44336' }]} />
-          <Text style={[styles.legendText, { color: colors.textMain }]}>Desaparecido</Text>
+        <View style={[styles.legendItem, Platform.OS === 'web' && { marginVertical: isSmallScreen ? 4 : 8 } as any]}>
+          <View style={[styles.legendDot, { backgroundColor: '#F44336' }, Platform.OS === 'web' && { width: isSmallScreen ? 12 : 16, height: isSmallScreen ? 12 : 16, borderRadius: isSmallScreen ? 6 : 8, marginRight: 12 } as any]} />
+          <Text style={[styles.legendText, { color: colors.textMain }, Platform.OS === 'web' && { fontSize: isSmallScreen ? 13 : 16, fontWeight: '600' } as any]}>Desaparecido</Text>
         </View>
       </Animated.View>
 
@@ -365,8 +388,8 @@ const styles = StyleSheet.create({
   filtersContainer: {
     position: 'absolute',
     top: 125,
-    left: 20,
-    right: 20,
+    left: 0,
+    right: 0,
     zIndex: 1,
   },
   filterButton: {
@@ -393,7 +416,7 @@ const styles = StyleSheet.create({
   },
   legendContainer: {
     position: 'absolute',
-    bottom: 20,
+    bottom: 110,
     left: 20,
     backgroundColor: 'rgba(255, 255, 255, 0.9)',
     padding: 10,
@@ -493,7 +516,7 @@ const styles = StyleSheet.create({
   },
   recenterContainer: {
     position: 'absolute',
-    bottom: 20,
+    bottom: 110,
     right: 20,
     zIndex: 1,
   },
