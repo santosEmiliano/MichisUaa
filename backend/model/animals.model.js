@@ -44,6 +44,7 @@ async function getAnimalsPublic() {
   try {
     const animals = await prisma.animal.findMany({
       select: {
+        idAnimal: true,
         foto_url: true,
         nombre: true,
         estado: true,
@@ -67,6 +68,7 @@ async function getAnimalsPublic() {
     return animals.map(animal => {
       const ultimoAvistamiento = animal.avistamientos[0];
       return {
+        id: animal.idAnimal,
         foto_url: animal.foto_url,
         nombre: animal.nombre,
         estado: animal.estado,

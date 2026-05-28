@@ -3,12 +3,12 @@ import { apiFetch } from './api';
 export interface PublicAnimal {
   id: number;
   nombre: string;
-  fotoUrl?: string; // Podría llamarse 'foto' o 'fotoUrl' dependiendo del backend
+  foto_url?: string;
 }
 
 export const getPublicAnimals = async (): Promise<PublicAnimal[]> => {
   try {
-    const response = await apiFetch('/animals/public', {
+    const response = await apiFetch('/animal/public', {
       method: 'GET',
     });
     

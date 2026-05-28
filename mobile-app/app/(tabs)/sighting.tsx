@@ -19,12 +19,10 @@ export default function SightingScreen() {
   const [loadingAnimals, setLoadingAnimals] = useState(true);
   const [isSubmitting, setIsSubmitting] = useState(false);
 
-  // Estados para el Modal del Mapa
   const [isMapModalVisible, setMapModalVisible] = useState(false);
   const [tempRegion, setTempRegion] = useState<Region | null>(null);
   const [isDragging, setIsDragging] = useState(false);
 
-  // Función reutilizable para Geocodificación Inversa (convertir GPS a Texto)
   const performReverseGeocode = async (latitude: number, longitude: number) => {
     try {
       let geocode = await Location.reverseGeocodeAsync({ latitude, longitude });
@@ -105,7 +103,6 @@ export default function SightingScreen() {
     }
   };
 
-  // --- Lógica del Mapa Interactivo ---
   const openMapModal = () => {
     if (locationCoords) {
       setTempRegion({
@@ -157,7 +154,6 @@ export default function SightingScreen() {
 
       Alert.alert('¡Gracias!', 'El avistamiento ha sido reportado con éxito.');
       
-      // Limpiar formulario
       setImageUri(null);
       setDescription('');
       setSelectedAnimalId(null);
@@ -172,7 +168,6 @@ export default function SightingScreen() {
   return (
     <SafeAreaView style={styles.safeArea}>
       <ScrollView contentContainerStyle={styles.container}>
-        {/* Header */}
         <View style={styles.header}>
           <TouchableOpacity onPress={() => router.back()} style={styles.backButton}>
             <View style={styles.backIconContainer}>
@@ -182,7 +177,6 @@ export default function SightingScreen() {
           <Text style={styles.headerTitle}>Reportar avistamiento</Text>
         </View>
 
-        {/* Banner Advertencia */}
         <View style={styles.warningBanner}>
           <Ionicons name="warning-outline" size={24} color="#fff" />
           <Text style={styles.warningText}>
@@ -190,7 +184,6 @@ export default function SightingScreen() {
           </Text>
         </View>
 
-        {/* Foto del avistamiento */}
         <View style={styles.section}>
           <Text style={styles.sectionTitle}>Foto del avistamiento <Text style={styles.asterisk}>*</Text></Text>
           
@@ -218,7 +211,6 @@ export default function SightingScreen() {
           </View>
         </View>
 
-        {/* Ubicación */}
         <View style={styles.section}>
           <Text style={styles.sectionTitle}>Ubicación</Text>
           
@@ -260,7 +252,6 @@ export default function SightingScreen() {
           </View>
         </View>
 
-        {/* Selección de Gato */}
         <View style={styles.section}>
           <Text style={styles.sectionTitle}>¿Qué gato es?</Text>
           
@@ -277,8 +268,8 @@ export default function SightingScreen() {
                   ]}
                   onPress={() => setSelectedAnimalId(animal.id === selectedAnimalId ? null : animal.id)}
                 >
-                  {animal.fotoUrl ? (
-                    <Image source={{ uri: animal.fotoUrl }} style={styles.animalPhoto} />
+                  {animal.foto_url ? (
+                    <Image source={{ uri: animal.foto_url }} style={styles.animalPhoto} />
                   ) : (
                     <View style={styles.animalPhotoPlaceholder}>
                       <Text style={{ fontSize: 24 }}>😸</Text>
@@ -301,7 +292,6 @@ export default function SightingScreen() {
           </View>
         </View>
 
-        {/* Descripción */}
         <View style={styles.section}>
           <Text style={styles.sectionTitle}>Descripción (Opcional)</Text>
           <TextInput
@@ -316,7 +306,6 @@ export default function SightingScreen() {
           />
         </View>
 
-        {/* Botón de Enviar */}
         <TouchableOpacity 
           style={[styles.submitButton, isSubmitting && styles.submitButtonDisabled]} 
           onPress={handleSubmit}
@@ -330,7 +319,6 @@ export default function SightingScreen() {
         </TouchableOpacity>
       </ScrollView>
 
-      {/* Modal Interactivo de Mapa */}
       <Modal
         visible={isMapModalVisible}
         transparent={true}
@@ -354,7 +342,6 @@ export default function SightingScreen() {
                   showsUserLocation={true}
                 />
               )}
-              {/* Pin central fijo */}
               <View style={styles.centerPinContainer} pointerEvents="none">
                 <View style={[
                   styles.customMarkerLarge,
@@ -410,7 +397,7 @@ const styles = StyleSheet.create({
     color: Colors.dark.textWhite,
   },
   warningBanner: {
-    backgroundColor: '#E74C3C', // Red color suitable for warnings
+    backgroundColor: '#E74C3C',
     padding: 12,
     borderRadius: 12,
     flexDirection: 'row',

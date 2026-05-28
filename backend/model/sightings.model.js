@@ -26,8 +26,8 @@ async function createSighting(data) {
       data: {
         
         usuarioId: Number(data.usuarioId), 
-        longitud: data.longitud, 
-        latitud: data.latitud,
+        longitud: Number(data.longitud), 
+        latitud: Number(data.latitud),
 
         animalId: data.animalId ? Number(data.animalId) : null,
         verificadoPor: data.verificadoPor ? Number(data.verificadoPor) : null,

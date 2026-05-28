@@ -47,7 +47,7 @@ export const createSighting = async (data: SightingData) => {
   } as any);
 
   try {
-    const response = await fetch(`${BASE_URL}/sightings`, {
+    const response = await fetch(`${BASE_URL}/avistamientos`, {
       method: 'POST',
       headers: {
         Authorization: `Bearer ${session.token}`,
