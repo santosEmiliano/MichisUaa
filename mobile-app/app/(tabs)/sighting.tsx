@@ -1,17 +1,21 @@
 import React, { useState, useEffect } from 'react';
-import { StyleSheet, View, Text, TouchableOpacity, ScrollView, SafeAreaView, Image, Alert, Modal, TextInput } from 'react-native';
+import { StyleSheet, View, Text, TouchableOpacity, ScrollView, SafeAreaView, Image, Alert, Modal, TextInput, ActivityIndicator } from 'react-native';
 import { Ionicons } from '@expo/vector-icons';
 import Colors from '@/constants/Colors';
 import { router } from 'expo-router';
 import * as ImagePicker from 'expo-image-picker';
 import * as Location from 'expo-location';
 import MapView, { Marker, Region } from 'react-native-maps';
+import { getPublicAnimals, PublicAnimal } from '@/services/animalsApi';
 
 export default function SightingScreen() {
   const [imageUri, setImageUri] = useState<string | null>(null);
   const [locationName, setLocationName] = useState<string>('Obteniendo ubicación...');
   const [locationCoords, setLocationCoords] = useState<{ latitude: number, longitude: number } | null>(null);
   const [description, setDescription] = useState<string>('');
+  const [animals, setAnimals] = useState<PublicAnimal[]>([]);
+  const [selectedAnimalId, setSelectedAnimalId] = useState<number | null>(null);
+  const [loadingAnimals, setLoadingAnimals] = useState(true);
 
   // Estados para el Modal del Mapa
   const [isMapModalVisible, setMapModalVisible] = useState(false);
@@ -54,6 +58,15 @@ export default function SightingScreen() {
       } catch (error) {
         setLocationName('Error al obtener ubicación');
       }
+
+      try {
+        const data = await getPublicAnimals();
+        setAnimals(data);
+      } catch (error) {
+        console.error("Error fetching animals", error);
+      } finally {
+        setLoadingAnimals(false);
+      }
     })();
   }, []);
 
@@ -70,8 +83,24 @@ export default function SightingScreen() {
     }
   };
 
-  const handleCameraPress = () => {
-    Alert.alert('Información', 'La funcionalidad de tomar fotos con la cámara será implementada próximamente.');
+  const handleCameraPress = async () => {
+    const permissionResult = await ImagePicker.requestCameraPermissionsAsync();
+    
+    if (permissionResult.granted === false) {
+      Alert.alert('Permiso denegado', 'Se requiere acceso a la cámara para tomar una foto.');
+      return;
+    }
+
+    let result = await ImagePicker.launchCameraAsync({
+      mediaTypes: ['images'],
+      allowsEditing: true,
+      aspect: [4, 3],
+      quality: 0.8,
+    });
+
+    if (!result.canceled) {
+      setImageUri(result.assets[0].uri);
+    }
   };
 
   // --- Lógica del Mapa Interactivo ---
@@ -192,6 +221,47 @@ export default function SightingScreen() {
                 <Text style={styles.changeText}>Cambiar</Text>
               </TouchableOpacity>
             </View>
+          </View>
+        </View>
+
+        {/* Selección de Gato */}
+        <View style={styles.section}>
+          <Text style={styles.sectionTitle}>¿Qué gato es?</Text>
+          
+          {loadingAnimals ? (
+            <ActivityIndicator size="small" color={Colors.dark.accentOrange} />
+          ) : (
+            <ScrollView horizontal showsHorizontalScrollIndicator={false} contentContainerStyle={styles.animalList}>
+              {animals.map((animal) => (
+                <TouchableOpacity
+                  key={animal.id}
+                  style={[
+                    styles.animalCard,
+                    selectedAnimalId === animal.id && styles.animalCardSelected
+                  ]}
+                  onPress={() => setSelectedAnimalId(animal.id === selectedAnimalId ? null : animal.id)}
+                >
+                  {animal.fotoUrl ? (
+                    <Image source={{ uri: animal.fotoUrl }} style={styles.animalPhoto} />
+                  ) : (
+                    <View style={styles.animalPhotoPlaceholder}>
+                      <Text style={{ fontSize: 24 }}>😸</Text>
+                    </View>
+                  )}
+                  <Text style={[
+                    styles.animalName,
+                    selectedAnimalId === animal.id && styles.animalNameSelected
+                  ]} numberOfLines={1}>
+                    {animal.nombre}
+                  </Text>
+                </TouchableOpacity>
+              ))}
+            </ScrollView>
+          )}
+          
+          <View style={styles.hintBox}>
+            <Ionicons name="information-circle-outline" size={16} color={Colors.dark.accentOrange} />
+            <Text style={styles.hintText}>Si no logras identificar al gato, puedes dejarlo en blanco</Text>
           </View>
         </View>
 
@@ -473,6 +543,59 @@ const styles = StyleSheet.create({
     borderColor: Colors.dark.borderColor,
     fontSize: 16,
     minHeight: 120,
+  },
+  animalList: {
+    gap: 12,
+    paddingVertical: 5,
+  },
+  animalCard: {
+    alignItems: 'center',
+    width: 85,
+    padding: 8,
+    borderRadius: 16,
+    borderWidth: 2,
+    borderColor: 'transparent',
+    backgroundColor: Colors.dark.bgPanel,
+  },
+  animalCardSelected: {
+    borderColor: Colors.dark.accentOrange,
+    backgroundColor: Colors.dark.fondoGrisOscuro,
+  },
+  animalPhoto: {
+    width: 60,
+    height: 60,
+    borderRadius: 30,
+    marginBottom: 8,
+  },
+  animalPhotoPlaceholder: {
+    width: 60,
+    height: 60,
+    borderRadius: 30,
+    backgroundColor: Colors.dark.bgDark,
+    justifyContent: 'center',
+    alignItems: 'center',
+    marginBottom: 8,
+  },
+  animalName: {
+    color: Colors.dark.textSecondary,
+    fontSize: 12,
+    fontWeight: '500',
+    textAlign: 'center',
+  },
+  animalNameSelected: {
+    color: Colors.dark.textWhite,
+    fontWeight: 'bold',
+  },
+  hintBox: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    marginTop: 12,
+    gap: 6,
+  },
+  hintText: {
+    color: Colors.dark.accentOrange,
+    fontSize: 12,
+    fontWeight: '500',
   },
   // Modal Styles
   modalOverlay: {
