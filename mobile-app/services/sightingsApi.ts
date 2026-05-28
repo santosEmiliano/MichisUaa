@@ -1,0 +1,84 @@
+import { BASE_URL } from './api';
+import { getSession, clearSession } from './sessionStorage';
+import { router } from 'expo-router';
+import { showAlert } from '@/utils/alerts';
+import { Platform } from 'react-native';
+
+let isNavigatingToLogin = false;
+
+interface SightingData {
+  latitud: number;
+  longitud: number;
+  animalId?: number | null;
+  descripcion?: string;
+  fotoUri: string;
+}
+
+export const createSighting = async (data: SightingData) => {
+  const session = await getSession();
+
+  if (!session) {
+    throw new Error('No hay sesión activa');
+  }
+
+  const formData = new FormData();
+  
+  formData.append('usuarioId', session.userId);
+  formData.append('latitud', String(data.latitud));
+  formData.append('longitud', String(data.longitud));
+  
+  if (data.animalId) {
+    formData.append('animalId', String(data.animalId));
+  }
+  
+  if (data.descripcion) {
+    formData.append('descripcion', data.descripcion);
+  }
+
+  // Parse filename and type
+  const filename = data.fotoUri.split('/').pop() || 'photo.jpg';
+  const match = /\.(\w+)$/.exec(filename);
+  const type = match ? `image/${match[1]}` : `image/jpeg`;
+
+  formData.append('foto', {
+    uri: Platform.OS === 'android' ? data.fotoUri : data.fotoUri.replace('file://', ''),
+    name: filename,
+    type,
+  } as any);
+
+  try {
+    const response = await fetch(`${BASE_URL}/sightings`, {
+      method: 'POST',
+      headers: {
+        Authorization: `Bearer ${session.token}`,
+        // fetch se encarga de setear el Content-Type multipart/form-data con el boundary correcto
+      },
+      body: formData,
+    });
+
+    if (response.status === 401) {
+      if (!isNavigatingToLogin) {
+        isNavigatingToLogin = true;
+        await clearSession();
+        showAlert("Sesión expirada", "Tu sesión ha expirado por seguridad. Por favor, inicia sesión de nuevo.");
+        router.replace("/login");
+
+        setTimeout(() => {
+          isNavigatingToLogin = false;
+        }, 2000);
+      }
+      throw new Error('Unauthorized');
+    }
+
+    if (!response.ok) {
+      const errText = await response.text();
+      console.error('Error del servidor:', errText);
+      throw new Error('Error al enviar el avistamiento');
+    }
+
+    return await response.json();
+  } catch (error) {
+    console.error('Error creating sighting:', error);
+    throw error;
+  }
+};
