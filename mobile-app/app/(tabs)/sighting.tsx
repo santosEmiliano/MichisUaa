@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from 'react';
-import { StyleSheet, View, Text, TouchableOpacity, ScrollView, SafeAreaView, Image, Alert, Modal } from 'react-native';
+import { StyleSheet, View, Text, TouchableOpacity, ScrollView, SafeAreaView, Image, Alert, Modal, TextInput } from 'react-native';
 import { Ionicons } from '@expo/vector-icons';
 import Colors from '@/constants/Colors';
 import { router } from 'expo-router';
@@ -11,6 +11,7 @@ export default function SightingScreen() {
   const [imageUri, setImageUri] = useState<string | null>(null);
   const [locationName, setLocationName] = useState<string>('Obteniendo ubicación...');
   const [locationCoords, setLocationCoords] = useState<{ latitude: number, longitude: number } | null>(null);
+  const [description, setDescription] = useState<string>('');
 
   // Estados para el Modal del Mapa
   const [isMapModalVisible, setMapModalVisible] = useState(false);
@@ -192,6 +193,21 @@ export default function SightingScreen() {
               </TouchableOpacity>
             </View>
           </View>
+        </View>
+
+        {/* Descripción */}
+        <View style={styles.section}>
+          <Text style={styles.sectionTitle}>Descripción (Opcional)</Text>
+          <TextInput
+            style={styles.textArea}
+            placeholder="¿Algún detalle extra sobre el gato o el lugar?"
+            placeholderTextColor={Colors.dark.textSecondary}
+            multiline={true}
+            numberOfLines={4}
+            value={description}
+            onChangeText={setDescription}
+            textAlignVertical="top"
+          />
         </View>
       </ScrollView>
 
@@ -447,6 +463,16 @@ const styles = StyleSheet.create({
     color: Colors.dark.accentOrange,
     fontSize: 14,
     fontWeight: '600',
+  },
+  textArea: {
+    backgroundColor: Colors.dark.bgPanel,
+    color: Colors.dark.textWhite,
+    borderRadius: 16,
+    padding: 16,
+    borderWidth: 1,
+    borderColor: Colors.dark.borderColor,
+    fontSize: 16,
+    minHeight: 120,
   },
   // Modal Styles
   modalOverlay: {
