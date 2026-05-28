@@ -7,6 +7,7 @@ import * as ImagePicker from 'expo-image-picker';
 import * as Location from 'expo-location';
 import MapView, { Marker, Region } from 'react-native-maps';
 import { getPublicAnimals, PublicAnimal } from '@/services/animalsApi';
+import { createSighting } from '@/services/sightingsApi';
 
 export default function SightingScreen() {
   const [imageUri, setImageUri] = useState<string | null>(null);
@@ -16,6 +17,7 @@ export default function SightingScreen() {
   const [animals, setAnimals] = useState<PublicAnimal[]>([]);
   const [selectedAnimalId, setSelectedAnimalId] = useState<number | null>(null);
   const [loadingAnimals, setLoadingAnimals] = useState(true);
+  const [isSubmitting, setIsSubmitting] = useState(false);
 
   // Estados para el Modal del Mapa
   const [isMapModalVisible, setMapModalVisible] = useState(false);
@@ -130,6 +132,40 @@ export default function SightingScreen() {
       setMapModalVisible(false);
       setLocationName('Actualizando dirección...');
       await performReverseGeocode(tempRegion.latitude, tempRegion.longitude);
+    }
+  };
+
+  const handleSubmit = async () => {
+    if (!imageUri) {
+      Alert.alert('Falta la foto', 'Es obligatorio subir una foto del gato.');
+      return;
+    }
+    if (!locationCoords) {
+      Alert.alert('Falta la ubicación', 'Estamos obteniendo tu ubicación, por favor espera un momento.');
+      return;
+    }
+
+    setIsSubmitting(true);
+    try {
+      await createSighting({
+        latitud: locationCoords.latitude,
+        longitud: locationCoords.longitude,
+        animalId: selectedAnimalId,
+        descripcion: description,
+        fotoUri: imageUri,
+      });
+
+      Alert.alert('¡Gracias!', 'El avistamiento ha sido reportado con éxito.');
+      
+      // Limpiar formulario
+      setImageUri(null);
+      setDescription('');
+      setSelectedAnimalId(null);
+      
+    } catch (error) {
+      Alert.alert('Error', 'Hubo un problema al enviar el reporte. Por favor, intenta de nuevo.');
+    } finally {
+      setIsSubmitting(false);
     }
   };
 
@@ -279,6 +315,19 @@ export default function SightingScreen() {
             textAlignVertical="top"
           />
         </View>
+
+        {/* Botón de Enviar */}
+        <TouchableOpacity 
+          style={[styles.submitButton, isSubmitting && styles.submitButtonDisabled]} 
+          onPress={handleSubmit}
+          disabled={isSubmitting}
+        >
+          {isSubmitting ? (
+            <ActivityIndicator color={Colors.dark.textWhite} />
+          ) : (
+            <Text style={styles.submitButtonText}>Enviar avistamiento</Text>
+          )}
+        </TouchableOpacity>
       </ScrollView>
 
       {/* Modal Interactivo de Mapa */}
@@ -596,6 +645,23 @@ const styles = StyleSheet.create({
     color: Colors.dark.accentOrange,
     fontSize: 12,
     fontWeight: '500',
+  },
+  submitButton: {
+    backgroundColor: Colors.dark.metricaVerde,
+    paddingVertical: 16,
+    borderRadius: 16,
+    alignItems: 'center',
+    justifyContent: 'center',
+    marginTop: 10,
+    marginBottom: 20,
+  },
+  submitButtonDisabled: {
+    opacity: 0.7,
+  },
+  submitButtonText: {
+    color: Colors.dark.textWhite,
+    fontSize: 18,
+    fontWeight: 'bold',
   },
   // Modal Styles
   modalOverlay: {
