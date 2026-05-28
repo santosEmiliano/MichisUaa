@@ -116,6 +116,14 @@ export default function SightingScreen() {
           <Text style={styles.headerTitle}>Reportar avistamiento</Text>
         </View>
 
+        {/* Banner Advertencia */}
+        <View style={styles.warningBanner}>
+          <Ionicons name="warning-outline" size={24} color="#fff" />
+          <Text style={styles.warningText}>
+            Está prohibido subir fotografías de personas. Por favor, sube únicamente la foto del gato.
+          </Text>
+        </View>
+
         {/* Foto del avistamiento */}
         <View style={styles.section}>
           <Text style={styles.sectionTitle}>Foto del avistamiento <Text style={styles.asterisk}>*</Text></Text>
@@ -265,6 +273,22 @@ const styles = StyleSheet.create({
     fontSize: 20,
     fontWeight: 'bold',
     color: Colors.dark.textWhite,
+  },
+  warningBanner: {
+    backgroundColor: '#E74C3C', // Red color suitable for warnings
+    padding: 12,
+    borderRadius: 12,
+    flexDirection: 'row',
+    alignItems: 'center',
+    marginBottom: 25,
+    gap: 10,
+  },
+  warningText: {
+    color: '#FFFFFF',
+    fontSize: 14,
+    fontWeight: '600',
+    flex: 1,
+    lineHeight: 20,
   },
   section: {
     marginBottom: 30,
