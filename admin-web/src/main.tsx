@@ -10,7 +10,7 @@ ReactDOM.createRoot(document.getElementById("root")!).render(
   <React.StrictMode>
     <ThemeProvider>
       <AlertProvider>
-        <BrowserRouter>
+        <BrowserRouter basename="/admin">
           <App />
         </BrowserRouter>
       </AlertProvider>
