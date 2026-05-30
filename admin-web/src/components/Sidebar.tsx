@@ -39,10 +39,13 @@ const navGroups = [
 import { getUserName, logoutHelper } from "../utils/auth";
 import { authService } from "../services/authApi";
 
+import { useNavigate } from "react-router-dom";
+
 const Sidebar: React.FC<SidebarProps> = ({ isOpen, toggleSidebar }) => {
   const userName = getUserName();
   const initials = userName.substring(0, 2).toUpperCase();
   const [loggingOut, setLoggingOut] = useState(false);
+  const navigate = useNavigate();
 
   const handleLogout = async () => {
     if (loggingOut) return;
@@ -58,7 +61,7 @@ const Sidebar: React.FC<SidebarProps> = ({ isOpen, toggleSidebar }) => {
     // Pequeño delay para que se vea la animación
     await new Promise((r) => setTimeout(r, 600));
     logoutHelper();
-    window.location.href = "/login";
+    navigate("/login", { replace: true });
   };
 
   return (
