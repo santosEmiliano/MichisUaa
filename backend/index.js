@@ -16,16 +16,19 @@ app.use(cors()); //De momento asi sin na
 app.use(express.json()); 
 
 // RUTA DE CHECK
+app.get('/api', (req, res) => {
+  res.send('¡Servidor Express funcionando correctamente en /api!');
+});
 app.get('/', (req, res) => {
-  res.send('¡Servidor Express funcionando correctamente!');
+  res.send('¡Servidor Express funcionando en la raíz!');
 });
 
 // USE DE RUTAS DE API
-app.use('/user', userRoutes);
-app.use('/animal', animalRoutes);
-app.use('/colonies', coloniesRoutes);
-app.use('/avistamientos', sightingRoutes);
-app.use('/stadistics', stadisticsRoutes);
+app.use('/api/user', userRoutes);
+app.use('/api/animal', animalRoutes);
+app.use('/api/colonies', coloniesRoutes);
+app.use('/api/avistamientos', sightingRoutes);
+app.use('/api/stadistics', stadisticsRoutes);
 
 // RUTA DE CHECK 2
 app.get('/api/status', (req, res) => {
