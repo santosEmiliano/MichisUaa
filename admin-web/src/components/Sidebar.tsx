@@ -39,13 +39,11 @@ const navGroups = [
 import { getUserName, logoutHelper } from "../utils/auth";
 import { authService } from "../services/authApi";
 
-import { useNavigate } from "react-router-dom";
 
 const Sidebar: React.FC<SidebarProps> = ({ isOpen, toggleSidebar }) => {
   const userName = getUserName();
   const initials = userName.substring(0, 2).toUpperCase();
   const [loggingOut, setLoggingOut] = useState(false);
-  const navigate = useNavigate();
 
   const handleLogout = async () => {
     if (loggingOut) return;
