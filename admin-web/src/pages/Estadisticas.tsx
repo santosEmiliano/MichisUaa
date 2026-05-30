@@ -55,14 +55,14 @@ const Estadisticas = () => {
       const headers = { Authorization: `Bearer ${token}` };
 
       const [resTotalCats, resEsterilizados, resDesapariciones, resAvistamientos, resBarData, resSighingsTendency, resColoniesSummary, resSterilizedState] = await Promise.all([
-        fetch("http://localhost:3000/stadistics/totalCats", { headers }),
-        fetch("http://localhost:3000/stadistics/sterilizedCount", { headers }),
-        fetch("http://localhost:3000/stadistics/missingCats", { headers }),
-        fetch("http://localhost:3000/stadistics/sightingsLastWeek", { headers }),
-        fetch("http://localhost:3000/stadistics/signingsPerColony", { headers }),
-        fetch("http://localhost:3000/stadistics/sighingsTendency", { headers }),
-        fetch("http://localhost:3000/stadistics/coloniesSummary", { headers }),
-        fetch("http://localhost:3000/stadistics/sterilizedState", { headers }),
+        fetch("/michisuaa/api/stadistics/totalCats", { headers }),
+        fetch("/michisuaa/api/stadistics/sterilizedCount", { headers }),
+        fetch("/michisuaa/api/stadistics/missingCats", { headers }),
+        fetch("/michisuaa/api/stadistics/sightingsLastWeek", { headers }),
+        fetch("/michisuaa/api/stadistics/signingsPerColony", { headers }),
+        fetch("/michisuaa/api/stadistics/sighingsTendency", { headers }),
+        fetch("/michisuaa/api/stadistics/coloniesSummary", { headers }),
+        fetch("/michisuaa/api/stadistics/sterilizedState", { headers }),
       ]);
 
       if (resTotalCats.ok) {

@@ -118,7 +118,7 @@ const AuthPage = ({ onLogin }: AuthPageProps) => {
         <div className="text-center pt-12 pb-6 px-8">
           <div className="mx-auto mb-5">
             <img 
-              src="/MichisUAALogo.png" 
+              src={`${import.meta.env.BASE_URL}MichisUAALogo.png`} 
               alt="MichisUAA Logo" 
               className="w-20 h-20 object-contain mx-auto"
             />
