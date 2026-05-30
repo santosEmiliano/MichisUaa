@@ -61,7 +61,6 @@ const Sidebar: React.FC<SidebarProps> = ({ isOpen, toggleSidebar }) => {
     // Pequeño delay para que se vea la animación
     await new Promise((r) => setTimeout(r, 600));
     logoutHelper();
-    navigate("/login", { replace: true });
   };
 
   return (
