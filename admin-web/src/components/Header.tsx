@@ -146,7 +146,7 @@ const NotificationPanel = ({
   );
 };
 
-const Header = () => {
+const Header = ({ toggleSidebar }: { toggleSidebar?: () => void }) => {
   const location = useLocation();
   const { theme, toggleTheme } = useTheme();
   const [isNotifOpen, setIsNotifOpen] = useState(false);
@@ -162,11 +162,20 @@ const Header = () => {
 
   return (
     <>
-      <header className="sticky top-0 z-20 px-6 py-5 md:px-10 flex items-center justify-between border-b border-panel bg-gris">
-        <div className="flex items-center gap-3 min-w-0">
+      <header className="sticky top-0 z-20 px-4 py-4 lg:px-10 lg:py-5 flex items-center justify-between border-b border-panel bg-gris">
+        <div className="flex items-center gap-2 lg:gap-3 min-w-0">
+          {toggleSidebar && (
+            <button
+              onClick={toggleSidebar}
+              className="p-2 lg:hidden -ml-2 rounded-lg text-secondary hover:text-main hover:bg-hover transition-colors shrink-0"
+              title="Abrir menú"
+            >
+              <Icons.Menu className="w-6 h-6" />
+            </button>
+          )}
           <h1 
             key={currentTitle}
-            className="text-4xl font-extrabold text-main shrink-0 animate-title"
+            className="text-2xl lg:text-4xl font-extrabold text-main shrink-0 animate-title truncate"
           >
             {currentTitle}
           </h1>
