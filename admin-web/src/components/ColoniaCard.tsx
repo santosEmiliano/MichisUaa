@@ -1,4 +1,3 @@
-import React from "react";
 import Icons from "./Icons";
 import type { Colonia } from "../types/models";
 

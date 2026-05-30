@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from "react";
+import { useState, useEffect } from "react";
 import { PieChart, Pie, Cell, AreaChart, Area, ResponsiveContainer } from "recharts";
 import { MetricCard } from "../components/MetricCard";
 import { LoadingScreen } from "../components/LoadingScreen";
@@ -55,14 +55,14 @@ const Estadisticas = () => {
       const headers = { Authorization: `Bearer ${token}` };
 
       const [resTotalCats, resEsterilizados, resDesapariciones, resAvistamientos, resBarData, resSighingsTendency, resColoniesSummary, resSterilizedState] = await Promise.all([
-        fetch("http://localhost:3000/stadistics/totalCats", { headers }),
-        fetch("http://localhost:3000/stadistics/sterilizedCount", { headers }),
-        fetch("http://localhost:3000/stadistics/missingCats", { headers }),
-        fetch("http://localhost:3000/stadistics/sightingsLastWeek", { headers }),
-        fetch("http://localhost:3000/stadistics/signingsPerColony", { headers }),
-        fetch("http://localhost:3000/stadistics/sighingsTendency", { headers }),
-        fetch("http://localhost:3000/stadistics/coloniesSummary", { headers }),
-        fetch("http://localhost:3000/stadistics/sterilizedState", { headers }),
+        fetch("/michisuaa/api/stadistics/totalCats", { headers }),
+        fetch("/michisuaa/api/stadistics/sterilizedCount", { headers }),
+        fetch("/michisuaa/api/stadistics/missingCats", { headers }),
+        fetch("/michisuaa/api/stadistics/sightingsLastWeek", { headers }),
+        fetch("/michisuaa/api/stadistics/signingsPerColony", { headers }),
+        fetch("/michisuaa/api/stadistics/sighingsTendency", { headers }),
+        fetch("/michisuaa/api/stadistics/coloniesSummary", { headers }),
+        fetch("/michisuaa/api/stadistics/sterilizedState", { headers }),
       ]);
 
       if (resTotalCats.ok) {
@@ -263,7 +263,7 @@ const Estadisticas = () => {
             </ResponsiveContainer>
 
             <div className="absolute bottom-0 left-0 right-0 flex justify-between px-4">
-              {sighingsTendencyData.map((d, i) => (
+              {sighingsTendencyData.map((_, i) => (
                 <div key={i} className="text-[10px] text-secondary flex flex-col items-center">
                   <span>Sem</span>
                   <span>{i+1}</span>

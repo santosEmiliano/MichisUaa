@@ -1,6 +1,6 @@
 import type { LoginResponse, CreateUserResponse } from "../types/authTypes";
 
-const BASE_URL = "http://localhost:3000";
+const BASE_URL = "/michisuaa/api";
 
 async function handleResponse<T>(res: Response): Promise<T> {
   const data = await res.json();

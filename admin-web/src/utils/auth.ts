@@ -38,6 +38,7 @@ export const logoutHelper = (): void => {
   localStorage.removeItem("userId");
   localStorage.removeItem("userName");
   localStorage.removeItem("isAdmin"); // Por si quedó guardado en el paso anterior
+  window.dispatchEvent(new Event("auth:logout"));
 };
 
 export const getUserName = (): string => {

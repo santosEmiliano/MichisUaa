@@ -28,8 +28,12 @@ function App() {
       return response;
     };
     
+    const handleLogoutEvent = () => setIsAuthenticated(false);
+    window.addEventListener("auth:logout", handleLogoutEvent);
+
     return () => {
       window.fetch = originalFetch;
+      window.removeEventListener("auth:logout", handleLogoutEvent);
     };
   }, []);
 

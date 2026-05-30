@@ -7,10 +7,7 @@ const BACKEND_IP = process.env.EXPO_PUBLIC_BACKEND_IP;
 
 let isNavigatingToLogin = false;
 
-export const BASE_URL =
-  Platform.OS === "web"
-    ? `http://${typeof window !== 'undefined' ? window.location.hostname : 'localhost'}:3000`
-    : `http://${BACKEND_IP}:3000`;
+export const BASE_URL = process.env.EXPO_PUBLIC_API_URL || "https://ccbas.uaa.mx/michisuaa/api";
 
 export const apiFetch = async (
   endpoint: string,

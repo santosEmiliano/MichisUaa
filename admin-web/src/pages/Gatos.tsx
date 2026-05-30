@@ -191,7 +191,7 @@ const GatosPage = () => {
     
     try {
       const token = localStorage.getItem("token") || "";
-      const res = await fetch(`http://localhost:3000/animal/${catToDelete.id}`, {
+      const res = await fetch(`/michisuaa/api/animal/${catToDelete.id}`, {
         method: "DELETE",
         headers: {
           Authorization: `Bearer ${token}`
@@ -236,7 +236,7 @@ const GatosPage = () => {
   const fetchCats = async () => {
     try {
       const token = localStorage.getItem("token") || "";
-        const res = await fetch("http://localhost:3000/animal/", {
+        const res = await fetch("/michisuaa/api/animal/", {
           headers: {
             Authorization: `Bearer ${token}`
           }

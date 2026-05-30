@@ -60,12 +60,6 @@ export const DataTable = <T extends object>({
     safePage * rowsPerPage,
   );
 
-  const pageWindow = () => {
-    const start = Math.max(1, safePage - 2);
-    const end = Math.min(totalPages, start + 4);
-    return Array.from({ length: end - start + 1 }, (_, i) => start + i);
-  };
-
   return (
     <div className="w-full space-y-4">
       {/* Buscador y Filtros */}
@@ -226,24 +220,6 @@ const ActionButton = ({
       el.style.background = "transparent";
       el.style.color = color;
     }}
-  >
-    {children}
-  </button>
-);
-
-const PageBtn = ({
-  children,
-  onClick,
-  disabled,
-}: {
-  children: React.ReactNode;
-  onClick: () => void;
-  disabled: boolean;
-}) => (
-  <button
-    onClick={onClick}
-    disabled={disabled}
-    className="w-8 h-8 rounded-lg text-sm text-secondary hover-bg-item disabled:opacity-30 disabled:cursor-not-allowed transition-colors"
   >
     {children}
   </button>
