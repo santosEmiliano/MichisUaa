@@ -27,7 +27,7 @@ export const GatoModal = ({ isOpen, onClose, onSuccess, catToEdit }: CatModalPro
       const fetchColonias = async () => {
         try {
           const token = localStorage.getItem("token") || "";
-          const res = await fetch("http://localhost:3000/colonies/", {
+          const res = await fetch("/michisuaa/api/colonies/", {
             headers: { Authorization: `Bearer ${token}` }
           });
           if (res.ok) {
@@ -117,8 +117,8 @@ export const GatoModal = ({ isOpen, onClose, onSuccess, catToEdit }: CatModalPro
       if (file) formData.append("foto", file);
 
       const url = catToEdit 
-        ? `http://localhost:3000/animal/${catToEdit.id}`
-        : "http://localhost:3000/animal/";
+        ? `/michisuaa/api/animal/${catToEdit.id}`
+        : "/michisuaa/api/animal/";
       const method = catToEdit ? "PUT" : "POST";
 
       const res = await fetch(url, {

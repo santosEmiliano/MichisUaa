@@ -7,4 +7,13 @@ export default defineConfig({
   // Base path para producción: el admin vive en /michisuaa/admin/
   // Sin esto, los assets JS/CSS se buscan en / y dan 404
   base: '/michisuaa/admin/',
+  server: {
+    proxy: {
+      '/michisuaa/api': {
+        target: 'http://localhost:3000',
+        changeOrigin: true,
+        rewrite: (path) => path.replace(/^\/michisuaa\/api/, '/api')
+      }
+    }
+  }
 })

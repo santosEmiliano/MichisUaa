@@ -75,7 +75,7 @@ const Sidebar: React.FC<SidebarProps> = ({ isOpen, toggleSidebar }) => {
       <div className="p-8 pb-4">
         <div className="mb-4">
           <img 
-            src="/MichisUAALogo.png" 
+            src={`${import.meta.env.BASE_URL}MichisUAALogo.png`} 
             alt="MichisUAA Logo" 
             className="w-16 h-16 object-contain"
           />

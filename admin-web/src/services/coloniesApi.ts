@@ -1,7 +1,7 @@
 import type { Colonia } from "../types/models";
 import type { BackendColonia } from "../types/coloniesTypes";
 
-const BASE_URL = "http://localhost:3000/colonies";
+const BASE_URL = "/michisuaa/api/colonies";
 
 // Obtiene el token del localStorage
 function getAuthHeaders(): HeadersInit {

@@ -30,13 +30,13 @@ const Colonias = () => {
       // Llamadas paralelas
       const [coloniasData, usersRes, animalsRes] = await Promise.all([
         coloniesService.getColonies(),
-        fetch("http://localhost:3000/user", {
+        fetch("/michisuaa/api/user", {
           headers: {
             "Content-Type": "application/json",
             Authorization: `Bearer ${token}`,
           },
         }),
-        fetch("http://localhost:3000/animal", {
+        fetch("/michisuaa/api/animal", {
           headers: {
             "Content-Type": "application/json",
             Authorization: `Bearer ${token}`,
