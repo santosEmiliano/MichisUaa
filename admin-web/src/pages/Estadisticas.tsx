@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from "react";
+import { useState, useEffect } from "react";
 import { PieChart, Pie, Cell, AreaChart, Area, ResponsiveContainer } from "recharts";
 import { MetricCard } from "../components/MetricCard";
 import { LoadingScreen } from "../components/LoadingScreen";
@@ -263,7 +263,7 @@ const Estadisticas = () => {
             </ResponsiveContainer>
 
             <div className="absolute bottom-0 left-0 right-0 flex justify-between px-4">
-              {sighingsTendencyData.map((d, i) => (
+              {sighingsTendencyData.map((_, i) => (
                 <div key={i} className="text-[10px] text-secondary flex flex-col items-center">
                   <span>Sem</span>
                   <span>{i+1}</span>

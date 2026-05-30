@@ -4,7 +4,6 @@ import { MetricCard } from "../components/MetricCard";
 import { AvistamientoModal } from "../components/AvistamientoModal";
 import { DataTable, type ColumnDef } from "../components/DataTable";
 import type { Avistamiento } from "../types/models";
-import { avistamientosApi } from "../services/avistamientosApi";
 import { LoadingScreen } from "../components/LoadingScreen";
 
 const getInitials = (name: string) => {
