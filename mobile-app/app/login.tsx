@@ -15,13 +15,13 @@ import WebBackground from '@/components/WebBackground';
 import WebRegisterForm from '@/components/WebRegisterForm';
 
 export default function LoginScreen() {
-  const colorScheme = useColorScheme() ?? 'light';
+  const colorScheme = useColorScheme() ?? 'dark';
   const colors = Colors[colorScheme];
   const { height, width } = useWindowDimensions();
 
   // Escala dinámica para web:
-  // Si la ventana mide menos de 850px de alto o 450px de ancho, el contenedor se encogerá proporcionalmente.
-  const scale = Platform.OS === 'web' ? Math.min(1, height / 850, width / 450) : 1;
+  // Prevenimos que scale sea 0 en SSR cuando height/width son 0
+  const scale = Platform.OS === 'web' && height > 0 ? Math.min(1, height / 850, width / 450) : 1;
 
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
