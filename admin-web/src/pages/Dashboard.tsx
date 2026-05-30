@@ -204,7 +204,7 @@ const Dashboard = () => {
   return (
     <div className="space-y-6 pt-2 pb-10 animate-in fade-in slide-in-from-bottom-4 duration-700">
       {/* Grid of MetricCards */}
-      <div className="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-4 gap-6">
+      <div className="grid grid-cols-2 lg:grid-cols-4 gap-3 sm:gap-6">
         <MetricCard
           title="Total Gatos"
           value={totalGatos}
@@ -240,12 +240,12 @@ const Dashboard = () => {
         />
       </div>
 
-      <div className="flex items-center justify-between mt-10">
-        <div className="flex items-center gap-4">
-          <h2 className="text-3xl font-extrabold text-main">
+      <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4 mt-8 sm:mt-10">
+        <div className="flex flex-wrap items-center gap-3">
+          <h2 className="text-xl sm:text-3xl font-extrabold text-main">
             Avistamientos pendientes
           </h2>
-          <span className="bg-gris-oscuro text-secondary text-xs font-bold px-4 py-1.5 rounded-full border border-panel">
+          <span className="bg-gris-oscuro text-secondary text-[11px] sm:text-xs font-bold px-3 py-1 sm:px-4 sm:py-1.5 rounded-full border border-panel">
             {pendientes.length} por revisar
           </span>
         </div>
