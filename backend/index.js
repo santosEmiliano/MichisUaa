@@ -15,9 +15,10 @@ const stadisticsRoutes = require('./routes/stadistics.routes');
 // Middlewares globales
 app.use(cors()); //De momento asi sin na
 app.use(express.json());
+app.set('trust proxy', 1);
 
 // Archivos estáticos - imágenes subidas localmente
-app.use("/images", express.static(path.join(__dirname, "images"))); 
+app.use("/api/images", express.static(path.join(__dirname, "images"))); 
 
 // RUTA DE CHECK
 app.get('/api', (req, res) => {

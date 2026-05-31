@@ -1,5 +1,6 @@
 const animalModel = require("../model/animals.model");
 const fileUtils = require("../utils/fileUpload");
+const API_URL = process.env.API_URL || "";
 
 // GET ALL
 const getAnimals = async (req, res) => {
@@ -62,7 +63,7 @@ const createAnimal = async (req, res) => {
     }
 
     if(req.file) {
-      req.body.foto_url = "/images/animals/" + req.file.filename;
+      req.body.foto_url = `${API_URL}/api/images/animals/${req.file.filename}`;
     }
 
     const newAnimal = await animalModel.createAnimal(req.body);
@@ -120,8 +121,7 @@ const updateAnimal = async (req, res) => {
         await fileUtils.deleteLocalFile(existingAnimal.foto_url);
       }
 
-      req.body.foto_url = "/images/animals/" + req.file.filename;
-      req.body.foto_id = null;
+      req.body.foto_url = `${API_URL}/api/images/animals/${req.file.filename}`;
     }
 
     const updatedAnimal = await animalModel.updateAnimal(id, req.body);

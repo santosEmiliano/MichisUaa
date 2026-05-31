@@ -1,5 +1,6 @@
 const sightingFunctions = require("../model/sightings.model");
 const fileUtils = require("../utils/fileUpload");
+const API_URL = process.env.API_URL || "";
 const { verificarMedallas } = require("../services/medallas.service");
 
 // GET ALL
@@ -49,7 +50,7 @@ const registerSighting = async (req, res) => {
     }
 
     if (req.file) {
-      req.body.foto_url = "/images/sightings/" + req.file.filename;
+      req.body.foto_url = `${API_URL}/api/images/sightings/${req.file.filename}`;
     }
 
     const newSighting = await sightingFunctions.createSighting(req.body);
@@ -92,7 +93,7 @@ const modifySighting = async (req, res) => {
         await fileUtils.deleteLocalFile(oldSighting.foto_url);
       }
 
-      req.body.foto_url = "/images/sightings/" + req.file.filename;
+      req.body.foto_url = `${API_URL}/api/images/sightings/${req.file.filename}`;
     }
 
     const updatedSighting = await sightingFunctions.modifySighting(
