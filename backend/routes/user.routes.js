@@ -3,13 +3,53 @@ const router = express.Router();
 const token = require("../middleware/verifyToken");
 const userFunctions = require("../controllers/user.controller");
 
-//Ruta POST de Login
+/**
+ * @swagger
+ * tags:
+ *   name: Usuarios
+ *   description: Gestión de usuarios, autenticación y credenciales
+ */
+
+/**
+ * @swagger
+ * /api/user/login:
+ *   post:
+ *     summary: Iniciar sesión en el sistema
+ *     tags: [Usuarios]
+ *     requestBody:
+ *       required: true
+ *       content:
+ *         application/json:
+ *           schema:
+ *             type: object
+ *             properties:
+ *               email:
+ *                 type: string
+ *                 example: admin@michis.uaa.mx
+ *               password:
+ *                 type: string
+ *                 example: password123
+ *     responses:
+ *       200:
+ *         description: Login exitoso, retorna el token JWT y datos de usuario
+ */
 router.post(
   "/login",
   userFunctions.login
 );
 
-//Ruta GET de usuarios para admin
+/**
+ * @swagger
+ * /api/user:
+ *   get:
+ *     summary: Obtener todos los usuarios del sistema (Solo Admin)
+ *     tags: [Usuarios]
+ *     security:
+ *       - bearerAuth: []
+ *     responses:
+ *       200:
+ *         description: Retorna un arreglo con todos los usuarios registrados
+ */
 router.get(
   "/",
   token.verifyToken,
@@ -17,27 +57,115 @@ router.get(
   userFunctions.obtainUsers
 );
 
-// Ruta POST de Registro (crear nuevo usuario desde el panel admin)
+/**
+ * @swagger
+ * /api/user/register:
+ *   post:
+ *     summary: Registrar un nuevo usuario en la base de datos
+ *     tags: [Usuarios]
+ *     requestBody:
+ *       required: true
+ *       content:
+ *         application/json:
+ *           schema:
+ *             type: object
+ *             properties:
+ *               nombre:
+ *                 type: string
+ *                 example: Juan Pérez
+ *               email:
+ *                 type: string
+ *                 example: juan@michis.uaa.mx
+ *               password:
+ *                 type: string
+ *               rol:
+ *                 type: string
+ *                 example: Simpatizante
+ *     responses:
+ *       201:
+ *         description: Usuario creado exitosamente
+ */
 router.post(
-    "/register", 
-    userFunctions.createUser
+  "/register",
+  userFunctions.createUser
 );
 
-//Ruta POST de Logout
+/**
+ * @swagger
+ * /api/user/logout:
+ *   post:
+ *     summary: Cerrar la sesión activa del usuario
+ *     tags: [Usuarios]
+ *     security:
+ *       - bearerAuth: []
+ *     responses:
+ *       200:
+ *         description: Sesión invalidada/cerrada con éxito
+ */
 router.post(
   "/logout",
   token.verifyToken,
   userFunctions.logout
 );
 
-//Ruta GET de medallas de un usuario por ID
+/**
+ * @swagger
+ * /api/user/{id}/medallas:
+ *   get:
+ *     summary: Obtener las medallas ganadas por un usuario específico
+ *     tags: [Usuarios]
+ *     security:
+ *       - bearerAuth: []
+ *     parameters:
+ *       - in: path
+ *         name: id
+ *         required: true
+ *         description: ID del usuario
+ *         schema:
+ *           type: string
+ *     responses:
+ *       200:
+ *         description: Objeto con la lista de medallas y logros del usuario
+ */
 router.get(
   "/:id/medallas",
   token.verifyToken,
   userFunctions.getUserMedals
 );
 
-//Ruta PUT de updateUser
+/**
+ * @swagger
+ * /api/user/{id}:
+ *   put:
+ *     summary: Actualizar la información de un usuario (Solo Admin)
+ *     tags: [Usuarios]
+ *     security:
+ *       - bearerAuth: []
+ *     parameters:
+ *       - in: path
+ *         name: id
+ *         required: true
+ *         description: ID del usuario a editar
+ *         schema:
+ *           type: string
+ *     requestBody:
+ *       required: true
+ *       content:
+ *         application/json:
+ *           schema:
+ *             type: object
+ *             properties:
+ *               nombre:
+ *                 type: string
+ *               email:
+ *                 type: string
+ *               rol:
+ *                 type: string
+ *                 example: Administrador
+ *     responses:
+ *       200:
+ *         description: Usuario actualizado con éxito
+ */
 router.put(
   "/:id",
   token.verifyToken,
@@ -45,7 +173,25 @@ router.put(
   userFunctions.updateUser
 )
 
-//Ruta DELETE para removeUser
+/**
+ * @swagger
+ * /api/user/{id}:
+ *   delete:
+ *     summary: Eliminar permanentemente un usuario (Solo Admin)
+ *     tags: [Usuarios]
+ *     security:
+ *       - bearerAuth: []
+ *     parameters:
+ *       - in: path
+ *         name: id
+ *         required: true
+ *         description: ID del usuario a eliminar
+ *         schema:
+ *           type: string
+ *     responses:
+ *       200:
+ *         description: Usuario eliminado del sistema
+ */
 router.delete(
   "/:id",
   token.verifyToken,
@@ -53,18 +199,32 @@ router.delete(
   userFunctions.removeUser
 )
 
-// Ruta PUT para registrar/actualizar token push
+/**
+ * @swagger
+ * /api/user/push-token:
+ *   put:
+ *     summary: Registrar o actualizar el token push de Expo (Notificaciones Móviles)
+ *     tags: [Usuarios]
+ *     security:
+ *       - bearerAuth: []
+ *     requestBody:
+ *       required: true
+ *       content:
+ *         application/json:
+ *           schema:
+ *             type: object
+ *             properties:
+ *               pushToken:
+ *                 type: string
+ *                 example: ExponentPushToken[xxxxxxxxxxxxxxxxxxxxxx]
+ *     responses:
+ *       200:
+ *         description: Push token actualizado exitosamente
+ */
 router.put(
   "/push-token",
   token.verifyToken,
   userFunctions.updatePushToken
 );
-
-// -------------------------------------------- DE PRUEBA --------------------------------------------
-// ENDPOINT QUE RETORNA LA INFORMACION DEL USUARIO SEGUN SU ID
-router.get("/login", (req, res) => {
-  res.send('Si jala');
-});
-// ---------------------------------------------------------------------------------------------------
 
 module.exports = router;
