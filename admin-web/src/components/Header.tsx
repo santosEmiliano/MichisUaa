@@ -164,8 +164,8 @@ const Header = ({ toggleSidebar }: { toggleSidebar?: () => void }) => {
     <>
       <header className="sticky top-0 z-20 px-4 py-4 lg:px-10 lg:py-5 flex flex-wrap items-center justify-between gap-y-4 gap-x-2 border-b border-panel bg-gris">
         
-        {/* Bloque Izquierdo/Superior: Ocupa 100% en celular (para separar título y badge) */}
-        <div className="flex items-center justify-between sm:justify-start w-full sm:w-auto shrink-0">
+        {/* Bloque Izquierdo/Superior: Ocupa 100% en celular (excepto en Dashboard) para separar título y badge */}
+        <div className={`flex items-center justify-between sm:justify-start ${isDashboard ? 'w-auto' : 'w-full'} sm:w-auto shrink-0`}>
           <div className="flex items-center gap-2 lg:gap-3 shrink-0">
             {toggleSidebar && (
               <button
@@ -191,8 +191,8 @@ const Header = ({ toggleSidebar }: { toggleSidebar?: () => void }) => {
           />
         </div>
 
-        {/* Bloque Derecho/Inferior: Ocupa 100% centrado en celular, auto a la derecha en escritorio */}
-        <div className="flex items-center justify-center sm:justify-end gap-3 relative w-full sm:w-auto ml-auto shrink-0">
+        {/* Bloque Derecho/Inferior: Ocupa 100% centrado en celular (excepto en Dashboard), auto a la derecha en escritorio */}
+        <div className={`flex items-center justify-center sm:justify-end gap-3 relative ${isDashboard ? 'w-auto' : 'w-full'} sm:w-auto ml-auto shrink-0`}>
           {isDashboard && (
             <button
               onClick={toggleTheme}
