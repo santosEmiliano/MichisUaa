@@ -162,48 +162,55 @@ const Header = ({ toggleSidebar }: { toggleSidebar?: () => void }) => {
 
   return (
     <>
-      <header className="sticky top-0 z-20 px-4 py-4 lg:px-10 lg:py-5 flex items-center justify-between border-b border-panel bg-gris">
-        <div className="flex items-center gap-2 lg:gap-3 min-w-0">
-          {toggleSidebar && (
-            <button
-              onClick={toggleSidebar}
-              className="p-2 lg:hidden -ml-2 rounded-lg text-secondary hover:text-main hover:bg-hover transition-colors shrink-0"
-              title="Abrir menú"
+      <header className="sticky top-0 z-20 px-4 py-4 lg:px-10 lg:py-5 flex flex-wrap items-center justify-between gap-y-4 gap-x-2 border-b border-panel bg-gris">
+        
+        {/* Bloque Izquierdo/Superior: Ocupa 100% en celular (para separar título y badge) */}
+        <div className="flex items-center justify-between sm:justify-start w-full sm:w-auto shrink-0">
+          <div className="flex items-center gap-2 lg:gap-3 shrink-0">
+            {toggleSidebar && (
+              <button
+                onClick={toggleSidebar}
+                className="p-2 lg:hidden -ml-2 rounded-lg text-secondary hover:text-main hover:bg-hover transition-colors shrink-0"
+                title="Abrir menú"
+              >
+                <Icons.Menu className="w-6 h-6" />
+              </button>
+            )}
+            <h1 
+              key={currentTitle}
+              className="text-2xl lg:text-4xl font-extrabold text-main shrink-0 animate-title"
             >
-              <Icons.Menu className="w-6 h-6" />
-            </button>
-          )}
-          <h1 
-            key={currentTitle}
-            className="text-2xl lg:text-4xl font-extrabold text-main shrink-0 animate-title truncate"
-          >
-            {currentTitle}
-          </h1>
+              {currentTitle}
+            </h1>
+          </div>
 
           <div 
             id="header-badge" 
             key={currentTitle + "-badge"}
-            className="flex items-center shrink-0 animate-title [animation-delay:100ms]" 
+            className="flex items-center shrink-0 animate-title [animation-delay:100ms] sm:ml-4" 
           />
         </div>
 
-        <div className="flex items-center gap-3 relative">
-          <button
-            onClick={toggleTheme}
-            className="relative p-2 rounded-full hover-bg-item transition-colors"
-            title={theme === "dark" ? "Cambiar a modo claro" : "Cambiar a modo oscuro"}
-          >
-            {theme === "dark" ? (
-              <Icons.Sun className="w-6 h-6 text-main" />
-            ) : (
-              <Icons.Moon className="w-6 h-6 text-main" />
-            )}
-          </button>
+        {/* Bloque Derecho/Inferior: Ocupa 100% centrado en celular, auto a la derecha en escritorio */}
+        <div className="flex items-center justify-center sm:justify-end gap-3 relative w-full sm:w-auto ml-auto shrink-0">
+          {isDashboard && (
+            <button
+              onClick={toggleTheme}
+              className="relative p-2 rounded-full hover-bg-item transition-colors shrink-0"
+              title={theme === "dark" ? "Cambiar a modo claro" : "Cambiar a modo oscuro"}
+            >
+              {theme === "dark" ? (
+                <Icons.Sun className="w-6 h-6 text-main" />
+              ) : (
+                <Icons.Moon className="w-6 h-6 text-main" />
+              )}
+            </button>
+          )}
 
           {isDashboard ? (
             <button
               onClick={() => setIsNotifOpen(true)}
-              className="relative p-2 rounded-full hover-bg-item transition-colors"
+              className="relative p-2 rounded-full hover-bg-item transition-colors shrink-0"
             >
               <Icons.Bell className="w-8 h-8 text-main" />
               {unreadCount > 0 && (
@@ -220,7 +227,7 @@ const Header = ({ toggleSidebar }: { toggleSidebar?: () => void }) => {
             <div 
               id="header-actions" 
               key={currentTitle + "-actions"}
-              className="flex items-center gap-3 animate-title-reverse" 
+              className="flex items-center justify-center gap-3 animate-title-reverse shrink-0 w-full sm:w-auto" 
             />
           )}
         </div>
