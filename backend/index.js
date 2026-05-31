@@ -38,7 +38,11 @@ app.get('/api/status', (req, res) => {
   });
 });
 
+// Importar configuración de Swagger
+const { swaggerDocs } = require('./swagger');
+
 // Iniciar el servidor
 app.listen(port, () => {
   console.log(`Servidor escuchando en http://localhost:${port}`);
+  swaggerDocs(app, port);
 });
