@@ -56,18 +56,18 @@ export const ColoniaModal = ({
   const title = mode === "create" ? "Nueva colonia" : "Editar colonia";
 
   const footer = (
-    <div className="flex gap-4 w-full justify-end flex-wrap">
+    <div className="flex flex-col-reverse sm:flex-row gap-3 sm:gap-4 w-full sm:justify-end">
       <button
         type="button"
         onClick={onClose}
-        className="px-6 py-2.5 rounded-xl border border-sidebar-separador bg-gris text-main font-bold hover:border-acento-naranja hover:bg-[rgba(232,137,60,0.18)] focus:border-acento-naranja focus:bg-[rgba(232,137,60,0.18)] transition-all duration-200"
+        className="w-full sm:w-auto px-6 py-3 sm:py-2.5 rounded-xl border border-sidebar-separador bg-gris text-main font-bold hover:border-[#e8893c] hover:bg-[#e8893c]/10 focus:border-[#e8893c] focus:bg-[#e8893c]/10 transition-all duration-200"
       >
         Cancelar
       </button>
       <button
         type="submit"
         form="colonia-form"
-        className="px-6 py-2.5 rounded-xl border border-[#e8893c] bg-[var(--bg-active-item)] text-[#e8893c] font-bold hover:bg-[rgba(232,137,60,0.30)] hover:border-acento-naranja transition-all duration-200"
+        className="w-full sm:w-auto px-6 py-3 sm:py-2.5 rounded-xl border border-[#e8893c] bg-[#e8893c] text-white font-bold hover:brightness-110 shadow-[0_4px_15px_rgba(232,137,60,0.3)] transition-all duration-200"
       >
         {mode === "create" ? "Crear colonia" : "Guardar cambios"}
       </button>
@@ -157,9 +157,9 @@ export const ColoniaModal = ({
           <label className="block text-main font-bold mb-1.5 text-sm">
             Encargados de Colonia
           </label>
-          <div className="grid grid-cols-1 sm:grid-cols-2 gap-2 max-h-40 overflow-y-auto pr-2 custom-scrollbar">
+          <div className="grid grid-cols-1 sm:grid-cols-2 gap-2 max-h-72 overflow-y-auto pr-2 custom-scrollbar">
             {users.map((o) => (
-              <label key={o.id} className="flex items-center gap-2 cursor-pointer bg-gris border border-sidebar-separador rounded-xl px-3 py-2 hover:border-acento-naranja transition-colors">
+              <label key={o.id} className="flex items-center gap-3 cursor-pointer bg-gris border border-sidebar-separador rounded-xl px-4 py-3 hover:border-[#e8893c] transition-colors">
                 <input
                   type="checkbox"
                   value={o.id}
@@ -170,9 +170,9 @@ export const ColoniaModal = ({
                       : form.responsableIds.filter(id => id !== o.id);
                     setForm(f => ({ ...f, responsableIds: newIds }));
                   }}
-                  className="w-4 h-4 text-acento-naranja bg-gris border-sidebar-separador rounded focus:ring-acento-naranja focus:ring-2 focus:ring-offset-2 focus:ring-offset-gris-oscuro"
+                  className="w-5 h-5 text-[#e8893c] bg-gris border-sidebar-separador rounded focus:ring-[#e8893c] focus:ring-2 focus:ring-offset-2 focus:ring-offset-gris-oscuro"
                 />
-                <span className="text-sm text-main truncate" title={o.nombre}>{o.nombre}</span>
+                <span className="text-[15px] text-main truncate" title={o.nombre}>{o.nombre}</span>
               </label>
             ))}
           </div>
