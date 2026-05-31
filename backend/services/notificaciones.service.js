@@ -62,4 +62,72 @@ const notificarNuevoAvistamiento = async (avistamiento) => {
     }
 }
 
-module.exports = { notificarNuevoAvistamiento }
+const notificarAvistamientoVerificado = async (avistamiento, adminId) => {
+    const admin = await prisma.usuario.findUnique({ where: { idUsuario: adminId } })
+    const adminNombre = admin?.nombre || 'Administrador'
+
+    const reporterNotification = {
+        usuarioId: avistamiento.usuarioId,
+        tipo: 'avistamiento_verificado',
+        titulo: 'Avistamiento verificado',
+        descripcion: `Tu avistamiento fue verificado por ${adminNombre}`,
+        url: `/avistamientos/${avistamiento.idAvistamiento}`
+    }
+
+    await prisma.notificacion.create({ data: reporterNotification })
+
+    if (avistamiento.usuario?.pushToken) {
+        await sendPushNotification(avistamiento.usuario.pushToken, {
+            titulo: 'Avistamiento verificado',
+            descripcion: `Tu avistamiento fue verificado por ${adminNombre}`
+        })
+    }
+}
+
+const notificarAvistamientoRechazado = async (avistamiento, adminId) => {
+    const admin = await prisma.usuario.findUnique({ where: { idUsuario: adminId } })
+    const adminNombre = admin?.nombre || 'Administrador'
+
+    const reporterNotification = {
+        usuarioId: avistamiento.usuarioId,
+        tipo: 'avistamiento_rechazado',
+        titulo: 'Avistamiento rechazado',
+        descripcion: `Tu avistamiento fue revisado por ${adminNombre}`,
+        url: `/avistamientos/${avistamiento.idAvistamiento}`
+    }
+
+    await prisma.notificacion.create({ data: reporterNotification })
+
+    if (avistamiento.usuario?.pushToken) {
+        await sendPushNotification(avistamiento.usuario.pushToken, {
+            titulo: 'Avistamiento rechazado',
+            descripcion: `Tu avistamiento fue revisado por ${adminNombre}`
+        })
+    }
+}
+
+const notificarAvistamientoRevocado = async (avistamiento) => {
+    const reporterNotification = {
+        usuarioId: avistamiento.usuarioId,
+        tipo: 'sistema',
+        titulo: 'Estado de avistamiento actualizado',
+        descripcion: 'Tu avistamiento ha vuelto a estado pendiente de revisión',
+        url: `/avistamientos/${avistamiento.idAvistamiento}`
+    }
+
+    await prisma.notificacion.create({ data: reporterNotification })
+
+    if (avistamiento.usuario?.pushToken) {
+        await sendPushNotification(avistamiento.usuario.pushToken, {
+            titulo: 'Avistamiento pendiente',
+            descripcion: 'Tu avistamiento ha vuelto a estado pendiente de revisión'
+        })
+    }
+}
+
+module.exports = {
+    notificarNuevoAvistamiento,
+    notificarAvistamientoVerificado,
+    notificarAvistamientoRechazado,
+    notificarAvistamientoRevocado
+}
