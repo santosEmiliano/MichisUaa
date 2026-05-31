@@ -41,7 +41,6 @@ model Animal {
   nombre               String       @db.VarChar(80)
   esterilizado         Boolean      @default(false) @db.TinyInt
   foto_url             String?      @db.VarChar(160)
-  foto_id              String?      @db.VarChar(160)
   estado               EstadoAnimal @default(Registrado)
   fecha_nac            DateTime?
   fecha_esterilizacion DateTime?
@@ -91,7 +90,6 @@ model Avistamiento {
   animalId       Int?
   verificadoPor  Int?
   foto_url       String?  @db.VarChar(160)
-  foto_id        String?  @db.VarChar(160)
   descripcion    String?  @db.VarChar(400)
   verificado     Boolean  @default(false)
   longitud       Decimal  @db.Decimal(10, 7)
