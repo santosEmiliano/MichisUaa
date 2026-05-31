@@ -4,4 +4,7 @@ node_modules
 
 /generated/prisma
 
-/generated/prisma
+/images/*
+!/images/.gitkeep
+!/images/animals/
+!/images/sightings/
