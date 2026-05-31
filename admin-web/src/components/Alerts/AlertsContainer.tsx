@@ -66,7 +66,6 @@ export const AlertsContainer = () => {
   };
 
   const isOverlayClosing = alerts.length > 0 && alerts.length === closingAlerts.length;
-
   return (
     <>
       <div className={`alert-overlay ${isOverlayClosing ? 'closing' : ''}`} />

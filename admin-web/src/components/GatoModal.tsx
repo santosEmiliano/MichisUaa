@@ -2,6 +2,7 @@ import { useState, useEffect } from "react";
 import { ModalCrud } from "./ModalCrud";
 import Icons from "./Icons";
 import type { Cat } from "../types/models";
+import { alertService } from "../services/alertService";
 
 interface CatModalProps {
   isOpen: boolean;
@@ -36,7 +37,10 @@ export const GatoModal = ({ isOpen, onClose, onSuccess, catToEdit }: CatModalPro
           }
         } catch (error) {
           console.error("Error fetching colonias:", error);
-          alert("Hubo un error al cargar las colonias: " + (error instanceof Error ? error.message : error));
+          alertService.error(
+            "No pudimos cargar las colonias disponibles. Intenta de nuevo más tarde.",
+            "Error de Carga"
+          );
         }
       };
       fetchColonias();
@@ -90,7 +94,7 @@ export const GatoModal = ({ isOpen, onClose, onSuccess, catToEdit }: CatModalPro
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     if (!nombre || !coloniaId) {
-      alert("El nombre y la colonia son obligatorios.");
+      alertService.warning("El nombre y la colonia son obligatorios.", "Información Incompleta");
       return;
     }
     
@@ -101,7 +105,10 @@ export const GatoModal = ({ isOpen, onClose, onSuccess, catToEdit }: CatModalPro
       today.setHours(0, 0, 0, 0); // Ignorar la hora actual para comparar solo el día
       
       if (selectedDate > today) {
-        alert("La fecha de nacimiento no puede ser mayor a la fecha actual.");
+        alertService.warning(
+          "La fecha de nacimiento no puede ser mayor a la fecha actual.",
+          "Fecha Inválida"
+        );
         return;
       }
     }
@@ -130,11 +137,19 @@ export const GatoModal = ({ isOpen, onClose, onSuccess, catToEdit }: CatModalPro
 
       if (!res.ok) throw new Error(catToEdit ? "Error al actualizar el gato" : "Error al registrar el gato");
       
+      alertService.success(
+        catToEdit ? "El gato ha sido actualizado correctamente." : "El gato ha sido registrado correctamente.",
+        catToEdit ? "Gato Actualizado" : "Gato Registrado"
+      );
+      
       onSuccess?.();
       onClose();
     } catch (error) {
       console.error("Error guardando gato:", error);
-      alert("Hubo un error al guardar el gato: " + (error instanceof Error ? error.message : error));
+      alertService.error(
+        "Ocurrió un problema al guardar la información del gato. Por favor, intenta de nuevo.",
+        "Error al Guardar"
+      );
     } finally {
       setLoading(false);
     }

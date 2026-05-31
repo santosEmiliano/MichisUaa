@@ -2,6 +2,7 @@ import Icons from "../components/Icons";
 import LoginBackground from "../components/LoginBackground";
 import { useState } from "react";
 import { authService } from "../services/authApi";
+import { alertService } from "../services/alertService";
 
 interface AuthPageProps {
   onLogin: () => void;
@@ -40,7 +41,6 @@ const AuthPage = ({ onLogin }: AuthPageProps) => {
 
   const [fieldErrors, setFieldErrors] = useState<LoginErrors>({});
   const [submitted, setSubmitted] = useState(false);
-  const [apiError, setApiError] = useState<string | null>(null);
   const [loading, setLoading] = useState(false);
 
   // Revalida en tiempo real después del primer submit
@@ -63,7 +63,6 @@ const AuthPage = ({ onLogin }: AuthPageProps) => {
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     setSubmitted(true);
-    setApiError(null);
 
     const errors = validateLogin(email, password);
     setFieldErrors(errors);
@@ -76,7 +75,10 @@ const AuthPage = ({ onLogin }: AuthPageProps) => {
 
       // Verificar que el usuario sea administrador
       if (!data.datos.admin) {
-        setApiError("No tienes permisos para acceder al panel de administración.");
+        alertService.error(
+          "No tienes permisos para acceder al panel de administración.",
+          "Acceso Denegado"
+        );
         return;
       }
 
@@ -84,10 +86,13 @@ const AuthPage = ({ onLogin }: AuthPageProps) => {
       localStorage.setItem("userId", String(data.datos.id));
       localStorage.setItem("userName", data.datos.nombre);
       localStorage.setItem("isAdmin", String(data.datos.admin));
+      
+      alertService.success("Has iniciado sesión correctamente.", "¡Bienvenido!");
       onLogin();
     } catch (err: unknown) {
-      setApiError(
-        err instanceof Error ? err.message : "Error al iniciar sesión"
+      alertService.error(
+        err instanceof Error ? err.message : "Hubo un problema al iniciar sesión.",
+        "Error al iniciar sesión"
       );
     } finally {
       setLoading(false);
@@ -186,12 +191,7 @@ const AuthPage = ({ onLogin }: AuthPageProps) => {
               </div>
             </div>
 
-            {/* Error del API (credenciales incorrectas, etc.) */}
-            {apiError && (
-              <div className="text-sm text-red-400 bg-red-400/10 border border-red-400/30 rounded-xl px-4 py-3">
-                {apiError}
-              </div>
-            )}
+
 
             <button
               type="submit"

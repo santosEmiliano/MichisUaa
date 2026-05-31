@@ -55,6 +55,22 @@ class AlertService {
   ) {
     this.emit({ type: 'question', message, title, onConfirm, onCancel, position });
   }
+
+  questionAsync(
+    message: string,
+    title?: string,
+    position: AlertPosition = 'center'
+  ): Promise<boolean> {
+    return new Promise((resolve) => {
+      this.question(
+        message,
+        () => resolve(true),
+        title,
+        () => resolve(false),
+        position
+      );
+    });
+  }
 }
 
 export const alertService = new AlertService();

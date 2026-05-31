@@ -2,6 +2,7 @@ import { useState, useEffect } from "react";
 import { PieChart, Pie, Cell, AreaChart, Area, ResponsiveContainer } from "recharts";
 import { MetricCard } from "../components/MetricCard";
 import { LoadingScreen } from "../components/LoadingScreen";
+import { alertService } from "../services/alertService";
 
 const Estadisticas = () => {
   // Información de estadísticas
@@ -118,7 +119,10 @@ const Estadisticas = () => {
       }
     } catch (error) {
       console.error("Error fetching data:", error);
-      alert("Hubo un error al cargar las estadísticas: " + (error instanceof Error ? error.message : error));
+      alertService.error(
+        "No pudimos cargar las estadísticas. Verifica tu conexión e intenta de nuevo más tarde.",
+        "Error de Carga"
+      );
     } finally {
       // Pequeño delay para que la transición no sea brusca
       setTimeout(() => setIsLoading(false), 600);

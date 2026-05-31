@@ -6,7 +6,7 @@ import type { User } from "../types/models";
 import { UsuarioModal } from "../components/UsuarioModal";
 import { LoadingScreen } from "../components/LoadingScreen";
 import { userService } from "../services/userApi";
-import { DeleteConfirmModal } from "../components/DeleteConfirmModal";
+import { alertService } from "../services/alertService";
 
 
 type RolUser = User["rol"];
@@ -79,8 +79,6 @@ const UsuariosPage = () => {
   const [loading, setLoading] = useState(true);
   const [modalOpen, setModalOpen] = useState(false);
   const [userToEdit, setUserToEdit] = useState<User | null>(null);
-  const [deleteModalOpen, setDeleteModalOpen] = useState(false);
-  const [userToDelete, setUserToDelete] = useState<User | null>(null);
   const [badgeTarget, setBadgeTarget] = useState<HTMLElement | null>(null);
   const [actionsTarget, setActionsTarget] = useState<HTMLElement | null>(null);
   const [activeFilters, setActiveFilters] = useState<Record<string, string>>({});
@@ -107,7 +105,10 @@ const UsuariosPage = () => {
       setUsers(data);
     } catch (error) {
       console.error("Error fetching users:", error);
-      alert("Hubo un error al cargar los usuarios: " + (error instanceof Error ? error.message : error));
+      alertService.error(
+        "No pudimos cargar la lista de usuarios. Por favor, verifica tu conexión e intenta de nuevo más tarde.",
+        "Error de Carga"
+      );
     } finally {
       setLoading(false);
     }
@@ -118,22 +119,24 @@ const UsuariosPage = () => {
     fetchUsers();
   }, []);
 
-  const confirmDelete = (user: User) => {
-    setUserToDelete(user);
-    setDeleteModalOpen(true);
-  };
+  const confirmDelete = async (user: User) => {
+    const confirm = await alertService.questionAsync(
+      `¿Estás seguro que deseas eliminar al usuario "${user.nombre}"? Esta acción no se puede deshacer.`,
+      "Eliminar Usuario"
+    );
 
-  const handleDeleteUser = async () => {
-    if (!userToDelete) return;
+    if (!confirm) return;
+
     try {
-      await userService.deleteUser(userToDelete.id);
-      setUsers((prev) => prev.filter((u) => u.id !== userToDelete.id));
+      await userService.deleteUser(user.id);
+      setUsers((prev) => prev.filter((u) => u.id !== user.id));
+      alertService.success("El usuario ha sido eliminado correctamente.", "Usuario Eliminado");
     } catch (error) {
       console.error("Error eliminando usuario:", error);
-      alert("Hubo un error al eliminar el usuario: " + (error instanceof Error ? error.message : error));
-    } finally {
-      setDeleteModalOpen(false);
-      setUserToDelete(null);
+      alertService.error(
+        "No pudimos eliminar al usuario. Por favor, intenta de nuevo más tarde.",
+        "Error al Eliminar"
+      );
     }
   };
 
@@ -289,19 +292,6 @@ const UsuariosPage = () => {
         }}
         onSuccess={fetchUsers}
         userToEdit={userToEdit}
-      />
-      <DeleteConfirmModal
-        isOpen={deleteModalOpen}
-        onClose={() => {
-          setDeleteModalOpen(false);
-          setUserToDelete(null);
-        }}
-        onConfirm={handleDeleteUser}
-        title={
-          userToDelete
-            ? `¿Eliminar usuario "${userToDelete.nombre}"?`
-            : "¿Eliminar usuario?"
-        }
       />
     </div>
   );

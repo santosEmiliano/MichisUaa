@@ -7,6 +7,7 @@ import Icons from "../components/Icons";
 import { AvistamientoModal } from "../components/AvistamientoModal";
 import { avistamientosApi } from "../services/avistamientosApi";
 import { LoadingScreen } from "../components/LoadingScreen";
+import { alertService } from "../services/alertService";
 
 const filters: FilterDef[] = [
   {
@@ -83,7 +84,10 @@ const Avistamientos = () => {
       setAvistamientos(mapped);
     } catch (error) {
       console.error(error);
-      alert("Hubo un error al cargar los avistamientos: " + (error instanceof Error ? error.message : error));
+      alertService.error(
+        "No pudimos cargar los avistamientos recientes. Intenta de nuevo más tarde.",
+        "Error de Carga"
+      );
     } finally {
       setLoading(false);
     }
@@ -108,13 +112,23 @@ const Avistamientos = () => {
   };
 
   const handleQuickReject = async (id: number) => {
+    const confirm = await alertService.questionAsync(
+      "¿Estás seguro de que deseas rechazar este avistamiento?",
+      "Rechazar Avistamiento"
+    );
+    if (!confirm) return;
+
     try {
       setLoading(true);
       await avistamientosApi.rechazarAvistamiento(id);
       await fetchDatos();
+      alertService.success("El avistamiento ha sido rechazado correctamente.", "Avistamiento Rechazado");
     } catch (error) {
       console.error(error);
-      alert("Error al rechazar el avistamiento: " + (error instanceof Error ? error.message : error));
+      alertService.error(
+        "Ocurrió un problema al intentar rechazar el avistamiento. Por favor, intenta de nuevo.",
+        "Error al Rechazar"
+      );
     } finally {
       setLoading(false);
     }

@@ -6,6 +6,7 @@ import { DataTable, type ColumnDef } from "../components/DataTable";
 import type { Avistamiento } from "../types/models";
 import { LoadingScreen } from "../components/LoadingScreen";
 import Icons from "../components/Icons";
+import { alertService } from "../services/alertService";
 const getInitials = (name: string) => {
   if (name === "No Identificado") return "?";
   return name.substring(0, 2).charAt(0).toUpperCase() + name.substring(1, 2).toLowerCase();
@@ -103,7 +104,10 @@ const Dashboard = () => {
       }
     } catch (error) {
       console.error(error);
-      alert("Hubo un error al cargar los datos del dashboard: " + (error instanceof Error ? error.message : error));
+      alertService.error(
+        "No pudimos cargar los datos del dashboard. Verifica tu conexión e intenta de nuevo.",
+        "Error de Carga"
+      );
     } finally {
       // Delay suave para la pantalla de carga
       setTimeout(() => setLoading(false), 600);
