@@ -28,7 +28,7 @@ const rolBadge: Record<RolUser, React.CSSProperties> = {
 const columns: ColumnDef<User>[] = [
   {
     header: "Usuario",
-    searchKey: "nombre",
+    searchKey: ["nombre", "email"],
     render: (user) => (
       <div className="flex items-center gap-3">
         <div
@@ -204,6 +204,78 @@ const UsuariosPage = () => {
               options: ["Administrador", "Simpatizante"],
             },
           ]}
+          mobileRender={(user) => (
+            <div className="bg-gris-oscuro rounded-[14px] border border-sidebar-separador p-4 shadow-sm flex flex-col">
+              {/* Header: Avatar, Nombre, Email */}
+              <div className="flex items-start justify-between">
+                <div className="flex items-center gap-3">
+                  <div
+                    className="w-10 h-10 rounded-full flex items-center justify-center font-bold text-sm text-white shrink-0"
+                    style={{ background: user.colorAvatar }}
+                  >
+                    {user.iniciales}
+                  </div>
+                  <div className="flex flex-col">
+                    <span className="text-[15px] font-bold text-main">{user.nombre}</span>
+                    <span className="text-[12px] text-secondary mt-0.5">{user.email}</span>
+                  </div>
+                </div>
+              </div>
+
+              {/* Body: Información con Iconos */}
+              <div className="flex flex-col gap-3 mt-4 pt-4 border-t border-sidebar-separador text-[13px] text-secondary">
+                <div className="flex items-center justify-between gap-4">
+                  <span className="flex items-center gap-2">
+                    <Icons.UserCircle className="w-4 h-4 shrink-0" />
+                    <span className="font-medium">Rol</span>
+                  </span>
+                  <span
+                    className="text-[11px] font-bold px-2.5 py-0.5 rounded-full whitespace-nowrap"
+                    style={rolBadge[user.rol]}
+                  >
+                    {user.rol}
+                  </span>
+                </div>
+
+                <div className="flex items-start justify-between gap-4">
+                  <span className="flex items-center gap-2 shrink-0">
+                    <Icons.Building className="w-4 h-4" />
+                    <span className="font-medium">Colonias</span>
+                  </span>
+                  <span className="text-main font-medium text-right leading-tight">
+                    {user.coloniasAsignadas.length === 0 ? "Sin asignar" : user.coloniasAsignadas.join(" — ")}
+                  </span>
+                </div>
+
+                <div className="flex items-center justify-between gap-4">
+                  <span className="flex items-center gap-2">
+                    <Icons.Clock className="w-4 h-4 shrink-0" />
+                    <span className="font-medium">Creado</span>
+                  </span>
+                  <span className="text-main font-medium">{user.creadoEn}</span>
+                </div>
+              </div>
+
+              {/* Footer: Acciones */}
+              <div className="flex flex-col sm:flex-row items-center gap-2 mt-4 pt-1">
+                <button
+                  onClick={() => {
+                    setUserToEdit(user);
+                    setModalOpen(true);
+                  }}
+                  className="w-full px-4 py-2 rounded-lg border border-sidebar-separador text-main text-sm font-bold hover:bg-hover transition-colors flex items-center justify-center gap-2"
+                >
+                  <Icons.Edit className="w-4 h-4" /> Editar
+                </button>
+                <button
+                  onClick={() => confirmDelete(user)}
+                  className="w-full px-4 py-2 rounded-lg border border-badge-rojo/30 text-badge-rojo text-sm font-bold bg-badge-rojo/5 hover:bg-badge-rojo/10 transition-colors flex items-center justify-center gap-2"
+                >
+                  <Icons.Trash2 className="w-4 h-4" /> Eliminar
+                </button>
+              </div>
+            </div>
+          )}
         />
       )}
 

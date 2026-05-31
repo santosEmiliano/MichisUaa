@@ -62,14 +62,14 @@ export const ModalCrud = ({
 
   return (
     <div
-      className={`fixed inset-0 z-50 flex items-center justify-center p-4 bg-overlay backdrop-blur-sm ${
+      className={`fixed inset-0 z-50 flex items-end sm:items-center justify-center p-0 sm:p-4 bg-overlay backdrop-blur-sm ${
         isClosing ? "animate-overlay-out" : "animate-overlay-in"
       }`}
       onClick={handleClose}
       role="presentation"
     >
       <div
-        className={`bg-gris-oscuro w-full max-w-[560px] rounded-[2rem] border border-sidebar-separador shadow-2xl flex flex-col max-h-[90vh] ${
+        className={`bg-gris-oscuro w-full max-w-[560px] rounded-t-[2rem] sm:rounded-b-[2rem] border-t border-sidebar-separador sm:border-x sm:border-b shadow-[0_-10px_40px_rgba(0,0,0,0.5)] sm:shadow-2xl flex flex-col max-h-[90vh] ${
           isClosing ? "animate-modal-out" : "animate-modal-in"
         }`}
         onClick={(e) => e.stopPropagation()}
@@ -77,27 +77,32 @@ export const ModalCrud = ({
         aria-modal="true"
         aria-labelledby="modal-crud-title"
       >
-        <div className="px-8 py-6 border-b border-sidebar-separador flex items-center justify-between gap-4">
+        {/* Pill decorativo para celular (Drag Handle) */}
+        <div className="w-full flex justify-center pt-4 pb-1 sm:hidden">
+          <div className="w-12 h-1.5 bg-sidebar-separador rounded-full" />
+        </div>
+
+        <div className="px-6 sm:px-8 py-4 sm:py-6 border-b border-sidebar-separador flex items-center justify-between gap-4">
           <h2
             id="modal-crud-title"
-            className="text-2xl font-bold text-main tracking-wide"
+            className="text-xl sm:text-2xl font-bold text-main tracking-wide"
           >
             {title}
           </h2>
           <button
             type="button"
             onClick={handleClose}
-            className="p-2 rounded-xl text-secondary hover:text-main hover:bg-gris border border-transparent hover:border-sidebar-separador transition-all"
+            className="p-2 rounded-xl text-secondary hover:text-main hover:bg-gris border border-transparent hover:border-sidebar-separador transition-all bg-gris/50 sm:bg-transparent"
             aria-label="Cerrar"
           >
             <Icons.Close className="w-5 h-5" />
           </button>
         </div>
 
-        <div className="px-8 py-6 overflow-y-auto flex-1 min-h-0">{children}</div>
+        <div className="px-6 sm:px-8 py-6 overflow-y-auto flex-1 min-h-0 custom-scrollbar">{children}</div>
 
         {footer && (
-          <div className="px-8 py-6 border-t border-sidebar-separador flex justify-center gap-4 bg-gris-oscuro rounded-b-[2rem] shrink-0">
+          <div className="px-6 sm:px-8 py-5 sm:py-6 border-t border-sidebar-separador flex justify-center gap-4 bg-gris-oscuro pb-8 sm:pb-6 sm:rounded-b-[2rem] shrink-0">
             {footer}
           </div>
         )}
