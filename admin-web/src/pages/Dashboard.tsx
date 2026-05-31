@@ -5,7 +5,7 @@ import { AvistamientoModal } from "../components/AvistamientoModal";
 import { DataTable, type ColumnDef } from "../components/DataTable";
 import type { Avistamiento } from "../types/models";
 import { LoadingScreen } from "../components/LoadingScreen";
-
+import Icons from "../components/Icons";
 const getInitials = (name: string) => {
   if (name === "No Identificado") return "?";
   return name.substring(0, 2).charAt(0).toUpperCase() + name.substring(1, 2).toLowerCase();
@@ -263,6 +263,58 @@ const Dashboard = () => {
           columns={columns}
           rowsPerPage={4}
           hideControls
+          mobileRender={(row) => (
+            <div className="bg-gris-oscuro rounded-[14px] border border-sidebar-separador p-4 shadow-sm flex flex-col">
+              {/* Encabezado: Avatar, Nombre, Colonia y Badge */}
+              <div className="flex items-start justify-between">
+                <div className="flex items-center gap-3">
+                  <div
+                    className={`w-10 h-10 rounded-full flex items-center justify-center font-bold text-sm ${getAvatarColorClass(row.id)}`}
+                  >
+                    {getInitials(row.animalName)}
+                  </div>
+                  <div className="flex flex-col">
+                    <span className="text-[15px] font-bold text-main">{row.animalName}</span>
+                    <span className="text-[12px] text-secondary flex items-center gap-1.5 mt-0.5">
+                      <Icons.Building className="w-3.5 h-3.5" /> {row.animalColonia}
+                    </span>
+                  </div>
+                </div>
+                {/* Badge transparente con borde */}
+                <span
+                  className="px-3 py-1 rounded-full border border-[#b27928] text-[#b27928] text-[11px] font-bold bg-transparent"
+                >
+                  {row.estado}
+                </span>
+              </div>
+
+              {/* Medio: Ubicación y Tiempo */}
+              <div className="flex flex-wrap items-center gap-5 mt-4 pt-1 mb-1 text-[12.5px] text-secondary">
+                <span className="flex items-center gap-1.5">
+                  <Icons.MapPin className="w-3.5 h-3.5" />
+                  {row.coordenadas}
+                </span>
+                <span className="flex items-center gap-1.5">
+                  <Icons.Clock className="w-3.5 h-3.5" />
+                  Hace {row.hace}
+                </span>
+              </div>
+
+              {/* Footer: Reportó y Botón */}
+              <div className="border-t border-sidebar-separador mt-4 pt-4 flex items-center justify-between">
+                <span className="flex items-center gap-2 text-[13px] text-secondary">
+                  <Icons.UserCircle className="w-4 h-4" />
+                  {row.reportadoPor}
+                </span>
+                <button
+                  onClick={() => handleOpenModal(row)}
+                  className="px-4 py-1.5 rounded-lg border border-sidebar-separador text-main text-sm font-bold hover:bg-hover transition-colors"
+                >
+                  Ver registro
+                </button>
+              </div>
+            </div>
+          )}
         />
       </div>
 

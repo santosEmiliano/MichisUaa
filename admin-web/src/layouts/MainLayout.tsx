@@ -14,7 +14,7 @@ const MainLayout = () => {
 
       <div className="flex-1 flex flex-col lg:ml-72 min-w-0 transition-all duration-300 animate-content-entrance [animation-delay:150ms]">
         <Header toggleSidebar={toggleSidebar} />
-        <main className="flex-1 p-6 lg:p-10 overflow-hidden flex flex-col">
+        <main className="flex-1 p-4 sm:p-6 lg:p-10 overflow-y-auto flex flex-col">
           <Outlet />
         </main>
       </div>
