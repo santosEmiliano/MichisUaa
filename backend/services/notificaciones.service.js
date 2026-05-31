@@ -125,9 +125,94 @@ const notificarAvistamientoRevocado = async (avistamiento) => {
     }
 }
 
+const notificarGatoNuevo = async (animal, coloniaNombre) => {
+    const adminsColonia = await prisma.usuarioCol.findMany({
+        where: { Colonia_idColonia: animal.Colonia_idColonia },
+        include: { usuario: true }
+    })
+
+    const adminsDestino = adminsColonia
+        .map(uc => uc.usuario)
+        .filter(u => u.admin)
+
+    if (adminsDestino.length === 0) return
+
+    await prisma.notificacion.createMany({
+        data: adminsDestino.map(admin => ({
+            usuarioId: admin.idUsuario,
+            tipo: 'gato_nuevo',
+            titulo: 'Nuevo gato registrado',
+            descripcion: `Se registró a ${animal.nombre} en la colonia ${coloniaNombre}`,
+            url: `/gatos/${animal.idAnimal}`
+        }))
+    })
+
+    for (const admin of adminsDestino) {
+        if (admin.pushToken) {
+            await sendPushNotification(admin.pushToken, {
+                titulo: 'Nuevo gato registrado',
+                descripcion: `Se registró a ${animal.nombre} en la colonia ${coloniaNombre}`
+            })
+        }
+    }
+}
+
+const notificarGatoDesaparecido = async (animal, coloniaNombre) => {
+    const todosUsuarios = await prisma.usuario.findMany()
+
+    if (todosUsuarios.length === 0) return
+
+    await prisma.notificacion.createMany({
+        data: todosUsuarios.map(u => ({
+            usuarioId: u.idUsuario,
+            tipo: 'gato_desaparecido',
+            titulo: 'Gato desaparecido',
+            descripcion: `${animal.nombre} de la colonia ${coloniaNombre} fue reportado como desaparecido`,
+            url: `/gatos/${animal.idAnimal}`
+        }))
+    })
+
+    for (const user of todosUsuarios) {
+        if (user.pushToken) {
+            await sendPushNotification(user.pushToken, {
+                titulo: 'Gato desaparecido',
+                descripcion: `${animal.nombre} de la colonia ${coloniaNombre} fue reportado como desaparecido`
+            })
+        }
+    }
+}
+
+const notificarGatoRecuperado = async (animal, coloniaNombre) => {
+    const todosUsuarios = await prisma.usuario.findMany()
+
+    if (todosUsuarios.length === 0) return
+
+    await prisma.notificacion.createMany({
+        data: todosUsuarios.map(u => ({
+            usuarioId: u.idUsuario,
+            tipo: 'sistema',
+            titulo: 'Gato recuperado',
+            descripcion: `${animal.nombre} de la colonia ${coloniaNombre} ya no está desaparecido`,
+            url: `/gatos/${animal.idAnimal}`
+        }))
+    })
+
+    for (const user of todosUsuarios) {
+        if (user.pushToken) {
+            await sendPushNotification(user.pushToken, {
+                titulo: 'Gato recuperado',
+                descripcion: `${animal.nombre} de la colonia ${coloniaNombre} ya no está desaparecido`
+            })
+        }
+    }
+}
+
 module.exports = {
     notificarNuevoAvistamiento,
     notificarAvistamientoVerificado,
     notificarAvistamientoRechazado,
-    notificarAvistamientoRevocado
+    notificarAvistamientoRevocado,
+    notificarGatoNuevo,
+    notificarGatoDesaparecido,
+    notificarGatoRecuperado
 }
