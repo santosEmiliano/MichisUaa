@@ -4,7 +4,7 @@ const token = require("../middleware/verifyToken");
 const multer = require("../middleware/multer");
 const sightingFunctions = require("../controllers/sightings.controller");
 
-const upload = multer();
+const upload = multer("sightings");
 
 //Ruta GET para obtener todos los avistamientos
 // NOTA: Aqui viene en queryparams el ?idUsuario={id}
