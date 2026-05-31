@@ -99,6 +99,26 @@ export interface BackendAnimal {
   };
 }
 
+/* Notificaciones */
+export type TipoNotificacion =
+  | "avistamiento_nuevo"
+  | "avistamiento_verificado"
+  | "avistamiento_rechazado"
+  | "gato_desaparecido"
+  | "gato_nuevo"
+  | "sistema"
+
+export interface NotificacionBackend {
+  id: number
+  usuarioId: number
+  tipo: TipoNotificacion
+  titulo: string
+  descripcion: string
+  leida: boolean
+  url: string | null
+  createdAt: string
+}
+
 /*Alertas */
 export type AlertType = "success" | "error" | "warning" | "question";
 
