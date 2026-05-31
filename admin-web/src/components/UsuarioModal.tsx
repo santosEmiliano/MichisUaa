@@ -120,7 +120,10 @@ export const UsuarioModal = ({ isOpen, onClose, userToEdit, onSuccess }: UserMod
     if (!isOpen) return;
     coloniesService.getColonies()
       .then(setColonias)
-      .catch(console.error);
+      .catch((error) => {
+        console.error(error);
+        alert("Hubo un error al cargar las colonias: " + (error instanceof Error ? error.message : error));
+      });
   }, [isOpen]);
 
   const toggleColonia = (id: number) => {

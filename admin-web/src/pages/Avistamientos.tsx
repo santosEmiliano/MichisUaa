@@ -83,6 +83,7 @@ const Avistamientos = () => {
       setAvistamientos(mapped);
     } catch (error) {
       console.error(error);
+      alert("Hubo un error al cargar los avistamientos: " + (error instanceof Error ? error.message : error));
     } finally {
       setLoading(false);
     }
@@ -113,7 +114,7 @@ const Avistamientos = () => {
       await fetchDatos();
     } catch (error) {
       console.error(error);
-      alert("Error al rechazar el avistamiento");
+      alert("Error al rechazar el avistamiento: " + (error instanceof Error ? error.message : error));
     } finally {
       setLoading(false);
     }

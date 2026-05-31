@@ -29,6 +29,7 @@ export const checkSession = (): boolean => {
     return !!isAdmin;
   } catch (error) {
     console.error("Error al decodificar el token:", error);
+    alert("Hubo un error al decodificar el token: " + (error instanceof Error ? error.message : error));
     return false;
   }
 };

@@ -107,6 +107,7 @@ const UsuariosPage = () => {
       setUsers(data);
     } catch (error) {
       console.error("Error fetching users:", error);
+      alert("Hubo un error al cargar los usuarios: " + (error instanceof Error ? error.message : error));
     } finally {
       setLoading(false);
     }
@@ -129,6 +130,7 @@ const UsuariosPage = () => {
       setUsers((prev) => prev.filter((u) => u.id !== userToDelete.id));
     } catch (error) {
       console.error("Error eliminando usuario:", error);
+      alert("Hubo un error al eliminar el usuario: " + (error instanceof Error ? error.message : error));
     } finally {
       setDeleteModalOpen(false);
       setUserToDelete(null);

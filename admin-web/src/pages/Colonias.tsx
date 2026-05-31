@@ -85,7 +85,7 @@ const Colonias = () => {
       }
     } catch (error) {
       console.error("Error fetching data", error);
-      alert("Error al cargar la información");
+      alert("Hubo un error al cargar la información: " + (error instanceof Error ? error.message : error));
     } finally {
       setLoading(false);
     }

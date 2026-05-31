@@ -103,6 +103,7 @@ const Dashboard = () => {
       }
     } catch (error) {
       console.error(error);
+      alert("Hubo un error al cargar los datos del dashboard: " + (error instanceof Error ? error.message : error));
     } finally {
       // Delay suave para la pantalla de carga
       setTimeout(() => setLoading(false), 600);

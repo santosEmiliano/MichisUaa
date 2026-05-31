@@ -118,6 +118,7 @@ const Estadisticas = () => {
       }
     } catch (error) {
       console.error("Error fetching data:", error);
+      alert("Hubo un error al cargar las estadísticas: " + (error instanceof Error ? error.message : error));
     } finally {
       // Pequeño delay para que la transición no sea brusca
       setTimeout(() => setIsLoading(false), 600);

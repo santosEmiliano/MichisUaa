@@ -54,6 +54,7 @@ const Sidebar: React.FC<SidebarProps> = ({ isOpen, toggleSidebar }) => {
         await authService.logout(token);
       } catch (err) {
         console.error("Error cerrando sesión en el servidor:", err);
+        alert("Error cerrando sesión en el servidor: " + (err instanceof Error ? err.message : err));
       }
     }
     // Pequeño delay para que se vea la animación

@@ -36,6 +36,7 @@ export const GatoModal = ({ isOpen, onClose, onSuccess, catToEdit }: CatModalPro
           }
         } catch (error) {
           console.error("Error fetching colonias:", error);
+          alert("Hubo un error al cargar las colonias: " + (error instanceof Error ? error.message : error));
         }
       };
       fetchColonias();
@@ -133,7 +134,7 @@ export const GatoModal = ({ isOpen, onClose, onSuccess, catToEdit }: CatModalPro
       onClose();
     } catch (error) {
       console.error("Error guardando gato:", error);
-      alert("Hubo un error al guardar el gato.");
+      alert("Hubo un error al guardar el gato: " + (error instanceof Error ? error.message : error));
     } finally {
       setLoading(false);
     }

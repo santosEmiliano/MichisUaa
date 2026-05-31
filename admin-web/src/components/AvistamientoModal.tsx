@@ -48,6 +48,7 @@ export const AvistamientoModal = ({ isOpen, onClose, onSuccess, avistamiento }: 
           setCats(data);
         } catch (error) {
           console.error("Error al cargar gatos:", error);
+          alert("Hubo un error al cargar los gatos: " + (error instanceof Error ? error.message : error));
         }
       };
       fetchCats();
@@ -93,7 +94,7 @@ export const AvistamientoModal = ({ isOpen, onClose, onSuccess, avistamiento }: 
       onClose();
     } catch (error) {
       console.error(error);
-      alert("Error al verificar el avistamiento.");
+      alert("Error al verificar el avistamiento: " + (error instanceof Error ? error.message : error));
     } finally {
       setIsProcessing(false);
     }
@@ -107,7 +108,7 @@ export const AvistamientoModal = ({ isOpen, onClose, onSuccess, avistamiento }: 
       onClose();
     } catch (error) {
       console.error(error);
-      alert("Error al rechazar el avistamiento.");
+      alert("Error al rechazar el avistamiento: " + (error instanceof Error ? error.message : error));
     } finally {
       setIsProcessing(false);
     }
@@ -126,7 +127,7 @@ export const AvistamientoModal = ({ isOpen, onClose, onSuccess, avistamiento }: 
       onClose();
     } catch (error) {
       console.error(error);
-      alert("Error al guardar los cambios.");
+      alert("Error al guardar los cambios: " + (error instanceof Error ? error.message : error));
     } finally {
       setIsProcessing(false);
     }
@@ -140,7 +141,7 @@ export const AvistamientoModal = ({ isOpen, onClose, onSuccess, avistamiento }: 
       onClose();
     } catch (error) {
       console.error(error);
-      alert("Error al revocar la verificación.");
+      alert("Error al revocar la verificación: " + (error instanceof Error ? error.message : error));
     } finally {
       setIsProcessing(false);
     }

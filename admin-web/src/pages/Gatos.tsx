@@ -290,6 +290,7 @@ const GatosPage = () => {
         setCats(mappedCats);
       } catch (error) {
         console.error("Error fetching cats:", error);
+        alert("Hubo un error al cargar los gatos: " + (error instanceof Error ? error.message : error));
       } finally {
         setLoading(false);
       }
