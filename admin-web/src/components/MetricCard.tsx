@@ -67,17 +67,17 @@ export const MetricCard: React.FC<MetricCardProps> = ({
 
   return (
     <div
-      className="bg-gris-oscuro rounded-2xl p-6 border-t-2 shadow-lg relative overflow-hidden flex flex-col items-start"
+      className="bg-gris-oscuro rounded-2xl p-4 sm:p-6 border-t-2 shadow-lg relative overflow-hidden flex flex-col items-start"
       style={{ borderTopColor: borderColor }}
     >
-      <h3 className="text-main text-lg font-bold mb-2">{title}</h3>
-      <p className="text-5xl font-bold text-main mb-4">
+      <h3 className="text-main text-sm sm:text-lg font-bold mb-1 sm:mb-2 leading-tight">{title}</h3>
+      <p className="text-3xl sm:text-5xl font-bold text-main mb-2 sm:mb-4">
         {displayValue}
-        {valueSuffix && <span className="text-3xl text-secondary ml-1">{valueSuffix}</span>}
+        {valueSuffix && <span className="text-xl sm:text-3xl text-secondary ml-1">{valueSuffix}</span>}
       </p>
       {trendText && (
         <span
-          className={`inline-block text-xs font-bold px-3 py-1 rounded-full mt-auto ${pillClass}`}
+          className={`self-center lg:self-start text-center lg:text-left inline-block text-[10px] sm:text-xs font-bold px-2 py-1 sm:px-3 sm:py-1 rounded-lg sm:rounded-full mt-auto ${pillClass}`}
         >
           {trendText}
         </span>

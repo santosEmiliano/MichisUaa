@@ -151,7 +151,6 @@ const GatosPage = () => {
   const [catToDelete, setCatToDelete] = useState<Cat | null>(null);
   
   const colonias = [...new Set(cats.map((c) => c.colonia))];
-  const [headerTarget, setHeaderTarget] = useState<HTMLElement | null>(null);
   const [rowsPerPage, setRowsPerPage] = useState(8);
   const [activeFilters, setActiveFilters] = useState<Record<string, string>>({});
 
@@ -224,10 +223,13 @@ const GatosPage = () => {
     return () => window.removeEventListener("resize", updateRows);
   }, []);
 
+  const [badgeTarget, setBadgeTarget] = useState<HTMLElement | null>(null);
+  const [actionsTarget, setActionsTarget] = useState<HTMLElement | null>(null);
+
   useEffect(() => {
     const timer = setTimeout(() => {
-      const el = document.getElementById("header-actions");
-      if (el) setHeaderTarget(el);
+      setBadgeTarget(document.getElementById("header-badge"));
+      setActionsTarget(document.getElementById("header-actions"));
     }, 0);
     return () => clearTimeout(timer);
   }, []);
@@ -298,26 +300,28 @@ const GatosPage = () => {
     fetchCats();
   }, []);
 
-  const headerDynamicContent = (
-    <>
-      <span className="text-sm font-semibold px-3 py-1 rounded-full border border-sidebar-separador bg-panel text-secondary">
-        {cats.length} {cats.length > 1 ? "registrados" : "registrado"}
-      </span>
-      <button
-        onClick={() => {
-          setCatToEdit(null);
-          setModalOpen(true);
-        }}
-        className="flex items-center gap-2 bg-gris border border-sidebar-separador text-main font-bold py-2.5 px-6 rounded-xl hover:bg-gris-oscuro transition-colors"
-      >
-        <Icons.Plus className="w-5 h-5" /> Nuevo Gato
-      </button>
-    </>
+  const headerBadge = (
+    <span className="text-sm font-semibold px-3 py-1 rounded-full border border-sidebar-separador bg-gris-oscuro text-secondary">
+      {cats.length} {cats.length === 1 ? "registrado" : "registrados"}
+    </span>
+  );
+
+  const headerAction = (
+    <button
+      onClick={() => {
+        setCatToEdit(null);
+        setModalOpen(true);
+      }}
+      className="flex items-center gap-2 bg-gris border border-sidebar-separador text-main font-bold py-2.5 px-6 rounded-xl transition-all duration-200 hover:bg-gris-oscuro hover:border-white/15 w-full sm:w-auto justify-center"
+    >
+      <Icons.Plus className="w-5 h-5" /> Nuevo Gato
+    </button>
   );
 
   return (
     <div className="space-y-6 pt-2">
-      {headerTarget && createPortal(headerDynamicContent, headerTarget)}
+      {badgeTarget && createPortal(headerBadge, badgeTarget)}
+      {actionsTarget && createPortal(headerAction, actionsTarget)}
       
       {loading ? (
         <LoadingScreen message="Cargando Gatos" />
@@ -341,6 +345,49 @@ const GatosPage = () => {
             },
             { label: "Esterilizados", options: ["Sí", "No"] },
           ]}
+          mobileRender={(cat) => (
+            <div className="bg-gris-oscuro rounded-[20px] border border-sidebar-separador overflow-hidden shadow-lg shadow-black/10">
+              <div className="p-4 flex gap-4 border-b border-sidebar-separador/50 bg-gris/30 items-center">
+                <div className="w-14 h-14 rounded-2xl overflow-hidden bg-gris flex items-center justify-center shrink-0 border border-sidebar-separador">
+                  {cat.fotoUrl ? (
+                    <img src={cat.fotoUrl} alt={cat.nombre} className="w-full h-full object-cover" />
+                  ) : (
+                    <Icons.Cats className="w-6 h-6 text-secondary" />
+                  )}
+                </div>
+                <div className="flex-1 min-w-0">
+                  <h3 className="font-bold text-main text-lg truncate">{cat.nombre}</h3>
+                  <p className="text-xs text-secondary mt-0.5">{cat.genero} — {cat.edad}</p>
+                  <div className="flex items-center gap-1.5 text-secondary text-xs font-medium mt-1.5">
+                    <Icons.MapPin className="w-3.5 h-3.5 text-[#e8893c]" />
+                    <span className="truncate">{cat.colonia}</span>
+                  </div>
+                </div>
+              </div>
+              <div className="px-4 py-3 flex items-center justify-between gap-2">
+                <div className="flex flex-wrap items-center gap-2">
+                  {cat.estado === "Desaparecido" && cat.fecha_desaparicion ? (
+                    <div className="text-[10px] font-bold px-2.5 py-1 rounded-xl inline-flex flex-col items-center text-center leading-tight" style={estadoBadge[cat.estado]}>
+                      <span>{cat.estado}</span>
+                      <span className="text-[9px] font-medium opacity-90">{cat.fecha_desaparicion.split("-").reverse().join("/")}</span>
+                    </div>
+                  ) : (
+                    <span className="text-[11px] font-bold px-2.5 py-1 rounded-full whitespace-nowrap" style={estadoBadge[cat.estado]}>
+                      {cat.estado}
+                    </span>
+                  )}
+                  <span className="text-[11px] font-bold px-2.5 py-1 rounded-full flex items-center gap-1.5 whitespace-nowrap" style={{background: esterilizadoBadge[String(cat.esterilizado) as "true" | "false"].bg, color: esterilizadoBadge[String(cat.esterilizado) as "true" | "false"].text}}>
+                    <span className="w-1.5 h-1.5 rounded-full" style={{ background: esterilizadoBadge[String(cat.esterilizado) as "true" | "false"].dot }} />
+                    {cat.esterilizado ? "Esterilizado" : "No Est."}
+                  </span>
+                </div>
+                <div className="flex items-center gap-1 shrink-0">
+                  <button onClick={() => { setCatToEdit(cat); setModalOpen(true); }} className="p-2.5 rounded-xl text-secondary hover:text-[#e8893c] hover:bg-[#e8893c]/10 border border-transparent transition-all"><Icons.Edit className="w-5 h-5"/></button>
+                  <button onClick={() => confirmDelete(cat)} className="p-2.5 rounded-xl text-secondary hover:text-[var(--badge-rojo-texto)] hover:bg-[var(--badge-rojo-fondo)] border border-transparent transition-all"><Icons.Trash2 className="w-5 h-5"/></button>
+                </div>
+              </div>
+            </div>
+          )}
         />
       )}
 
