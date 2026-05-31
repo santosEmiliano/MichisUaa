@@ -28,8 +28,7 @@ const Avistamientos = () => {
   const [activeFilters, setActiveFilters] = useState<Record<string, string>>({});
   const [rowsPerPage, setRowsPerPage] = useState(8);
   
-  // Elementos del DOM para los portales
-  const [badgeContainer, setBadgeContainer] = useState<Element | null>(null);
+  const [actionsContainer, setActionsContainer] = useState<Element | null>(null);
 
   useEffect(() => {
     const updateRows = () => {
@@ -96,7 +95,7 @@ const Avistamientos = () => {
 
   useEffect(() => {
     // eslint-disable-next-line react-hooks/set-state-in-effect
-    setBadgeContainer(document.getElementById("header-badge"));
+    setActionsContainer(document.getElementById("header-actions"));
   }, []);
 
   // Calcular métricas
@@ -266,15 +265,16 @@ const Avistamientos = () => {
     },
   ];
 
+  const headerBadge = (
+    <span className="text-sm font-semibold px-3 py-1 rounded-full border border-sidebar-separador bg-gris-oscuro text-secondary">
+      {avistamientos.length} {avistamientos.length === 1 ? "avistamiento" : "avistamientos"}
+    </span>
+  );
+
   return (
     <div className="space-y-6 pt-2 pb-10">
       {/* Portales para inyectar contenido en el Header global */}
-      {badgeContainer && createPortal(
-        <span className="bg-gris text-main text-xs font-bold px-3 py-1 rounded-full whitespace-nowrap">
-          <span className="text-acento-naranja">{avistamientos.length}</span> en total
-        </span>,
-        badgeContainer
-      )}
+      {actionsContainer && createPortal(headerBadge, actionsContainer)}
 
       {loading ? (
         <LoadingScreen message="Cargando Avistamientos" />
@@ -292,6 +292,56 @@ const Avistamientos = () => {
               <span className="text-main">pendientes</span>
             </div>
           }
+          mobileRender={(row) => {
+            const isVerificado = row.estado === "Verificado" || row.estado === "Rechazado";
+            return (
+              <div className="bg-gris-oscuro rounded-[20px] border border-sidebar-separador overflow-hidden shadow-lg shadow-black/10">
+                <div className="p-4 flex gap-4 border-b border-sidebar-separador/50 bg-gris/30 items-center">
+                  <div className="w-14 h-14 rounded-2xl overflow-hidden bg-gris flex items-center justify-center shrink-0 border border-sidebar-separador">
+                    {row.fotoUrl ? (
+                      <img src={row.fotoUrl} alt={row.animalName} className="w-full h-full object-cover" />
+                    ) : (
+                      <Icons.Cats className="w-6 h-6 text-secondary" />
+                    )}
+                  </div>
+                  <div className="flex-1 min-w-0">
+                    <h3 className="font-bold text-main text-lg truncate">{row.animalName}</h3>
+                    <p className="text-xs text-secondary mt-0.5 truncate">Reportó: {row.reportadoPor}</p>
+                    <div className="flex items-center gap-1.5 text-secondary text-xs font-medium mt-1.5">
+                      <Icons.MapPin className="w-3.5 h-3.5 text-[#e8893c] shrink-0" />
+                      <span className="truncate">{row.animalColonia}</span>
+                    </div>
+                  </div>
+                </div>
+                <div className="px-4 py-4 flex flex-col sm:flex-row sm:items-center justify-between gap-4">
+                  <div className="flex items-center justify-between sm:justify-start gap-4">
+                     <span className="text-[13px] text-secondary font-medium flex items-center gap-1.5">
+                       <Icons.Clock className="w-4 h-4"/> {row.hace}
+                     </span>
+                     <span className={`px-3 py-1 rounded-full text-[11px] font-bold whitespace-nowrap text-center ${getStatusBadgeClass(row.estado)}`}>
+                      {row.estado}
+                     </span>
+                  </div>
+                  <div className="flex gap-2 w-full sm:w-auto shrink-0">
+                    {isVerificado ? (
+                      <button onClick={() => handleOpenModal(row)} className="flex-1 sm:flex-none px-6 py-2.5 rounded-xl border border-sidebar-separador text-sm text-secondary hover:bg-gris transition-colors font-bold">
+                        Ver detalles
+                      </button>
+                    ) : (
+                      <>
+                        <button onClick={() => handleOpenModal(row)} className="flex-1 sm:flex-none px-6 py-2.5 rounded-xl border border-badge-naranja text-sm text-badge-naranja hover:bg-[rgba(232,137,60,0.1)] transition-colors font-bold">
+                          Verificar
+                        </button>
+                        <button onClick={() => handleQuickReject(row.id)} disabled={loading} className="flex-1 sm:flex-none px-6 py-2.5 rounded-xl border border-sidebar-separador text-sm text-secondary hover:bg-gris transition-colors font-bold disabled:opacity-50">
+                          Rechazar
+                        </button>
+                      </>
+                    )}
+                  </div>
+                </div>
+              </div>
+            );
+          }}
         />
       )}
 

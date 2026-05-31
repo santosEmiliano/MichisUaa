@@ -82,11 +82,11 @@ export const DataTable = <T extends object>({
             />
           </div>
           {filters.length > 0 && (
-            <div className="flex gap-2 w-full md:w-auto overflow-x-auto">
+            <div className="flex flex-wrap items-center gap-2 w-full md:w-auto">
               {filters.map((f, idx) => (
-                <div key={idx} className="relative min-w-max">
+                <div key={idx} className="relative flex-1 min-w-[130px] md:flex-none">
                   <select
-                    className="appearance-none bg-gris-oscuro border border-panel text-secondary text-sm rounded-lg px-4 py-2.5 pr-8 focus:outline-none cursor-pointer"
+                    className="appearance-none w-full bg-gris-oscuro border border-panel text-secondary text-sm rounded-lg px-4 py-2.5 pr-8 focus:outline-none cursor-pointer"
                     onChange={(e) => {
                       setPage(1);
                       if (onFilterChange) onFilterChange(f.label, e.target.value);
