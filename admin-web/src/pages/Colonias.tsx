@@ -175,8 +175,7 @@ const Colonias = () => {
       }
       // Recargar lista
       fetchColoniasYUsuarios();
-    } catch (error) {
-      const err = error as Error;
+    } catch {
       alertService.error(
         "Ocurrió un problema al intentar guardar la colonia. Por favor, revisa la información e intenta de nuevo.",
         "Error al Guardar"
@@ -195,8 +194,7 @@ const Colonias = () => {
       await coloniesService.deleteColony(id);
       fetchColoniasYUsuarios();
       alertService.success("La colonia ha sido eliminada correctamente.", "Colonia Eliminada");
-    } catch (error) {
-      const err = error as Error;
+    } catch {
       alertService.error(
         "Ocurrió un problema al eliminar la colonia. Es posible que tenga gatos asociados.",
         "Error al Eliminar"
