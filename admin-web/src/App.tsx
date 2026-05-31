@@ -9,7 +9,7 @@ import Colonias from "./pages/Colonias";
 import Avistamientos from "./pages/Avistamientos";
 import Estadisticas from "./pages/Estadisticas";
 import AlertsPrueba from "./pages/AlertsPruebas";
-import { AlertsContainer } from "./components/AlertsContainer";
+import { AlertsContainer } from "./components/Alerts/AlertsContainer";
 
 import { checkSession } from "./utils/auth";
 
