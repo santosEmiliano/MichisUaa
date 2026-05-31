@@ -8,7 +8,6 @@ import Usuarios from "./pages/Usuarios";
 import Colonias from "./pages/Colonias";
 import Avistamientos from "./pages/Avistamientos";
 import Estadisticas from "./pages/Estadisticas";
-import AlertsPrueba from "./pages/AlertsPruebas";
 import { AlertsContainer } from "./components/Alerts/AlertsContainer";
 
 import { checkSession } from "./utils/auth";
@@ -64,7 +63,6 @@ function App() {
           <Route path="colonias" element={<Colonias />} />
           <Route path="avistamientos" element={<Avistamientos />} />
           <Route path="estadisticas" element={<Estadisticas />} />
-          <Route path="alertas-test" element={<AlertsPrueba />} />
           <Route path="*" element={<Navigate to="/" />} />
         </Route>
       </Routes>

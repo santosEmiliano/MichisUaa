@@ -33,8 +33,7 @@ const navGroups = [
   {
     group: "Sistema",
     items: [
-      { label: "Usuarios", path: "/usuarios" },
-      { label: "Test Alertas", path: "/alertas-test" }
+      { label: "Usuarios", path: "/usuarios" }
     ],
   },
 ];
