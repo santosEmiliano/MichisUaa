@@ -204,7 +204,7 @@ const Dashboard = () => {
   return (
     <div className="space-y-6 pt-2 pb-10 animate-in fade-in slide-in-from-bottom-4 duration-700">
       {/* Grid of MetricCards */}
-      <div className="grid grid-cols-2 lg:grid-cols-4 gap-3 sm:gap-6">
+      <div className="grid grid-cols-2 xl:grid-cols-4 gap-3 sm:gap-6">
         <MetricCard
           title="Total Gatos"
           value={totalGatos}
