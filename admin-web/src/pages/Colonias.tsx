@@ -225,7 +225,7 @@ const Colonias = () => {
         </div>
       ) : (
         <div
-          className="flex-1 min-h-0 grid gap-4 content-start"
+          className="flex-1 min-h-0 grid gap-4 content-start overflow-y-auto pr-2 pb-4"
           style={{
             gridTemplateColumns: `repeat(${cols}, minmax(0, 1fr))`,
           }}
