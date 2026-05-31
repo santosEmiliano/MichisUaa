@@ -226,15 +226,43 @@ export const AvistamientoModal = ({ isOpen, onClose, onSuccess, avistamiento }: 
               </div>
               
               <div className="space-y-2">
-                <div 
-                  className="w-full h-32 rounded-xl flex items-center justify-center shadow-inner"
-                  style={{ backgroundColor: "var(--metrica-verde)" }}
-                >
-                  <span className="text-3xl drop-shadow-md">📍</span>
-                </div>
-                <p className="text-secondary text-[13px] leading-relaxed">
-                  {displayAvistamiento.coordenadas || "Ubicación desconocida"}
-                </p>
+                {(() => {
+                  let lat = null, lon = null;
+                  if (displayAvistamiento.coordenadas) {
+                    const parts = displayAvistamiento.coordenadas.split(',');
+                    if (parts.length === 2) {
+                      lat = parseFloat(parts[0].trim());
+                      lon = parseFloat(parts[1].trim());
+                    }
+                  }
+
+                  return (
+                    <>
+                      {lat !== null && lon !== null && !isNaN(lat) && !isNaN(lon) ? (
+                        <div className="w-full h-56 rounded-xl overflow-hidden shadow-inner relative bg-gris">
+                          {/* Google Maps embed es mucho más limpio y no tapa el pin. pointer-events-none evita moverlo. */}
+                          <iframe 
+                            src={`https://maps.google.com/maps?q=${lat},${lon}&z=17&output=embed`}
+                            className="w-full h-full border-0 pointer-events-none"
+                            title="Ubicación del avistamiento"
+                            scrolling="no"
+                            loading="lazy"
+                          />
+                        </div>
+                      ) : (
+                        <div 
+                          className="w-full h-32 rounded-xl flex items-center justify-center shadow-inner"
+                          style={{ backgroundColor: "var(--metrica-verde)" }}
+                        >
+                          <span className="text-3xl drop-shadow-md">📍</span>
+                        </div>
+                      )}
+                      <p className="text-secondary text-[13px] leading-relaxed">
+                        {displayAvistamiento.coordenadas || "Ubicación desconocida"}
+                      </p>
+                    </>
+                  );
+                })()}
               </div>
             </div>
 
