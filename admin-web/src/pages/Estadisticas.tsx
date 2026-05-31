@@ -176,28 +176,31 @@ const Estadisticas = () => {
           <div className="grid grid-cols-1 md:grid-cols-2 gap-x-8 gap-y-4">
             {barData.map((item, i) => (
               <div key={i} className="flex items-center gap-3">
-                <span className="w-24 text-sm text-secondary font-medium truncate">{item.colonia}</span>
+                <span className="w-20 sm:w-24 text-xs sm:text-sm text-secondary font-medium truncate" title={item.colonia}>
+                  {item.colonia}
+                </span>
                 <div className="flex-1 bg-black/40 h-8 rounded-lg overflow-hidden relative">
                   <div 
-                    className="h-full flex items-center justify-end pr-3 rounded-lg overflow-hidden whitespace-nowrap"
+                    className="h-full rounded-lg"
                     style={{ 
                       width: animatedBarWidths[i] || "0%", 
                       backgroundColor: item.color,
                       transition: "width 1s cubic-bezier(0.16, 1, 0.3, 1)"
                     }}
-                  >
-                    <span className="text-main font-bold text-sm">{item.total}</span>
-                  </div>
+                  />
                 </div>
+                <span className="w-6 text-right text-main font-bold text-sm shrink-0">
+                  {item.total}
+                </span>
               </div>
             ))}
           </div>
         </div>
 
-        <div className="bg-gris-oscuro rounded-3xl p-6 shadow-lg border-t-2 border-t-[#E8893C] border-x border-b border-sidebar-separador">
-          <h2 className="text-xl font-bold text-main mb-6">Estado de esterilización</h2>
-          <div className="flex items-center">
-            <div className="w-48 h-48 relative">
+        <div className="bg-gris-oscuro rounded-3xl p-6 shadow-lg border-t-2 border-t-[#E8893C] border-x border-b border-sidebar-separador flex flex-col items-center xl:items-start">
+          <h2 className="text-xl font-bold text-main mb-6 text-center xl:text-left w-full">Estado de esterilización</h2>
+          <div className="flex flex-col xl:flex-row items-center xl:justify-center w-full flex-1">
+            <div className="w-48 h-48 relative shrink-0">
               <ResponsiveContainer width="100%" height="100%">
                 <PieChart>
                   <Pie
@@ -221,11 +224,11 @@ const Estadisticas = () => {
               </div>
             </div>
             
-            <div className="flex flex-col gap-3 ml-4">
+            <div className="flex flex-wrap xl:flex-col items-center xl:items-start justify-center gap-4 mt-6 xl:mt-0 xl:ml-8 w-full xl:w-auto">
               {sterilizedState.map((item, i) => (
-                <div key={i} className="flex items-center gap-3">
-                  <div className="w-4 h-4 rounded-full" style={{ backgroundColor: item.color }}></div>
-                  <span className="text-secondary text-sm font-medium">{item.name}</span>
+                <div key={i} className="flex items-center gap-2 bg-card xl:bg-transparent xl:border-0 xl:shadow-none xl:px-0 px-3 py-1.5 rounded-full border border-sidebar-separador shadow-sm">
+                  <div className="w-3 h-3 rounded-full shrink-0" style={{ backgroundColor: item.color }}></div>
+                  <span className="text-secondary text-xs sm:text-sm font-medium">{item.name}</span>
                 </div>
               ))}
             </div>
@@ -279,7 +282,29 @@ const Estadisticas = () => {
             <h2 className="text-xl font-bold text-main">Resumen por colonia</h2>
           </div>
           
-          <div className="flex">
+          {/* Tabla unificada para móvil y tablet */}
+          <div className="block md:hidden">
+            <div className="bg-gris px-6 py-2 grid grid-cols-[2fr_1fr_1fr] gap-4 text-xs font-bold text-sidebar-secundario border-b border-sidebar-separador">
+              <span>Colonia</span>
+              <span>Gatos</span>
+              <span>Esteriles</span>
+            </div>
+            <div className="flex flex-col">
+              {coloniesSummaryData.map((row, i) => (
+                <div key={i} className="px-6 py-3 grid grid-cols-[2fr_1fr_1fr] gap-4 text-sm text-secondary border-b border-sidebar-separador items-center">
+                  <span className="truncate pr-2">{row.nombreColonia}</span>
+                  <span>{row.totalGatos}</span>
+                  <div className="flex items-center gap-2">
+                    <span>{row.porcentajeEsterilizados}%</span>
+                    <div className="w-2 h-2 rounded-full shrink-0" style={{ backgroundColor: getStatusColor(row.porcentajeEsterilizados) }}></div>
+                  </div>
+                </div>
+              ))}
+            </div>
+          </div>
+
+          {/* Tabla dividida en 2 columnas para laptop y escritorio */}
+          <div className="hidden md:flex">
             {/* Left Table */}
             <div className="flex-1">
               <div className="bg-gris px-6 py-2 grid grid-cols-[2fr_1fr_1fr] gap-4 text-xs font-bold text-sidebar-secundario border-b border-sidebar-separador">
@@ -289,12 +314,12 @@ const Estadisticas = () => {
               </div>
               <div className="flex flex-col">
                 {coloniesSummaryData.filter((_, i) => i % 2 === 0).map((row, i) => (
-                  <div key={i} className="px-6 py-3 grid grid-cols-[2fr_1fr_1fr] gap-4 text-sm text-secondary border-b border-sidebar-separador items-center">
+                  <div key={`left-${i}`} className="px-6 py-3 grid grid-cols-[2fr_1fr_1fr] gap-4 text-sm text-secondary border-b border-sidebar-separador items-center">
                     <span className="truncate pr-2">{row.nombreColonia}</span>
                     <span>{row.totalGatos}</span>
                     <div className="flex items-center gap-2">
                       <span>{row.porcentajeEsterilizados}%</span>
-                      <div className="w-2 h-2 rounded-full" style={{ backgroundColor: getStatusColor(row.porcentajeEsterilizados) }}></div>
+                      <div className="w-2 h-2 rounded-full shrink-0" style={{ backgroundColor: getStatusColor(row.porcentajeEsterilizados) }}></div>
                     </div>
                   </div>
                 ))}
@@ -310,12 +335,12 @@ const Estadisticas = () => {
               </div>
               <div className="flex flex-col">
                 {coloniesSummaryData.filter((_, i) => i % 2 !== 0).map((row, i) => (
-                  <div key={i} className="px-6 py-3 grid grid-cols-[2fr_1fr_1fr] gap-4 text-sm text-secondary border-b border-sidebar-separador items-center">
+                  <div key={`right-${i}`} className="px-6 py-3 grid grid-cols-[2fr_1fr_1fr] gap-4 text-sm text-secondary border-b border-sidebar-separador items-center">
                     <span className="truncate pr-2">{row.nombreColonia}</span>
                     <span>{row.totalGatos}</span>
                     <div className="flex items-center gap-2">
                       <span>{row.porcentajeEsterilizados}%</span>
-                      <div className="w-2 h-2 rounded-full" style={{ backgroundColor: getStatusColor(row.porcentajeEsterilizados) }}></div>
+                      <div className="w-2 h-2 rounded-full shrink-0" style={{ backgroundColor: getStatusColor(row.porcentajeEsterilizados) }}></div>
                     </div>
                   </div>
                 ))}
