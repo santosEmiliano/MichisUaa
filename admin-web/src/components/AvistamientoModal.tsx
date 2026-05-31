@@ -258,19 +258,59 @@ export const AvistamientoModal = ({ isOpen, onClose, onSuccess, avistamiento }: 
 
             <div>
               <div className="flex items-center gap-2 text-secondary mb-2">
-                <span className="text-sm font-medium">Ubicación</span>
+                <span className="text-sm font-medium">Ubicación aproximada</span>
               </div>
               
               <div className="space-y-2">
-                <div 
-                  className="w-full h-32 rounded-xl flex items-center justify-center shadow-inner"
-                  style={{ backgroundColor: "var(--metrica-verde)" }}
-                >
-                  <span className="text-3xl drop-shadow-md">📍</span>
-                </div>
-                <p className="text-secondary text-[13px] leading-relaxed">
-                  {displayAvistamiento.coordenadas || "Ubicación desconocida"}
-                </p>
+                {(() => {
+                  let lat = null, lon = null;
+                  if (displayAvistamiento.coordenadas) {
+                    const parts = displayAvistamiento.coordenadas.split(',');
+                    if (parts.length === 2) {
+                      lat = parseFloat(parts[0].trim());
+                      lon = parseFloat(parts[1].trim());
+                    }
+                  }
+
+                  return (
+                    <>
+                      {lat !== null && lon !== null && !isNaN(lat) && !isNaN(lon) ? (
+                        <a 
+                          href={`https://www.google.com/maps/search/?api=1&query=${lat},${lon}`}
+                          target="_blank"
+                          rel="noopener noreferrer"
+                          className="w-full h-56 rounded-xl overflow-hidden shadow-inner relative bg-gris block group cursor-pointer"
+                        >
+                          {/* Google Maps embed es mucho más limpio y no tapa el pin. pointer-events-none evita moverlo. */}
+                          <iframe 
+                            src={`https://maps.google.com/maps?q=${lat},${lon}&z=17&output=embed`}
+                            className="w-full h-full border-0 pointer-events-none group-hover:opacity-80 transition-opacity"
+                            title="Ubicación del avistamiento"
+                            scrolling="no"
+                            loading="lazy"
+                          />
+                          {/* Overlay indicador de clic */}
+                          <div className="absolute inset-0 bg-black/5 opacity-0 group-hover:opacity-100 transition-all duration-300 flex items-center justify-center">
+                            <div className="bg-gris-oscuro/95 text-main px-4 py-2.5 rounded-xl text-[14px] font-bold shadow-xl flex items-center gap-2 transform translate-y-2 group-hover:translate-y-0 transition-transform duration-300">
+                              <Icons.MapPin className="w-4 h-4 text-[#e8893c]" />
+                              Abrir en Google Maps
+                            </div>
+                          </div>
+                        </a>
+                      ) : (
+                        <div 
+                          className="w-full h-32 rounded-xl flex items-center justify-center shadow-inner"
+                          style={{ backgroundColor: "var(--metrica-verde)" }}
+                        >
+                          <span className="text-3xl drop-shadow-md">📍</span>
+                        </div>
+                      )}
+                      <p className="text-secondary text-[13px] leading-relaxed">
+                        {displayAvistamiento.coordenadas || "Ubicación desconocida"}
+                      </p>
+                    </>
+                  );
+                })()}
               </div>
             </div>
 
