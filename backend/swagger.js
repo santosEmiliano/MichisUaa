@@ -40,19 +40,18 @@ const options = {
 
 const swaggerSpec = swaggerJSDoc(options);
 
-// Función para inicializar la ruta en el index.js
+// Función para inicializar la ruta gráfica en el index.js
 const swaggerDocs = (app, port) => {
-  // Monta la interfaz de usuario de Swagger en la ruta /api-docs
+  // Monta la interfaz de usuario de Swagger en la ruta /api/api-docs
   app.use(
-    "/api-docs",
+    "/api/api-docs",
     swaggerUi.serve,
     swaggerUi.setup(swaggerSpec, {
       customSiteTitle: "API Docs - MichisUAA",
       customCss: ".swagger-ui .topbar { display: none }",
     })
   );
-
-  console.log(`Documentación Swagger disponible en /api-docs`);
+  console.log(`Documentación Swagger disponible en /api/api-docs`);
 };
 
 module.exports = { swaggerDocs };
