@@ -1,5 +1,5 @@
 import { useState, useEffect } from 'react';
-import { alertService, Alert } from '../services/alertService';
+import { alertService, type Alert } from '../services/alertService';
 
 export const AlertsContainer = () => {
   const [alerts, setAlerts] = useState<Alert[]>([]);
