@@ -2,6 +2,7 @@ const sightingFunctions = require("../model/sightings.model");
 const fileUtils = require("../utils/fileUpload");
 const API_URL = process.env.API_URL || "";
 const { verificarMedallas } = require("../services/medallas.service");
+const { notificarNuevoAvistamiento } = require("../services/notificaciones.service");
 
 // GET ALL
 const readSightings = async (req, res) => {
@@ -63,6 +64,10 @@ const registerSighting = async (req, res) => {
         }
       })
       .catch(err => console.error("Error en la verificación de medallas en segundo plano:", err));
+
+    // Notificar a administradores sobre el nuevo avistamiento — no bloquea la respuesta
+    notificarNuevoAvistamiento(newSighting)
+      .catch(err => console.error("Error al notificar nuevo avistamiento:", err));
 
     return res.status(201).json({
       mensaje: "Avistamiento registrado correctamente",
