@@ -4,7 +4,7 @@ const token = require("../middleware/verifyToken");
 const animalsFunctions = require("../controllers/animals.controller");
 const multer = require("../middleware/multer");
 
-const upload = multer();
+const upload = multer("animals");
 
 /**
  * @swagger

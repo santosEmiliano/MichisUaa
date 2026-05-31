@@ -1,5 +1,6 @@
 const animalModel = require("../model/animals.model");
-const cloudFunctions = require("../utils/cloudinary");
+const fileUtils = require("../utils/fileUpload");
+const API_URL = process.env.API_URL || "";
 
 // GET ALL
 const getAnimals = async (req, res) => {
@@ -62,9 +63,7 @@ const createAnimal = async (req, res) => {
     }
 
     if(req.file) {
-      const imageData = await cloudFunctions.uploadToCloudinary(req.file.buffer);
-      req.body.foto_url = imageData.secure_url;
-      req.body.foto_id = imageData.public_id;
+      req.body.foto_url = `${API_URL}/api/images/animals/${req.file.filename}`;
     }
 
     const newAnimal = await animalModel.createAnimal(req.body);
@@ -118,13 +117,11 @@ const updateAnimal = async (req, res) => {
     }
 
     if(req.file) {
-      if (existingAnimal.foto_id) {
-        await cloudFunctions.deleteImage(existingAnimal.foto_id);
+      if (existingAnimal.foto_url) {
+        await fileUtils.deleteLocalFile(existingAnimal.foto_url);
       }
 
-      const imageData = await cloudFunctions.uploadToCloudinary(req.file.buffer);
-      req.body.foto_url = imageData.secure_url;
-      req.body.foto_id = imageData.public_id;
+      req.body.foto_url = `${API_URL}/api/images/animals/${req.file.filename}`;
     }
 
     const updatedAnimal = await animalModel.updateAnimal(id, req.body);
@@ -150,8 +147,8 @@ const deleteAnimal = async (req, res) => {
       return res.status(404).json({ mensaje: "Animal no encontrado para eliminar" });
     }
 
-    if (existingAnimal.foto_id) {
-      await cloudFunctions.deleteImage(existingAnimal.foto_id);
+    if (existingAnimal.foto_url) {
+      await fileUtils.deleteLocalFile(existingAnimal.foto_url);
     }
     await animalModel.deleteAnimal(id);
     
