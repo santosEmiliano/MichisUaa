@@ -1,5 +1,6 @@
 require('dotenv').config();
 const express = require('express');
+const path = require('path');
 const cors = require('cors'); 
 const app = express();
 const port = process.env.PORT || 3000;
@@ -13,7 +14,10 @@ const stadisticsRoutes = require('./routes/stadistics.routes');
 
 // Middlewares globales
 app.use(cors()); //De momento asi sin na
-app.use(express.json()); 
+app.use(express.json());
+
+// Archivos estáticos - imágenes subidas localmente
+app.use("/images", express.static(path.join(__dirname, "images"))); 
 
 // RUTA DE CHECK
 app.get('/api', (req, res) => {

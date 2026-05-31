@@ -1,5 +1,5 @@
 const sightingFunctions = require("../model/sightings.model");
-const cloudFunctions = require("../utils/cloudinary");
+const fileUtils = require("../utils/fileUpload");
 const { verificarMedallas } = require("../services/medallas.service");
 
 // GET ALL
@@ -49,11 +49,7 @@ const registerSighting = async (req, res) => {
     }
 
     if (req.file) {
-      const imageData = await cloudFunctions.uploadToCloudinary(
-        req.file.buffer,
-      );
-      req.body.foto_url = imageData.secure_url;
-      req.body.foto_id = imageData.public_id;
+      req.body.foto_url = "/images/sightings/" + req.file.filename;
     }
 
     const newSighting = await sightingFunctions.createSighting(req.body);
@@ -92,15 +88,11 @@ const modifySighting = async (req, res) => {
     }
 
     if (req.file) {
-      if (oldSighting.foto_id) {
-        await cloudFunctions.deleteImage(oldSighting.foto_id);
+      if (oldSighting.foto_url) {
+        await fileUtils.deleteLocalFile(oldSighting.foto_url);
       }
 
-      const imageData = await cloudFunctions.uploadToCloudinary(
-        req.file.buffer,
-      );
-      req.body.foto_url = imageData.secure_url;
-      req.body.foto_id = imageData.public_id;
+      req.body.foto_url = "/images/sightings/" + req.file.filename;
     }
 
     const updatedSighting = await sightingFunctions.modifySighting(
@@ -135,8 +127,8 @@ const deleteSighting = async (req, res) => {
         });
     }
 
-    if (existSighting.foto_id) {
-      await cloudFunctions.deleteImage(existSighting.foto_id);
+    if (existSighting.foto_url) {
+      await fileUtils.deleteLocalFile(existSighting.foto_url);
     }
 
     await sightingFunctions.removeSighting(id);
