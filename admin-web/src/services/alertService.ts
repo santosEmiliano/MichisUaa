@@ -1,9 +1,11 @@
 export type AlertType = 'success' | 'error' | 'warning' | 'question';
+export type AlertPosition = 'top-left' | 'top-center' | 'top-right' | 'bottom-left' | 'bottom-center' | 'bottom-right' | 'center';
 
 export interface AlertOptions {
   title?: string;
   message: string;
   type: AlertType;
+  position?: AlertPosition;
   onConfirm?: () => void;
   onCancel?: () => void;
 }
@@ -32,25 +34,26 @@ class AlertService {
     this.listeners.forEach((listener) => listener(alert));
   }
 
-  success(message: string, title?: string) {
-    this.emit({ type: 'success', message, title });
+  success(message: string, title?: string, position: AlertPosition = 'center') {
+    this.emit({ type: 'success', message, title, position });
   }
 
-  error(message: string, title?: string) {
-    this.emit({ type: 'error', message, title });
+  error(message: string, title?: string, position: AlertPosition = 'center') {
+    this.emit({ type: 'error', message, title, position });
   }
 
-  warning(message: string, title?: string) {
-    this.emit({ type: 'warning', message, title });
+  warning(message: string, title?: string, position: AlertPosition = 'center') {
+    this.emit({ type: 'warning', message, title, position });
   }
 
   question(
     message: string,
     onConfirm: () => void,
     title?: string,
-    onCancel?: () => void
+    onCancel?: () => void,
+    position: AlertPosition = 'center'
   ) {
-    this.emit({ type: 'question', message, title, onConfirm, onCancel });
+    this.emit({ type: 'question', message, title, onConfirm, onCancel, position });
   }
 }
 
