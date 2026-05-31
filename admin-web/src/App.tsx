@@ -64,7 +64,7 @@ function App() {
           <Route path="colonias" element={<Colonias />} />
           <Route path="avistamientos" element={<Avistamientos />} />
           <Route path="estadisticas" element={<Estadisticas />} />
-          <Route path="exportar" element={<AlertsPrueba />} />
+          <Route path="alertas-test" element={<AlertsPrueba />} />
           <Route path="*" element={<Navigate to="/" />} />
         </Route>
       </Routes>

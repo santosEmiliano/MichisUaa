@@ -1,10 +1,8 @@
 import { useState } from "react";
-import { useAlert } from "../components/AlertasLogica";
+import { alertService, type AlertPosition } from "../services/alertService";
 import Icons from "../components/Icons";
-import type { AlertPosition } from "../types/models";
 
 const TestAlertsPage = () => {
-  const { showAlert } = useAlert();
   
   //donde aparece la alert
   const [position, setPosition] = useState<AlertPosition>("bottom-right");
@@ -14,7 +12,20 @@ const TestAlertsPage = () => {
     title: string,
     message: string
   ) => {
-    showAlert(type, title, message, position);
+    switch (type) {
+      case "success": alertService.success(message, title, position); break;
+      case "error": alertService.error(message, title, position); break;
+      case "warning": alertService.warning(message, title, position); break;
+      case "question": 
+        alertService.question(
+          message, 
+          () => alertService.success("¡Acción confirmada!"), 
+          title, 
+          () => alertService.error("Acción cancelada"), 
+          position
+        ); 
+        break;
+    }
   };
 
   return (
@@ -44,6 +55,7 @@ const TestAlertsPage = () => {
               <option className="bg-gris-oscuro text-main" value="top-right">↗️ Arriba - Derecha</option>
               <option className="bg-gris-oscuro text-main" value="top-center">⬆️ Arriba - Centro</option>
               <option className="bg-gris-oscuro text-main" value="top-left">↖️ Arriba - Izquierda</option>
+              <option className="bg-gris-oscuro text-main" value="center">⏺️ Centro Absoluto</option>
               <option className="bg-gris-oscuro text-main" value="bottom-right">↘️ Abajo - Derecha</option>
               <option className="bg-gris-oscuro text-main" value="bottom-center">⬇️ Abajo - Centro</option>
               <option className="bg-gris-oscuro text-main" value="bottom-left">↙️ Abajo - Izquierda</option>
