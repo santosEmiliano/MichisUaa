@@ -222,7 +222,7 @@ export const AvistamientoModal = ({ isOpen, onClose, onSuccess, avistamiento }: 
 
             <div>
               <div className="flex items-center gap-2 text-secondary mb-2">
-                <span className="text-sm font-medium">Ubicación</span>
+                <span className="text-sm font-medium">Ubicación aproximada</span>
               </div>
               
               <div className="space-y-2">
