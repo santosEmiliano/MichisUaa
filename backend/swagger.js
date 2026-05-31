@@ -40,17 +40,38 @@ const options = {
 
 const swaggerSpec = swaggerJSDoc(options);
 
+// Middleware de autenticación básica para proteger Swagger
+const basicAuth = (req, res, next) => {
+  const auth = req.headers.authorization;
+  if (!auth) {
+    res.set("WWW-Authenticate", 'Basic realm="Acceso a Documentacion"');
+    return res.status(401).send("Se requiere autenticación para ver la documentación.");
+  }
+
+  const b64auth = (auth.split(" ")[1] || "");
+  const [login, password] = Buffer.from(b64auth, "base64").toString().split(":");
+
+  // Usuario y contraseña para acceder a Swagger
+  if (login === "4dminMichisU44" && password === "M1ch1s_U44$2026!") {
+    return next();
+  }
+
+  res.set("WWW-Authenticate", 'Basic realm="Acceso a Documentacion"');
+  return res.status(401).send("Credenciales incorrectas.");
+};
+
 // Función para inicializar la ruta gráfica en el index.js
 const swaggerDocs = (app, port) => {
-  // Monta la interfaz de usuario de Swagger en la ruta /api/api-docs
   app.use(
     "/api/api-docs",
+    basicAuth,
     swaggerUi.serve,
     swaggerUi.setup(swaggerSpec, {
       customSiteTitle: "API Docs - MichisUAA",
       customCss: ".swagger-ui .topbar { display: none }",
     })
   );
+
   console.log(`Documentación Swagger disponible en /api/api-docs`);
 };
 
