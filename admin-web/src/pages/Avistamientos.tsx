@@ -192,7 +192,7 @@ const Avistamientos = () => {
     },
     {
       header: "Animal",
-      searchKey: "animalName",
+      searchKey: ["animalName", "animalColonia"],
       render: (row) => (
         <div>
           <p className="font-bold text-main">{row.animalName}</p>

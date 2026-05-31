@@ -28,7 +28,7 @@ const rolBadge: Record<RolUser, React.CSSProperties> = {
 const columns: ColumnDef<User>[] = [
   {
     header: "Usuario",
-    searchKey: "nombre",
+    searchKey: ["nombre", "email"],
     render: (user) => (
       <div className="flex items-center gap-3">
         <div
