@@ -4,6 +4,7 @@ import Icons from "./Icons";
 import { authService } from "../services/authApi";
 import { userService } from "../services/userApi";
 import { coloniesService } from "../services/coloniesApi";
+import { alertService } from "../services/alertService";
 import type { User, Colonia } from "../types/models";
 
 interface UserModalProps {
@@ -120,7 +121,13 @@ export const UsuarioModal = ({ isOpen, onClose, userToEdit, onSuccess }: UserMod
     if (!isOpen) return;
     coloniesService.getColonies()
       .then(setColonias)
-      .catch(console.error);
+      .catch((error) => {
+        console.error(error);
+        alertService.error(
+          "No pudimos cargar la lista de colonias. Intenta de nuevo más tarde.",
+          "Error de Carga"
+        );
+      });
   }, [isOpen]);
 
   const toggleColonia = (id: number) => {
@@ -141,8 +148,6 @@ export const UsuarioModal = ({ isOpen, onClose, userToEdit, onSuccess }: UserMod
 
   // UI general
   const [loading, setLoading] = useState(false);
-  const [apiError, setApiError] = useState<string | null>(null);
-  const [success, setSuccess] = useState(false);
 
   const strength = getPasswordStrength(password);
 
@@ -200,8 +205,6 @@ export const UsuarioModal = ({ isOpen, onClose, userToEdit, onSuccess }: UserMod
     setSelectedColonias([]);
     setFieldErrors({});
     setSubmitted(false);
-    setApiError(null);
-    setSuccess(false);
   };
 
   const handleClose = () => {
@@ -212,12 +215,14 @@ export const UsuarioModal = ({ isOpen, onClose, userToEdit, onSuccess }: UserMod
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     setSubmitted(true);
-    setApiError(null);
 
     const errors = validateForm(nombre, email, password, confirmPassword, isEditing);
     setFieldErrors(errors);
 
-    if (Object.keys(errors).length > 0) return;
+    if (Object.keys(errors).length > 0) {
+      alertService.warning("Por favor, verifica los campos del formulario.", "Información Incompleta");
+      return;
+    }
 
     setLoading(true);
     try {
@@ -230,18 +235,18 @@ export const UsuarioModal = ({ isOpen, onClose, userToEdit, onSuccess }: UserMod
         if (password) body.password = password;
         if (selectedColonias.length > 0) body.coloniasIds = selectedColonias;
         await userService.updateUser(userToEdit.id, body);
+        alertService.success("El usuario ha sido actualizado correctamente.", "Usuario Actualizado");
       } else {
         const esAdmin = role === "Administrador";
         await authService.createUser(nombre, email, password, esAdmin);
+        alertService.success("El usuario ha sido creado correctamente.", "Usuario Creado");
       }
-      setSuccess(true);
       onSuccess?.();
-      setTimeout(() => {
-        handleClose();
-      }, 1400);
+      handleClose();
     } catch (err: unknown) {
-      setApiError(
-        err instanceof Error ? err.message : "Error al guardar el usuario"
+      alertService.error(
+        "Ocurrió un problema al guardar la información del usuario. Verifica los datos e intenta de nuevo.",
+        "Error al Guardar"
       );
     } finally {
       setLoading(false);
@@ -294,20 +299,6 @@ export const UsuarioModal = ({ isOpen, onClose, userToEdit, onSuccess }: UserMod
       footer={footer}
     >
       <form id="form-nuevo-usuario" onSubmit={handleSubmit} className="space-y-5" noValidate>
-
-        {/* Éxito */}
-        {success && (
-          <div className="text-sm text-green-400 bg-green-400/10 border border-green-400/30 rounded-xl px-4 py-3 flex items-center gap-2">
-            <span>✓</span> {isEditing ? "Usuario actualizado correctamente" : "Usuario creado correctamente"}
-          </div>
-        )}
-
-        {/* Error del API */}
-        {apiError && (
-          <div className="text-sm text-red-400 bg-red-400/10 border border-red-400/30 rounded-xl px-4 py-3">
-            {apiError}
-          </div>
-        )}
 
         {/* Nombre */}
         <div>

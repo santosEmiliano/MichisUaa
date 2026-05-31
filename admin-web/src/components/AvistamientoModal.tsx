@@ -3,6 +3,7 @@ import type { Avistamiento, BackendAnimal } from "../types/models";
 import Icons from "./Icons";
 import { avistamientosApi } from "../services/avistamientosApi";
 import { catsApi } from "../services/catsApi";
+import { alertService } from "../services/alertService";
 
 interface Props {
   isOpen: boolean;
@@ -48,6 +49,10 @@ export const AvistamientoModal = ({ isOpen, onClose, onSuccess, avistamiento }: 
           setCats(data);
         } catch (error) {
           console.error("Error al cargar gatos:", error);
+          alertService.error(
+            "No pudimos cargar la lista de gatos disponibles. Intenta de nuevo más tarde.",
+            "Error de Carga"
+          );
         }
       };
       fetchCats();
@@ -78,7 +83,10 @@ export const AvistamientoModal = ({ isOpen, onClose, onSuccess, avistamiento }: 
 
   const handleVerificar = async () => {
     if (!selectedGato) {
-      alert("Por favor selecciona un gato para verificar el avistamiento.");
+      alertService.warning(
+        "Por favor selecciona un gato para verificar el avistamiento.",
+        "Gato no Seleccionado"
+      );
       return;
     }
 
@@ -89,25 +97,39 @@ export const AvistamientoModal = ({ isOpen, onClose, onSuccess, avistamiento }: 
       } else {
         await avistamientosApi.verificarAvistamiento(displayAvistamiento.id, Number(selectedGato));
       }
+      alertService.success("El avistamiento ha sido verificado correctamente.", "Avistamiento Verificado");
       if (onSuccess) onSuccess();
       onClose();
     } catch (error) {
       console.error(error);
-      alert("Error al verificar el avistamiento.");
+      alertService.error(
+        "Ocurrió un problema al verificar el avistamiento. Por favor, intenta de nuevo.",
+        "Error al Verificar"
+      );
     } finally {
       setIsProcessing(false);
     }
   };
 
   const handleRechazar = async () => {
+    const confirm = await alertService.questionAsync(
+      "¿Estás seguro de que deseas rechazar este avistamiento?",
+      "Rechazar Avistamiento"
+    );
+    if (!confirm) return;
+
     try {
       setIsProcessing(true);
       await avistamientosApi.rechazarAvistamiento(displayAvistamiento.id);
+      alertService.success("El avistamiento ha sido rechazado.", "Avistamiento Rechazado");
       if (onSuccess) onSuccess();
       onClose();
     } catch (error) {
       console.error(error);
-      alert("Error al rechazar el avistamiento.");
+      alertService.error(
+        "Ocurrió un problema al rechazar el avistamiento. Por favor, intenta de nuevo.",
+        "Error al Rechazar"
+      );
     } finally {
       setIsProcessing(false);
     }
@@ -115,32 +137,46 @@ export const AvistamientoModal = ({ isOpen, onClose, onSuccess, avistamiento }: 
 
   const handleGuardarCambios = async () => {
     if (!selectedGato) {
-      alert("Por favor selecciona un gato.");
+      alertService.warning("Por favor selecciona un gato.", "Información Incompleta");
       return;
     }
 
     try {
       setIsProcessing(true);
       await avistamientosApi.modificarAnimalAvistamiento(displayAvistamiento.id, Number(selectedGato));
+      alertService.success("Los cambios han sido guardados correctamente.", "Cambios Guardados");
       if (onSuccess) onSuccess();
       onClose();
     } catch (error) {
       console.error(error);
-      alert("Error al guardar los cambios.");
+      alertService.error(
+        "Ocurrió un problema al guardar los cambios. Por favor, intenta de nuevo.",
+        "Error al Guardar"
+      );
     } finally {
       setIsProcessing(false);
     }
   };
 
   const handleRevocarVerificacion = async () => {
+    const confirm = await alertService.questionAsync(
+      "¿Seguro que deseas revocar la verificación de este avistamiento?",
+      "Revocar Verificación"
+    );
+    if (!confirm) return;
+
     try {
       setIsProcessing(true);
       await avistamientosApi.revocarVerificacion(displayAvistamiento.id);
+      alertService.success("La verificación ha sido revocada.", "Verificación Revocada");
       if (onSuccess) onSuccess();
       onClose();
     } catch (error) {
       console.error(error);
-      alert("Error al revocar la verificación.");
+      alertService.error(
+        "Ocurrió un problema al revocar la verificación. Por favor, intenta de nuevo.",
+        "Error al Revocar"
+      );
     } finally {
       setIsProcessing(false);
     }

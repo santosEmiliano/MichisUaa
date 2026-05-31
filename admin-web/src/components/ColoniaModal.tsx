@@ -1,6 +1,7 @@
 import { useState } from "react";
 import { ModalCrud } from "./ModalCrud";
 import type { Colonia } from "../types/models";
+import { alertService } from "../services/alertService";
 
 export interface ColoniaModalProps {
   isOpen: boolean;
@@ -85,7 +86,10 @@ export const ColoniaModal = ({
         onSubmit={(e) => {
           e.preventDefault();
           if (form.responsableIds.length === 0) {
-            alert("Debes seleccionar al menos un encargado");
+            alertService.warning(
+              "Debes seleccionar al menos un encargado para la colonia.",
+              "Información Incompleta"
+            );
             return;
           }
           onSave({

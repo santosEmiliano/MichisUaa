@@ -32,12 +32,15 @@ const navGroups = [
   },
   {
     group: "Sistema",
-    items: [{ label: "Usuarios", path: "/usuarios" }],
+    items: [
+      { label: "Usuarios", path: "/usuarios" }
+    ],
   },
 ];
 
 import { getUserName, logoutHelper } from "../utils/auth";
 import { authService } from "../services/authApi";
+import { alertService } from "../services/alertService";
 
 
 const Sidebar: React.FC<SidebarProps> = ({ isOpen, toggleSidebar }) => {
@@ -47,6 +50,13 @@ const Sidebar: React.FC<SidebarProps> = ({ isOpen, toggleSidebar }) => {
 
   const handleLogout = async () => {
     if (loggingOut) return;
+
+    const confirm = await alertService.questionAsync(
+      "¿Estás seguro de que deseas cerrar sesión?",
+      "Cerrar Sesión"
+    );
+    if (!confirm) return;
+
     setLoggingOut(true);
     const token = localStorage.getItem("token");
     if (token) {
@@ -54,6 +64,11 @@ const Sidebar: React.FC<SidebarProps> = ({ isOpen, toggleSidebar }) => {
         await authService.logout(token);
       } catch (err) {
         console.error("Error cerrando sesión en el servidor:", err);
+        alertService.error(
+          "Hubo un problema al cerrar tu sesión en el servidor: " + 
+          (err instanceof Error ? err.message : err),
+          "Error de Sesión"
+        );
       }
     }
     // Pequeño delay para que se vea la animación
