@@ -8,7 +8,7 @@ import Usuarios from "./pages/Usuarios";
 import Colonias from "./pages/Colonias";
 import Avistamientos from "./pages/Avistamientos";
 import Estadisticas from "./pages/Estadisticas";
-import AlertsPrueba from "./pages/AlertsPruebas";
+import { AlertsContainer } from "./components/Alerts/AlertsContainer";
 
 import { checkSession } from "./utils/auth";
 
@@ -28,40 +28,45 @@ function App() {
       return response;
     };
     
+    const handleLogoutEvent = () => setIsAuthenticated(false);
+    window.addEventListener("auth:logout", handleLogoutEvent);
+
     return () => {
       window.fetch = originalFetch;
+      window.removeEventListener("auth:logout", handleLogoutEvent);
     };
   }, []);
-
   return (
-    <Routes>
-      {/*Ruta pública */}
-      <Route
-        path="/login"
-        element={
-          !isAuthenticated ? (
-            <AuthPage onLogin={() => setIsAuthenticated(true)} />
-          ) : (
-            <Navigate to="/" />
-          )
-        }
-      />
-      <Route
-        path="/"
-        element={isAuthenticated ? <MainLayout /> : <Navigate to="/login" />}
-      >
-        {/* lo manda al dashboard*/}
-        <Route index element={<Dashboard />} />
-        {/* rutas del panel, FALTAN AGREGAR LAS PÁGINAS, aqui agregamos las rutas */}
-        <Route path="gatos" element={<Gatos />} />
-        <Route path="usuarios" element={<Usuarios />} />
-        <Route path="colonias" element={<Colonias />} />
-        <Route path="avistamientos" element={<Avistamientos />} />
-        <Route path="estadisticas" element={<Estadisticas />} />
-        <Route path="exportar" element={<AlertsPrueba />} />
-        <Route path="*" element={<Navigate to="/" />} />
-      </Route>
-    </Routes>
+    <>
+      <AlertsContainer />
+      <Routes>
+        {/*Ruta pública */}
+        <Route
+          path="/login"
+          element={
+            !isAuthenticated ? (
+              <AuthPage onLogin={() => setIsAuthenticated(true)} />
+            ) : (
+              <Navigate to="/" />
+            )
+          }
+        />
+        <Route
+          path="/"
+          element={isAuthenticated ? <MainLayout /> : <Navigate to="/login" />}
+        >
+          {/* lo manda al dashboard*/}
+          <Route index element={<Dashboard />} />
+          {/* rutas del panel, FALTAN AGREGAR LAS PÁGINAS, aqui agregamos las rutas */}
+          <Route path="gatos" element={<Gatos />} />
+          <Route path="usuarios" element={<Usuarios />} />
+          <Route path="colonias" element={<Colonias />} />
+          <Route path="avistamientos" element={<Avistamientos />} />
+          <Route path="estadisticas" element={<Estadisticas />} />
+          <Route path="*" element={<Navigate to="/" />} />
+        </Route>
+      </Routes>
+    </>
   );
 }
 

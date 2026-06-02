@@ -5,7 +5,7 @@ import type { FilterDef } from "../types/models";
 
 export interface ColumnDef<T> {
   header: string;
-  searchKey?: keyof T;
+  searchKey?: keyof T | (keyof T)[];
   render: (row: T) => React.ReactNode;
 }
 
@@ -20,6 +20,7 @@ interface DataTableProps<T> {
   onFilterChange?: (label: string, value: string) => void;
   middleContent?: React.ReactNode;
   hideControls?: boolean;
+  mobileRender?: (row: T) => React.ReactNode;
 }
 
 export const DataTable = <T extends object>({
@@ -33,13 +34,15 @@ export const DataTable = <T extends object>({
   onFilterChange,
   middleContent,
   hideControls = false,
+  mobileRender,
 }: DataTableProps<T>) => {
   const [query, setQuery] = useState("");
   const [page, setPage] = useState(1);
 
-  const searchKeys = columns
-    .filter((c) => c.searchKey !== undefined)
-    .map((c) => c.searchKey as keyof T);
+  const searchKeys: (keyof T)[] = columns.flatMap((c) => {
+    if (c.searchKey === undefined) return [];
+    return Array.isArray(c.searchKey) ? c.searchKey : [c.searchKey];
+  });
 
   const filtered = useMemo(() => {
     if (!query.trim()) return data;
@@ -59,12 +62,6 @@ export const DataTable = <T extends object>({
     (safePage - 1) * rowsPerPage,
     safePage * rowsPerPage,
   );
-
-  const pageWindow = () => {
-    const start = Math.max(1, safePage - 2);
-    const end = Math.min(totalPages, start + 4);
-    return Array.from({ length: end - start + 1 }, (_, i) => start + i);
-  };
 
   return (
     <div className="w-full space-y-4">
@@ -86,11 +83,11 @@ export const DataTable = <T extends object>({
             />
           </div>
           {filters.length > 0 && (
-            <div className="flex gap-2 w-full md:w-auto overflow-x-auto">
+            <div className="flex flex-wrap items-center gap-2 w-full md:w-auto">
               {filters.map((f, idx) => (
-                <div key={idx} className="relative min-w-max">
+                <div key={idx} className="relative flex-1 min-w-[130px] md:flex-none">
                   <select
-                    className="appearance-none bg-gris-oscuro border border-panel text-secondary text-sm rounded-lg px-4 py-2.5 pr-8 focus:outline-none cursor-pointer"
+                    className="appearance-none w-full bg-gris-oscuro border border-panel text-secondary text-sm rounded-lg px-4 py-2.5 pr-8 focus:outline-none cursor-pointer"
                     onChange={(e) => {
                       setPage(1);
                       if (onFilterChange) onFilterChange(f.label, e.target.value);
@@ -113,8 +110,8 @@ export const DataTable = <T extends object>({
 
       {middleContent && <div>{middleContent}</div>}
 
-      {/* Tabla */}
-      <div className="bg-card rounded-xl border border-sidebar-separador overflow-hidden shadow-lg">
+      {/* Contenedor de Tabla - Solo Escritorio */}
+      <div className="hidden xl:block bg-card rounded-xl border border-sidebar-separador overflow-hidden shadow-lg">
         <div className="overflow-x-auto">
           <table className="w-full text-left min-w-[780px] border-collapse">
             <thead className="bg-gris border-b border-sidebar-separador">
@@ -188,6 +185,96 @@ export const DataTable = <T extends object>({
         </div>
       </div>
 
+      {/* Contenedor de Tarjetas - Móvil y Laptops */}
+      <div className="flex flex-col gap-4 xl:hidden">
+        {paginated.length === 0 ? (
+          <div className="bg-card rounded-xl border border-sidebar-separador p-8 text-center text-secondary text-sm shadow-sm">
+            No se encontraron resultados para "{query}".
+          </div>
+        ) : (
+          paginated.map((row, i) => {
+            if (mobileRender) {
+              return (
+                <div key={i} className="animate-row-in" style={{ animationDelay: `${i * 45}ms` }}>
+                  {mobileRender(row)}
+                </div>
+              );
+            }
+
+            return (
+              <div
+                key={i}
+                className="bg-card rounded-2xl border border-sidebar-separador overflow-hidden shadow-lg animate-row-in"
+                style={{ animationDelay: `${i * 45}ms` }}
+              >
+                {/* Encabezado de la Tarjeta (Primera Columna) */}
+                {columns.length > 0 && (
+                  <div className="bg-gris px-5 py-4 border-b border-sidebar-separador flex flex-col gap-1.5">
+                    {columns[0].header && (
+                      <span className="text-[10px] font-extrabold text-sidebar-secundario uppercase tracking-wider">
+                        {columns[0].header}
+                      </span>
+                    )}
+                    <div className="text-[15px] text-main">
+                      {columns[0].render(row)}
+                    </div>
+                  </div>
+                )}
+
+                {/* Cuerpo de la Tarjeta (Resto de las Columnas) */}
+                <div className="p-5 flex flex-col gap-4">
+                  {columns.slice(1).map((col, j) => {
+                    // Si la columna no tiene header (ej. botón "Ver Registro"), la mostramos sola
+                    if (!col.header) {
+                      return (
+                        <div key={j} className="pt-2 flex justify-end">
+                          {col.render(row)}
+                        </div>
+                      );
+                    }
+                    
+                    return (
+                      <div key={j} className="flex flex-col gap-1">
+                        <span className="text-[11px] font-bold text-sidebar-secundario uppercase tracking-wider">
+                          {col.header}
+                        </span>
+                        <div className="text-[14.5px] text-main leading-relaxed break-words">
+                          {col.render(row)}
+                        </div>
+                      </div>
+                    );
+                  })}
+                </div>
+
+                {/* Footer de Acciones (Editar/Eliminar) */}
+                {(onEdit || onDelete) && (
+                  <div className="bg-gris px-5 py-3 border-t border-sidebar-separador flex items-center justify-end gap-3">
+                    {onEdit && (
+                      <ActionButton
+                        color="var(--accent-orange)"
+                        title="Editar"
+                        onClick={() => onEdit(row)}
+                      >
+                        <Icons.Edit className="w-5 h-5" />
+                      </ActionButton>
+                    )}
+                    {onDelete && (
+                      <ActionButton
+                        color="var(--metrica-rojo)"
+                        title="Eliminar"
+                        onClick={() => onDelete(row)}
+                      >
+                        <Icons.Trash2 className="w-5 h-5" />
+                      </ActionButton>
+                    )}
+                  </div>
+                )}
+              </div>
+            );
+          })
+        )}
+      </div>
+
       {/* Paginación */}
       {!hideControls && (
         <Pestanas 
@@ -226,24 +313,6 @@ const ActionButton = ({
       el.style.background = "transparent";
       el.style.color = color;
     }}
-  >
-    {children}
-  </button>
-);
-
-const PageBtn = ({
-  children,
-  onClick,
-  disabled,
-}: {
-  children: React.ReactNode;
-  onClick: () => void;
-  disabled: boolean;
-}) => (
-  <button
-    onClick={onClick}
-    disabled={disabled}
-    className="w-8 h-8 rounded-lg text-sm text-secondary hover-bg-item disabled:opacity-30 disabled:cursor-not-allowed transition-colors"
   >
     {children}
   </button>

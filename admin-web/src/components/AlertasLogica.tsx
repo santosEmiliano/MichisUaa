@@ -10,8 +10,17 @@ import type {
   AlertType,
   AlertPosition,
   Alert,
-  AlertaLogicaProps,
 } from "../types/models";
+
+export interface AlertaLogicaProps {
+  showAlert: (
+    type: AlertType,
+    title: string,
+    message?: string,
+    position?: AlertPosition,
+    duration?: number
+  ) => void;
+}
 
 const AlertContext = createContext<AlertaLogicaProps | undefined>(undefined);
 

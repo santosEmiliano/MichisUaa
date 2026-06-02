@@ -1,6 +1,6 @@
 import type { BackendAnimal } from "../types/models";
 
-const API_URL = import.meta.env.VITE_API_URL || "http://localhost:3000";
+const API_URL = import.meta.env.VITE_API_URL || "/michisuaa/api";
 
 const getHeaders = () => {
   const token = localStorage.getItem("token");

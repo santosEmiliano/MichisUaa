@@ -27,6 +27,8 @@ import {
   LogOut,
   Moon,
   Sun,
+  Building2,
+  Clock,
 } from "lucide-react";
 
 const Icons = {
@@ -59,6 +61,9 @@ const Icons = {
   LogOut: LogOut,
   Moon: Moon,
   Sun: Sun,
+  Building: Building2,
+  Clock: Clock,
+  MapPin: MapPin,
 };
 
 export default Icons;

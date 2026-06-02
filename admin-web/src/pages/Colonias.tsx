@@ -9,6 +9,7 @@ import type { Colonia } from "../types/models";
 
 import { Pestanas } from "../components/Pestanas";
 import { coloniesService } from "../services/coloniesApi";
+import { alertService } from "../services/alertService";
 
 const Colonias = () => {
   const [colonias, setColonias] = useState<Colonia[]>([]);
@@ -30,13 +31,13 @@ const Colonias = () => {
       // Llamadas paralelas
       const [coloniasData, usersRes, animalsRes] = await Promise.all([
         coloniesService.getColonies(),
-        fetch("http://localhost:3000/user", {
+        fetch("/michisuaa/api/user", {
           headers: {
             "Content-Type": "application/json",
             Authorization: `Bearer ${token}`,
           },
         }),
-        fetch("http://localhost:3000/animal", {
+        fetch("/michisuaa/api/animal", {
           headers: {
             "Content-Type": "application/json",
             Authorization: `Bearer ${token}`,
@@ -85,7 +86,10 @@ const Colonias = () => {
       }
     } catch (error) {
       console.error("Error fetching data", error);
-      alert("Error al cargar la información");
+      alertService.error(
+        "No pudimos cargar la información de las colonias. Verifica tu conexión e intenta de nuevo.",
+        "Error de Carga"
+      );
     } finally {
       setLoading(false);
     }
@@ -158,6 +162,7 @@ const Colonias = () => {
           zona: data.location,
           encargadosIds: data.responsableIds.map(Number),
         });
+        alertService.success("La colonia ha sido actualizada correctamente.", "Colonia Actualizada");
       } else {
         // Crear
         await coloniesService.createColony({
@@ -166,23 +171,34 @@ const Colonias = () => {
           zona: data.location,
           encargadosIds: data.responsableIds.map(Number),
         });
+        alertService.success("La colonia ha sido creada correctamente.", "Colonia Creada");
       }
       // Recargar lista
       fetchColoniasYUsuarios();
-    } catch (error) {
-      const err = error as Error;
-      alert(err.message || "Error al guardar la colonia");
+    } catch {
+      alertService.error(
+        "Ocurrió un problema al intentar guardar la colonia. Por favor, revisa la información e intenta de nuevo.",
+        "Error al Guardar"
+      );
     }
   };
 
   const handleDelete = async (id: number) => {
-    if (!window.confirm("¿Seguro que deseas eliminar esta colonia?")) return;
+    const confirm = await alertService.questionAsync(
+      "¿Estás seguro que deseas eliminar esta colonia? Esta acción no se puede deshacer.",
+      "Eliminar Colonia"
+    );
+    if (!confirm) return;
+
     try {
       await coloniesService.deleteColony(id);
       fetchColoniasYUsuarios();
-    } catch (error) {
-      const err = error as Error;
-      alert(err.message || "Error al eliminar la colonia");
+      alertService.success("La colonia ha sido eliminada correctamente.", "Colonia Eliminada");
+    } catch {
+      alertService.error(
+        "Ocurrió un problema al eliminar la colonia. Es posible que tenga gatos asociados.",
+        "Error al Eliminar"
+      );
     }
   };
 
@@ -225,7 +241,7 @@ const Colonias = () => {
         </div>
       ) : (
         <div
-          className="flex-1 min-h-0 grid gap-4 content-start"
+          className="flex-1 min-h-0 grid gap-4 content-start overflow-y-auto pr-2 pb-4"
           style={{
             gridTemplateColumns: `repeat(${cols}, minmax(0, 1fr))`,
           }}

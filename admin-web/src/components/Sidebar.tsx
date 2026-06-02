@@ -32,12 +32,16 @@ const navGroups = [
   },
   {
     group: "Sistema",
-    items: [{ label: "Usuarios", path: "/usuarios" }],
+    items: [
+      { label: "Usuarios", path: "/usuarios" }
+    ],
   },
 ];
 
 import { getUserName, logoutHelper } from "../utils/auth";
 import { authService } from "../services/authApi";
+import { alertService } from "../services/alertService";
+
 
 const Sidebar: React.FC<SidebarProps> = ({ isOpen, toggleSidebar }) => {
   const userName = getUserName();
@@ -46,6 +50,13 @@ const Sidebar: React.FC<SidebarProps> = ({ isOpen, toggleSidebar }) => {
 
   const handleLogout = async () => {
     if (loggingOut) return;
+
+    const confirm = await alertService.questionAsync(
+      "¿Estás seguro de que deseas cerrar sesión?",
+      "Cerrar Sesión"
+    );
+    if (!confirm) return;
+
     setLoggingOut(true);
     const token = localStorage.getItem("token");
     if (token) {
@@ -53,29 +64,33 @@ const Sidebar: React.FC<SidebarProps> = ({ isOpen, toggleSidebar }) => {
         await authService.logout(token);
       } catch (err) {
         console.error("Error cerrando sesión en el servidor:", err);
+        alertService.error(
+          "Hubo un problema al cerrar tu sesión en el servidor: " + 
+          (err instanceof Error ? err.message : err),
+          "Error de Sesión"
+        );
       }
     }
     // Pequeño delay para que se vea la animación
     await new Promise((r) => setTimeout(r, 600));
     logoutHelper();
-    window.location.href = "/login";
   };
 
   return (
     <aside
       className={clsx(
-        "fixed top-0 left-0 h-full z-40 w-72 flex flex-col transition-transform duration-300 bg-panel animate-sidebar-entrance",
+        "fixed top-0 left-0 h-full z-40 w-72 flex flex-col transition-transform duration-300 bg-panel",
         {
           "translate-x-0": isOpen,
           "-translate-x-full": !isOpen,
-          "md:translate-x-0": true,
+          "lg:translate-x-0": true,
         },
       )}
     >
       <div className="p-8 pb-4">
         <div className="mb-4">
           <img 
-            src="/MichisUAALogo.png" 
+            src={`${import.meta.env.BASE_URL}MichisUAALogo.png`} 
             alt="MichisUAA Logo" 
             className="w-16 h-16 object-contain"
           />

@@ -6,7 +6,7 @@ import type { User } from "../types/models";
 import { UsuarioModal } from "../components/UsuarioModal";
 import { LoadingScreen } from "../components/LoadingScreen";
 import { userService } from "../services/userApi";
-import { DeleteConfirmModal } from "../components/DeleteConfirmModal";
+import { alertService } from "../services/alertService";
 
 
 type RolUser = User["rol"];
@@ -28,7 +28,7 @@ const rolBadge: Record<RolUser, React.CSSProperties> = {
 const columns: ColumnDef<User>[] = [
   {
     header: "Usuario",
-    searchKey: "nombre",
+    searchKey: ["nombre", "email"],
     render: (user) => (
       <div className="flex items-center gap-3">
         <div
@@ -79,8 +79,6 @@ const UsuariosPage = () => {
   const [loading, setLoading] = useState(true);
   const [modalOpen, setModalOpen] = useState(false);
   const [userToEdit, setUserToEdit] = useState<User | null>(null);
-  const [deleteModalOpen, setDeleteModalOpen] = useState(false);
-  const [userToDelete, setUserToDelete] = useState<User | null>(null);
   const [badgeTarget, setBadgeTarget] = useState<HTMLElement | null>(null);
   const [actionsTarget, setActionsTarget] = useState<HTMLElement | null>(null);
   const [activeFilters, setActiveFilters] = useState<Record<string, string>>({});
@@ -107,6 +105,10 @@ const UsuariosPage = () => {
       setUsers(data);
     } catch (error) {
       console.error("Error fetching users:", error);
+      alertService.error(
+        "No pudimos cargar la lista de usuarios. Por favor, verifica tu conexión e intenta de nuevo más tarde.",
+        "Error de Carga"
+      );
     } finally {
       setLoading(false);
     }
@@ -117,21 +119,24 @@ const UsuariosPage = () => {
     fetchUsers();
   }, []);
 
-  const confirmDelete = (user: User) => {
-    setUserToDelete(user);
-    setDeleteModalOpen(true);
-  };
+  const confirmDelete = async (user: User) => {
+    const confirm = await alertService.questionAsync(
+      `¿Estás seguro que deseas eliminar al usuario "${user.nombre}"? Esta acción no se puede deshacer.`,
+      "Eliminar Usuario"
+    );
 
-  const handleDeleteUser = async () => {
-    if (!userToDelete) return;
+    if (!confirm) return;
+
     try {
-      await userService.deleteUser(userToDelete.id);
-      setUsers((prev) => prev.filter((u) => u.id !== userToDelete.id));
+      await userService.deleteUser(user.id);
+      setUsers((prev) => prev.filter((u) => u.id !== user.id));
+      alertService.success("El usuario ha sido eliminado correctamente.", "Usuario Eliminado");
     } catch (error) {
       console.error("Error eliminando usuario:", error);
-    } finally {
-      setDeleteModalOpen(false);
-      setUserToDelete(null);
+      alertService.error(
+        "No pudimos eliminar al usuario. Por favor, intenta de nuevo más tarde.",
+        "Error al Eliminar"
+      );
     }
   };
 
@@ -204,6 +209,78 @@ const UsuariosPage = () => {
               options: ["Administrador", "Simpatizante"],
             },
           ]}
+          mobileRender={(user) => (
+            <div className="bg-gris-oscuro rounded-[14px] border border-sidebar-separador p-4 shadow-sm flex flex-col">
+              {/* Header: Avatar, Nombre, Email */}
+              <div className="flex items-start justify-between">
+                <div className="flex items-center gap-3">
+                  <div
+                    className="w-10 h-10 rounded-full flex items-center justify-center font-bold text-sm text-white shrink-0"
+                    style={{ background: user.colorAvatar }}
+                  >
+                    {user.iniciales}
+                  </div>
+                  <div className="flex flex-col">
+                    <span className="text-[15px] font-bold text-main">{user.nombre}</span>
+                    <span className="text-[12px] text-secondary mt-0.5">{user.email}</span>
+                  </div>
+                </div>
+              </div>
+
+              {/* Body: Información con Iconos */}
+              <div className="flex flex-col gap-3 mt-4 pt-4 border-t border-sidebar-separador text-[13px] text-secondary">
+                <div className="flex items-center justify-between gap-4">
+                  <span className="flex items-center gap-2">
+                    <Icons.UserCircle className="w-4 h-4 shrink-0" />
+                    <span className="font-medium">Rol</span>
+                  </span>
+                  <span
+                    className="text-[11px] font-bold px-2.5 py-0.5 rounded-full whitespace-nowrap"
+                    style={rolBadge[user.rol]}
+                  >
+                    {user.rol}
+                  </span>
+                </div>
+
+                <div className="flex items-start justify-between gap-4">
+                  <span className="flex items-center gap-2 shrink-0">
+                    <Icons.Building className="w-4 h-4" />
+                    <span className="font-medium">Colonias</span>
+                  </span>
+                  <span className="text-main font-medium text-right leading-tight">
+                    {user.coloniasAsignadas.length === 0 ? "Sin asignar" : user.coloniasAsignadas.join(" — ")}
+                  </span>
+                </div>
+
+                <div className="flex items-center justify-between gap-4">
+                  <span className="flex items-center gap-2">
+                    <Icons.Clock className="w-4 h-4 shrink-0" />
+                    <span className="font-medium">Creado</span>
+                  </span>
+                  <span className="text-main font-medium">{user.creadoEn}</span>
+                </div>
+              </div>
+
+              {/* Footer: Acciones */}
+              <div className="flex flex-col sm:flex-row items-center gap-2 mt-4 pt-1">
+                <button
+                  onClick={() => {
+                    setUserToEdit(user);
+                    setModalOpen(true);
+                  }}
+                  className="w-full px-4 py-2 rounded-lg border border-sidebar-separador text-main text-sm font-bold hover:bg-hover transition-colors flex items-center justify-center gap-2"
+                >
+                  <Icons.Edit className="w-4 h-4" /> Editar
+                </button>
+                <button
+                  onClick={() => confirmDelete(user)}
+                  className="w-full px-4 py-2 rounded-lg border border-badge-rojo/30 text-badge-rojo text-sm font-bold bg-badge-rojo/5 hover:bg-badge-rojo/10 transition-colors flex items-center justify-center gap-2"
+                >
+                  <Icons.Trash2 className="w-4 h-4" /> Eliminar
+                </button>
+              </div>
+            </div>
+          )}
         />
       )}
 
@@ -215,19 +292,6 @@ const UsuariosPage = () => {
         }}
         onSuccess={fetchUsers}
         userToEdit={userToEdit}
-      />
-      <DeleteConfirmModal
-        isOpen={deleteModalOpen}
-        onClose={() => {
-          setDeleteModalOpen(false);
-          setUserToDelete(null);
-        }}
-        onConfirm={handleDeleteUser}
-        title={
-          userToDelete
-            ? `¿Eliminar usuario "${userToDelete.nombre}"?`
-            : "¿Eliminar usuario?"
-        }
       />
     </div>
   );

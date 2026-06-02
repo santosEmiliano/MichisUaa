@@ -33,7 +33,6 @@ async function createSighting(data) {
         verificadoPor: data.verificadoPor ? Number(data.verificadoPor) : null,
         
         foto_url: data.foto_url || null,
-        foto_id: data.foto_id || null,
         descripcion: data.descripcion || null,
 
       }
@@ -100,7 +99,6 @@ async function modifySighting(id, data) {
   try {
     const updateData = {};
     if (data.foto_url !== undefined) updateData.foto_url = data.foto_url;
-    if (data.foto_id !== undefined) updateData.foto_id = data.foto_id;
     if (data.descripcion !== undefined) updateData.descripcion = data.descripcion;
     if (data.longitud !== undefined) updateData.longitud = data.longitud;
     if (data.latitud !== undefined) updateData.latitud = data.latitud;

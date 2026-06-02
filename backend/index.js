@@ -1,8 +1,9 @@
 require('dotenv').config();
 const express = require('express');
+const path = require('path');
 const cors = require('cors'); 
 const app = express();
-const port = 3000;
+const port = process.env.PORT || 3000;
 
 // IMPORT DE RUTAS
 const userRoutes = require('./routes/user.routes');
@@ -13,19 +14,26 @@ const stadisticsRoutes = require('./routes/stadistics.routes');
 
 // Middlewares globales
 app.use(cors()); //De momento asi sin na
-app.use(express.json()); 
+app.use(express.json());
+app.set('trust proxy', 1);
+
+// Archivos estáticos - imágenes subidas localmente
+app.use("/api/images", express.static(path.join(__dirname, "images"))); 
 
 // RUTA DE CHECK
+app.get('/api', (req, res) => {
+  res.send('¡Servidor Express funcionando correctamente en /api!');
+});
 app.get('/', (req, res) => {
-  res.send('¡Servidor Express funcionando correctamente!');
+  res.send('¡Servidor Express funcionando en la raíz!');
 });
 
 // USE DE RUTAS DE API
-app.use('/user', userRoutes);
-app.use('/animal', animalRoutes);
-app.use('/colonies', coloniesRoutes);
-app.use('/avistamientos', sightingRoutes);
-app.use('/stadistics', stadisticsRoutes);
+app.use('/api/user', userRoutes);
+app.use('/api/animal', animalRoutes);
+app.use('/api/colonies', coloniesRoutes);
+app.use('/api/avistamientos', sightingRoutes);
+app.use('/api/stadistics', stadisticsRoutes);
 
 // RUTA DE CHECK 2
 app.get('/api/status', (req, res) => {
@@ -35,7 +43,11 @@ app.get('/api/status', (req, res) => {
   });
 });
 
+// Importar configuración de Swagger
+const { swaggerDocs } = require('./swagger');
+
 // Iniciar el servidor
 app.listen(port, () => {
   console.log(`Servidor escuchando en http://localhost:${port}`);
+  swaggerDocs(app, port);
 });

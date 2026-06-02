@@ -4,9 +4,9 @@ import { MetricCard } from "../components/MetricCard";
 import { AvistamientoModal } from "../components/AvistamientoModal";
 import { DataTable, type ColumnDef } from "../components/DataTable";
 import type { Avistamiento } from "../types/models";
-import { avistamientosApi } from "../services/avistamientosApi";
 import { LoadingScreen } from "../components/LoadingScreen";
-
+import Icons from "../components/Icons";
+import { alertService } from "../services/alertService";
 const getInitials = (name: string) => {
   if (name === "No Identificado") return "?";
   return name.substring(0, 2).charAt(0).toUpperCase() + name.substring(1, 2).toLowerCase();
@@ -25,7 +25,7 @@ const getAvatarColorClass = (id: number) => {
   }
 };
 
-const API_URL = import.meta.env.VITE_API_URL || "http://localhost:3000";
+const API_URL = import.meta.env.VITE_API_URL || "/michisuaa/api";
 
 const Dashboard = () => {
   const [selectedAvistamiento, setSelectedAvistamiento] = useState<Avistamiento | null>(null);
@@ -104,6 +104,10 @@ const Dashboard = () => {
       }
     } catch (error) {
       console.error(error);
+      alertService.error(
+        "No pudimos cargar los datos del dashboard. Verifica tu conexión e intenta de nuevo.",
+        "Error de Carga"
+      );
     } finally {
       // Delay suave para la pantalla de carga
       setTimeout(() => setLoading(false), 600);
@@ -205,7 +209,7 @@ const Dashboard = () => {
   return (
     <div className="space-y-6 pt-2 pb-10 animate-in fade-in slide-in-from-bottom-4 duration-700">
       {/* Grid of MetricCards */}
-      <div className="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-4 gap-6">
+      <div className="grid grid-cols-2 xl:grid-cols-4 gap-3 sm:gap-6">
         <MetricCard
           title="Total Gatos"
           value={totalGatos}
@@ -241,12 +245,12 @@ const Dashboard = () => {
         />
       </div>
 
-      <div className="flex items-center justify-between mt-10">
-        <div className="flex items-center gap-4">
-          <h2 className="text-3xl font-extrabold text-main">
+      <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4 mt-8 sm:mt-10">
+        <div className="flex flex-wrap items-center gap-3">
+          <h2 className="text-xl sm:text-3xl font-extrabold text-main">
             Avistamientos pendientes
           </h2>
-          <span className="bg-gris-oscuro text-secondary text-xs font-bold px-4 py-1.5 rounded-full border border-panel">
+          <span className="bg-gris-oscuro text-secondary text-[11px] sm:text-xs font-bold px-3 py-1 sm:px-4 sm:py-1.5 rounded-full border border-panel">
             {pendientes.length} por revisar
           </span>
         </div>
@@ -264,6 +268,58 @@ const Dashboard = () => {
           columns={columns}
           rowsPerPage={4}
           hideControls
+          mobileRender={(row) => (
+            <div className="bg-gris-oscuro rounded-[14px] border border-sidebar-separador p-4 shadow-sm flex flex-col">
+              {/* Encabezado: Avatar, Nombre, Colonia y Badge */}
+              <div className="flex items-start justify-between">
+                <div className="flex items-center gap-3">
+                  <div
+                    className={`w-10 h-10 rounded-full flex items-center justify-center font-bold text-sm ${getAvatarColorClass(row.id)}`}
+                  >
+                    {getInitials(row.animalName)}
+                  </div>
+                  <div className="flex flex-col">
+                    <span className="text-[15px] font-bold text-main">{row.animalName}</span>
+                    <span className="text-[12px] text-secondary flex items-center gap-1.5 mt-0.5">
+                      <Icons.Building className="w-3.5 h-3.5" /> {row.animalColonia}
+                    </span>
+                  </div>
+                </div>
+                {/* Badge transparente con borde */}
+                <span
+                  className="px-3 py-1 rounded-full border border-[#b27928] text-[#b27928] text-[11px] font-bold bg-transparent"
+                >
+                  {row.estado}
+                </span>
+              </div>
+
+              {/* Medio: Ubicación y Tiempo */}
+              <div className="flex flex-wrap items-center gap-5 mt-4 pt-1 mb-1 text-[12.5px] text-secondary">
+                <span className="flex items-center gap-1.5">
+                  <Icons.MapPin className="w-3.5 h-3.5" />
+                  {row.coordenadas}
+                </span>
+                <span className="flex items-center gap-1.5">
+                  <Icons.Clock className="w-3.5 h-3.5" />
+                  Hace {row.hace}
+                </span>
+              </div>
+
+              {/* Footer: Reportó y Botón */}
+              <div className="border-t border-sidebar-separador mt-4 pt-4 flex items-center justify-between">
+                <span className="flex items-center gap-2 text-[13px] text-secondary">
+                  <Icons.UserCircle className="w-4 h-4" />
+                  {row.reportadoPor}
+                </span>
+                <button
+                  onClick={() => handleOpenModal(row)}
+                  className="px-4 py-1.5 rounded-lg border border-sidebar-separador text-main text-sm font-bold hover:bg-hover transition-colors"
+                >
+                  Ver registro
+                </button>
+              </div>
+            </div>
+          )}
         />
       </div>
 

@@ -1,7 +1,7 @@
 import type { User } from "../types/models";
 import type { BackendUser, DeleteUserResponse, UpdateUserResponse } from "../types/userTypes";
 
-const BASE_URL = "http://localhost:3000/user";
+const BASE_URL = "/michisuaa/api/user";
 
 // Obtiene el token del localStorage
 function getAuthHeaders(): HeadersInit {
