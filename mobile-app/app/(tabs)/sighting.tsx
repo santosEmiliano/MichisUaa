@@ -1,11 +1,12 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useCallback } from 'react';
 import { StyleSheet, View, Text, TouchableOpacity, ScrollView, SafeAreaView, Image, Alert, Modal, TextInput, ActivityIndicator } from 'react-native';
 import { Ionicons } from '@expo/vector-icons';
 import Colors from '@/constants/Colors';
-import { router } from 'expo-router';
+import { router, useFocusEffect } from 'expo-router';
 import * as ImagePicker from 'expo-image-picker';
 import * as Location from 'expo-location';
-import MapView, { Marker, Region } from 'react-native-maps';
+import { Region } from 'react-native-maps';
+import { MapView, Marker } from '@/components/Map';
 import { getPublicAnimals, PublicAnimal } from '@/services/animalsApi';
 import { createSighting } from '@/services/sightingsApi';
 
@@ -40,35 +41,37 @@ export default function SightingScreen() {
     }
   };
 
-  useEffect(() => {
-    (async () => {
-      let { status } = await Location.requestForegroundPermissionsAsync();
-      if (status !== 'granted') {
-        setLocationName('Permiso de GPS denegado');
-        return;
-      }
+  useFocusEffect(
+    useCallback(() => {
+      (async () => {
+        let { status } = await Location.requestForegroundPermissionsAsync();
+        if (status !== 'granted') {
+          setLocationName('Permiso de GPS denegado');
+          return;
+        }
 
-      try {
-        let location = await Location.getCurrentPositionAsync({});
-        setLocationCoords({
-          latitude: location.coords.latitude,
-          longitude: location.coords.longitude,
-        });
-        await performReverseGeocode(location.coords.latitude, location.coords.longitude);
-      } catch (error) {
-        setLocationName('Error al obtener ubicación');
-      }
+        try {
+          let location = await Location.getCurrentPositionAsync({});
+          setLocationCoords({
+            latitude: location.coords.latitude,
+            longitude: location.coords.longitude,
+          });
+          await performReverseGeocode(location.coords.latitude, location.coords.longitude);
+        } catch (error) {
+          setLocationName('Error al obtener ubicación');
+        }
 
-      try {
-        const data = await getPublicAnimals();
-        setAnimals(data);
-      } catch (error) {
-        console.error("Error fetching animals", error);
-      } finally {
-        setLoadingAnimals(false);
-      }
-    })();
-  }, []);
+        try {
+          const data = await getPublicAnimals();
+          setAnimals(data);
+        } catch (error) {
+          console.error("Error fetching animals", error);
+        } finally {
+          setLoadingAnimals(false);
+        }
+      })();
+    }, [])
+  );
 
   const pickImage = async () => {
     let result = await ImagePicker.launchImageLibraryAsync({
@@ -218,6 +221,7 @@ export default function SightingScreen() {
             <View style={styles.mapPlaceholder}>
               {locationCoords ? (
                 <MapView
+                  provider="google"
                   style={styles.miniMap}
                   region={{
                     latitude: locationCoords.latitude,
@@ -332,6 +336,7 @@ export default function SightingScreen() {
             <View style={styles.modalMapContainer}>
               {tempRegion && (
                 <MapView
+                  provider="google"
                   style={styles.fullMap}
                   initialRegion={tempRegion}
                   onRegionChange={() => setIsDragging(true)}
