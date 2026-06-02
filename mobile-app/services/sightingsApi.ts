@@ -36,7 +36,11 @@ export const createSighting = async (data: SightingData) => {
   }
 
   // Parse filename and type
-  const filename = data.fotoUri.split('/').pop() || 'photo.jpg';
+  let filename = data.fotoUri.split('/').pop() || 'photo.jpg';
+  if (Platform.OS === 'web' || filename.includes(';') || !filename.includes('.')) {
+    filename = 'photo.jpg';
+  }
+  
   const match = /\.(\w+)$/.exec(filename);
   const type = match ? `image/${match[1]}` : `image/jpeg`;
 
