@@ -40,11 +40,26 @@ export const createSighting = async (data: SightingData) => {
   const match = /\.(\w+)$/.exec(filename);
   const type = match ? `image/${match[1]}` : `image/jpeg`;
 
-  formData.append('foto', {
-    uri: Platform.OS === 'android' ? data.fotoUri : data.fotoUri.replace('file://', ''),
-    name: filename,
-    type,
-  } as any);
+  if (Platform.OS === 'web') {
+    try {
+      const response = await fetch(data.fotoUri);
+      const blob = await response.blob();
+      formData.append('foto', blob, filename);
+    } catch (error) {
+      console.error('Error procesando imagen para web:', error);
+      formData.append('foto', {
+        uri: data.fotoUri,
+        name: filename,
+        type,
+      } as any);
+    }
+  } else {
+    formData.append('foto', {
+      uri: Platform.OS === 'android' ? data.fotoUri : data.fotoUri.replace('file://', ''),
+      name: filename,
+      type,
+    } as any);
+  }
 
   try {
     const response = await fetch(`${BASE_URL}/avistamientos`, {
