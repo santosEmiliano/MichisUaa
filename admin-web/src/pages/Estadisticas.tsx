@@ -248,7 +248,7 @@ const Estadisticas = () => {
         <div className="bg-gris-oscuro rounded-3xl p-6 shadow-lg border border-sidebar-separador">
           <div className="flex justify-between items-end mb-6">
             <h2 className="text-xl font-bold text-main">
-              Avistamientos por colonia
+              Avistamientos confirmados por colonia
             </h2>
           </div>
 
