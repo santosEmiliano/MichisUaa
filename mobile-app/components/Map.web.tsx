@@ -32,7 +32,7 @@ export const MapView = React.forwardRef((props: any, ref: any) => {
     }
   }));
 
-  const handleAnimationStart = () => {
+  const handleInteractionStart = () => {
     if (props.onRegionChange) {
       props.onRegionChange({
         latitude: internalCenter[0],
@@ -70,12 +70,17 @@ export const MapView = React.forwardRef((props: any, ref: any) => {
   const allowInteraction = props.scrollEnabled !== false && props.zoomEnabled !== false;
 
   return (
-    <View style={[{flex: 1, backgroundColor: '#f0f0f0'}, props.style]}>
+    <View 
+      style={[{flex: 1, backgroundColor: '#f0f0f0'}, props.style]}
+      // @ts-ignore - React Native Web DOM event
+      onMouseDownCapture={() => allowInteraction && handleInteractionStart()}
+      // @ts-ignore
+      onTouchStartCapture={() => allowInteraction && handleInteractionStart()}
+    >
       <Map 
         center={internalCenter} 
         zoom={internalZoom} 
         onBoundsChanged={handleBoundsChanged}
-        onAnimationStart={handleAnimationStart}
         mouseEvents={allowInteraction}
         touchEvents={allowInteraction}
       >

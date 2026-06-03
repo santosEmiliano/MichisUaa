@@ -1,5 +1,5 @@
 import React, { useState, useEffect, useCallback } from 'react';
-import { StyleSheet, View, Text, TouchableOpacity, ScrollView, SafeAreaView, Image, Alert, Modal, TextInput, ActivityIndicator } from 'react-native';
+import { StyleSheet, View, Text, TouchableOpacity, ScrollView, SafeAreaView, Image, Alert, Modal, TextInput, ActivityIndicator, Platform } from 'react-native';
 import { Ionicons } from '@expo/vector-icons';
 import Colors from '@/constants/Colors';
 import { router, useFocusEffect } from 'expo-router';
@@ -26,6 +26,10 @@ export default function SightingScreen() {
 
   const performReverseGeocode = async (latitude: number, longitude: number) => {
     try {
+      if (Platform.OS === 'web') {
+        setLocationName(`${latitude.toFixed(5)}, ${longitude.toFixed(5)}`);
+        return;
+      }
       let geocode = await Location.reverseGeocodeAsync({ latitude, longitude });
       if (geocode && geocode.length > 0) {
         const place = geocode[0];
