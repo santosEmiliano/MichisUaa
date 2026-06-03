@@ -94,6 +94,7 @@ export interface BackendAnimal {
   Colonia_idColonia: number;
   esterilizado: boolean;
   estado: string;
+  sexo: "Macho" | "Hembra";
   colonia: {
     nombre: string;
   };
