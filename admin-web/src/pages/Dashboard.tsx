@@ -3,7 +3,7 @@ import { Link } from "react-router-dom";
 import { MetricCard } from "../components/MetricCard";
 import { AvistamientoModal } from "../components/AvistamientoModal";
 import { DataTable, type ColumnDef } from "../components/DataTable";
-import type { Avistamiento } from "../types/models";
+import type { Avistamiento, BackendAvistamiento } from "../types/models";
 import { LoadingScreen } from "../components/LoadingScreen";
 import Icons from "../components/Icons";
 import { alertService } from "../services/alertService";
@@ -56,7 +56,7 @@ const Dashboard = () => {
 
       if (resAvistamientos.ok) {
         const dataAvistamientos = await resAvistamientos.json();
-        const mapped: Avistamiento[] = dataAvistamientos.map((item: any) => {
+        const mapped: Avistamiento[] = dataAvistamientos.map((item: BackendAvistamiento) => {
           let estado: Avistamiento["estado"] = "Pendiente";
           if (item.verificado) estado = "Verificado";
           else if (item.verificadoPor !== null) estado = "Rechazado";
@@ -81,7 +81,7 @@ const Dashboard = () => {
             fechaHora: fecha.toLocaleString('es-MX', { dateStyle: 'medium', timeStyle: 'short' })
           };
         });
-        setPendientes(mapped.filter((a: any) => a.estado === "Pendiente" || a.estado === "Sin identificar"));
+        setPendientes(mapped.filter((a) => a.estado === "Pendiente" || a.estado === "Sin identificar"));
       }
       
       if (resTotalCats.ok) {
