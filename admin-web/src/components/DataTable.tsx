@@ -17,6 +17,8 @@ interface DataTableProps<T> {
   rowsPerPage?: number;
   onEdit?: (row: T) => void; 
   onDelete?: (row: T) => void; 
+  canEdit?: (row: T) => boolean;
+  canDelete?: (row: T) => boolean;
   onFilterChange?: (label: string, value: string) => void;
   middleContent?: React.ReactNode;
   hideControls?: boolean;
@@ -31,6 +33,8 @@ export const DataTable = <T extends object>({
   rowsPerPage = 8,
   onEdit, 
   onDelete, 
+  canEdit,
+  canDelete,
   onFilterChange,
   middleContent,
   hideControls = false,
@@ -156,7 +160,7 @@ export const DataTable = <T extends object>({
                     {(onEdit || onDelete) && (
                       <td className="px-6 py-4">
                         <div className="flex items-center justify-center gap-2">
-                          {onEdit && (
+                          {onEdit && (!canEdit || canEdit(row)) && (
                             <ActionButton
                               color="var(--accent-orange)"
                               title="Editar"
@@ -165,7 +169,7 @@ export const DataTable = <T extends object>({
                               <Icons.Edit className="w-5 h-5" />
                             </ActionButton>
                           )}
-                          {onDelete && (
+                          {onDelete && (!canDelete || canDelete(row)) && (
                             <ActionButton
                               color="var(--metrica-rojo)"
                               title="Eliminar"
@@ -249,7 +253,7 @@ export const DataTable = <T extends object>({
                 {/* Footer de Acciones (Editar/Eliminar) */}
                 {(onEdit || onDelete) && (
                   <div className="bg-gris px-5 py-3 border-t border-sidebar-separador flex items-center justify-end gap-3">
-                    {onEdit && (
+                    {onEdit && (!canEdit || canEdit(row)) && (
                       <ActionButton
                         color="var(--accent-orange)"
                         title="Editar"
@@ -258,7 +262,7 @@ export const DataTable = <T extends object>({
                         <Icons.Edit className="w-5 h-5" />
                       </ActionButton>
                     )}
-                    {onDelete && (
+                    {onDelete && (!canDelete || canDelete(row)) && (
                       <ActionButton
                         color="var(--metrica-rojo)"
                         title="Eliminar"
