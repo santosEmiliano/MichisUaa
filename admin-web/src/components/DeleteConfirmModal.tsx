@@ -17,6 +17,8 @@ export const DeleteConfirmModal: React.FC<DeleteConfirmModalProps> = ({
 }) => {
   const [isClosing, setIsClosing] = useState(false);
   const onCloseRef = useRef(onClose);
+  // Rastrear si el mousedown empezó en el overlay (fuera del modal)
+  const mouseDownOnOverlay = useRef(false);
 
   useEffect(() => {
     onCloseRef.current = onClose;
@@ -54,14 +56,26 @@ export const DeleteConfirmModal: React.FC<DeleteConfirmModalProps> = ({
       className={`fixed inset-0 z-50 flex items-center justify-center p-4 bg-overlay backdrop-blur-sm ${
         isClosing ? "animate-overlay-out" : "animate-overlay-in"
       }`}
-      onClick={handleClose}
+      onMouseDown={(e) => {
+        if (e.target === e.currentTarget) {
+          mouseDownOnOverlay.current = true;
+        }
+      }}
+      onClick={(e) => {
+        if (e.target === e.currentTarget && mouseDownOnOverlay.current) {
+          handleClose();
+        }
+        mouseDownOnOverlay.current = false;
+      }}
       role="presentation"
     >
       <div
         className={`bg-card w-full max-w-md rounded-[2rem] border border-sidebar-separador shadow-2xl flex flex-col p-10 gap-8 ${
           isClosing ? "animate-modal-out" : "animate-modal-in"
         }`}
-        onClick={(e) => e.stopPropagation()}
+        onMouseDown={() => {
+          mouseDownOnOverlay.current = false;
+        }}
         role="dialog"
         aria-modal="true"
       >
@@ -86,3 +100,4 @@ export const DeleteConfirmModal: React.FC<DeleteConfirmModalProps> = ({
     </div>
   );
 };
+

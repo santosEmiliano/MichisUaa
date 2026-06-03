@@ -84,6 +84,8 @@ const NotificationPanel = ({
 }) => {
   const [shouldRender, setShouldRender] = useState(isOpen);
   const [isExiting, setIsExiting] = useState(false);
+  // Rastrear si el mousedown empezó en el overlay (fuera del panel)
+  const mouseDownOnOverlay = useRef(false);
 
   useEffect(() => {
     if (isOpen) {
@@ -111,13 +113,24 @@ const NotificationPanel = ({
         className={`fixed inset-0 bg-black/40 z-40 transition-opacity duration-300 ${
           isExiting ? "opacity-0" : "opacity-100"
         }`}
-        onClick={handleClose}
+        onMouseDown={() => {
+          mouseDownOnOverlay.current = true;
+        }}
+        onClick={() => {
+          if (mouseDownOnOverlay.current) {
+            handleClose();
+          }
+          mouseDownOnOverlay.current = false;
+        }}
       />
 
       <div
         className={`fixed top-0 right-0 h-full w-full max-w-sm z-50 flex flex-col border-l border-white/[0.08] shadow-2xl bg-card ${
           isExiting ? "animate-panel-out" : "animate-panel-in"
         }`}
+        onMouseDown={() => {
+          mouseDownOnOverlay.current = false;
+        }}
       >
         <div className="flex items-center justify-between px-6 py-5 border-b border-sidebar-separador">
           <h2 className="text-xl font-bold text-main">Notificaciones</h2>

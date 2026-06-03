@@ -1,4 +1,4 @@
-import { useState, useEffect } from "react";
+import { useState, useEffect, useRef } from "react";
 import type { Avistamiento, BackendAnimal } from "../types/models";
 import Icons from "./Icons";
 import { avistamientosApi } from "../services/avistamientosApi";
@@ -13,6 +13,8 @@ interface Props {
 }
 
 export const AvistamientoModal = ({ isOpen, onClose, onSuccess, avistamiento }: Props) => {
+  // Rastrear si el mousedown empezó en el overlay (fuera del panel)
+  const mouseDownOnOverlay = useRef(false);
   const [selectedGato, setSelectedGato] = useState("");
   const [cats, setCats] = useState<BackendAnimal[]>([]);
   const [isProcessing, setIsProcessing] = useState(false);
@@ -192,13 +194,24 @@ export const AvistamientoModal = ({ isOpen, onClose, onSuccess, avistamiento }: 
         className={`absolute inset-0 bg-overlay backdrop-blur-sm ${
           isExiting ? "animate-overlay-out" : "animate-overlay-in"
         }`} 
-        onClick={onClose}
+        onMouseDown={() => {
+          mouseDownOnOverlay.current = true;
+        }}
+        onClick={() => {
+          if (mouseDownOnOverlay.current) {
+            onClose();
+          }
+          mouseDownOnOverlay.current = false;
+        }}
       />
       
       <div 
         className={`bg-gris-oscuro w-full max-w-md h-full sm:border-l border-sidebar-separador shadow-2xl flex flex-col relative ${
           isExiting ? "animate-panel-out" : "animate-panel-in"
         }`}
+        onMouseDown={() => {
+          mouseDownOnOverlay.current = false;
+        }}
       >
         <div className="px-6 sm:px-8 py-5 sm:py-6 border-b border-sidebar-separador flex items-center justify-between gap-4 shrink-0">
           <h2 className="text-xl sm:text-2xl font-bold text-main tracking-wide">

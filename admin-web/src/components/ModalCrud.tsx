@@ -20,6 +20,8 @@ export const ModalCrud = ({
 }: ModalProps) => {
   const [isClosing, setIsClosing] = useState(false);
   const onCloseRef = useRef(onClose);
+  // Rastrear si el mousedown empezó en el overlay (fuera del modal)
+  const mouseDownOnOverlay = useRef(false);
 
   useEffect(() => {
     onCloseRef.current = onClose;
@@ -65,14 +67,29 @@ export const ModalCrud = ({
       className={`fixed inset-0 z-50 flex items-end sm:items-center justify-center p-0 sm:p-4 bg-overlay backdrop-blur-sm ${
         isClosing ? "animate-overlay-out" : "animate-overlay-in"
       }`}
-      onClick={handleClose}
+      onMouseDown={(e) => {
+        // Solo marcar si el click empezó directamente en el overlay
+        if (e.target === e.currentTarget) {
+          mouseDownOnOverlay.current = true;
+        }
+      }}
+      onClick={(e) => {
+        // Solo cerrar si el mousedown Y el click (mouseup) fueron en el overlay
+        if (e.target === e.currentTarget && mouseDownOnOverlay.current) {
+          handleClose();
+        }
+        mouseDownOnOverlay.current = false;
+      }}
       role="presentation"
     >
       <div
         className={`bg-gris-oscuro w-full max-w-[560px] rounded-t-[2rem] sm:rounded-b-[2rem] border-t border-sidebar-separador sm:border-x sm:border-b shadow-[0_-10px_40px_rgba(0,0,0,0.5)] sm:shadow-2xl flex flex-col max-h-[90vh] ${
           isClosing ? "animate-modal-out" : "animate-modal-in"
         }`}
-        onClick={(e) => e.stopPropagation()}
+        onMouseDown={() => {
+          // Si el click empezó dentro del modal, resetear la bandera
+          mouseDownOnOverlay.current = false;
+        }}
         role="dialog"
         aria-modal="true"
         aria-labelledby="modal-crud-title"
