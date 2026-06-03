@@ -83,8 +83,11 @@ const Estadisticas = () => {
 
   useEffect(() => {
     if (barData.length === 0) return;
-    // Inicializa las barras en 0%
-    setAnimatedBarWidths(barData.map(() => "0%"));
+
+    const rafId = requestAnimationFrame(() => {
+      // Inicializa las barras en 0%
+      setAnimatedBarWidths(barData.map(() => "0%"));
+    });
 
     const timers = barData.map((item, index) => {
       return setTimeout(
@@ -99,11 +102,13 @@ const Estadisticas = () => {
       );
     });
 
-    return () => timers.forEach(clearTimeout);
+    return () => {
+      cancelAnimationFrame(rafId);
+      timers.forEach(clearTimeout);
+    };
   }, [barData]);
 
   const fetchData = async () => {
-    setIsLoading(true);
     try {
       const token = localStorage.getItem("token") || "";
       const headers = { Authorization: `Bearer ${token}` };
@@ -195,7 +200,10 @@ const Estadisticas = () => {
   };
 
   useEffect(() => {
-    fetchData();
+    const timer = setTimeout(() => {
+      fetchData();
+    }, 0);
+    return () => clearTimeout(timer);
   }, []);
 
   if (isLoading) {
