@@ -32,17 +32,7 @@ export const MapView = React.forwardRef((props: any, ref: any) => {
     }
   }));
 
-  const handleInteractionStart = () => {
-    if (props.onRegionChange) {
-      props.onRegionChange({
-        latitude: internalCenter[0],
-        longitude: internalCenter[1],
-        latitudeDelta: 0.015,
-        longitudeDelta: 0.015,
-      });
-    }
-  };
-
+  // Notificamos a la app móvil cuando el usuario mueve el mapa web manualmente
   const handleBoundsChanged = ({ center, zoom }: any) => {
     setInternalCenter(center);
     setInternalZoom(zoom);
@@ -53,11 +43,6 @@ export const MapView = React.forwardRef((props: any, ref: any) => {
       latitudeDelta: 0.015,
       longitudeDelta: 0.015,
     };
-
-    // Keep firing onRegionChange just in case bounds change programmatically
-    if (props.onRegionChange) {
-      props.onRegionChange(regionObj);
-    }
 
     if (props.onRegionChangeComplete) {
       clearTimeout(timeoutRef.current);
@@ -70,13 +55,7 @@ export const MapView = React.forwardRef((props: any, ref: any) => {
   const allowInteraction = props.scrollEnabled !== false && props.zoomEnabled !== false;
 
   return (
-    <View 
-      style={[{flex: 1, backgroundColor: '#f0f0f0'}, props.style]}
-      // @ts-ignore - React Native Web DOM event
-      onMouseDownCapture={() => allowInteraction && handleInteractionStart()}
-      // @ts-ignore
-      onTouchStartCapture={() => allowInteraction && handleInteractionStart()}
-    >
+    <View style={[{flex: 1, backgroundColor: '#f0f0f0'}, props.style]}>
       <Map 
         center={internalCenter} 
         zoom={internalZoom} 

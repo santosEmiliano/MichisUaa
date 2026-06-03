@@ -22,7 +22,6 @@ export default function SightingScreen() {
 
   const [isMapModalVisible, setMapModalVisible] = useState(false);
   const [tempRegion, setTempRegion] = useState<Region | null>(null);
-  const [isDragging, setIsDragging] = useState(false);
 
   const performReverseGeocode = async (latitude: number, longitude: number) => {
     try {
@@ -343,10 +342,8 @@ export default function SightingScreen() {
                   provider="google"
                   style={styles.fullMap}
                   initialRegion={tempRegion}
-                  onRegionChange={() => setIsDragging(true)}
                   onRegionChangeComplete={(region) => {
                     handleRegionChangeComplete(region);
-                    setIsDragging(false);
                   }}
                   showsUserLocation={true}
                 />
@@ -354,7 +351,7 @@ export default function SightingScreen() {
               <View style={styles.centerPinContainer} pointerEvents="none">
                 <View style={[
                   styles.customMarkerLarge,
-                  isDragging && { transform: [{ scale: 0.7 }], opacity: 0.7 }
+                  { opacity: 0.8, transform: [{ scale: 0.8 }] }
                 ]}>
                   <Ionicons name="location-sharp" size={28} color={Colors.dark.textWhite} />
                 </View>
