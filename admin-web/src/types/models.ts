@@ -94,9 +94,30 @@ export interface BackendAnimal {
   Colonia_idColonia: number;
   esterilizado: boolean;
   estado: string;
+  sexo: "Macho" | "Hembra";
   colonia: {
     nombre: string;
   };
+}
+
+/* Notificaciones */
+export type TipoNotificacion =
+  | "avistamiento_nuevo"
+  | "avistamiento_verificado"
+  | "avistamiento_rechazado"
+  | "gato_desaparecido"
+  | "gato_nuevo"
+  | "sistema"
+
+export interface NotificacionBackend {
+  id: number
+  usuarioId: number
+  tipo: TipoNotificacion
+  titulo: string
+  descripcion: string
+  leida: boolean
+  url: string | null
+  createdAt: string
 }
 
 /*Alertas */

@@ -11,6 +11,7 @@ const animalRoutes = require('./routes/animals.routes');
 const coloniesRoutes = require('./routes/colonies.routes');
 const sightingRoutes = require('./routes/sightings.routes');
 const stadisticsRoutes = require('./routes/stadistics.routes');
+const notificationsRoutes = require('./routes/notifications.routes');
 
 // Middlewares globales
 app.use(cors()); //De momento asi sin na
@@ -34,6 +35,7 @@ app.use('/api/animal', animalRoutes);
 app.use('/api/colonies', coloniesRoutes);
 app.use('/api/avistamientos', sightingRoutes);
 app.use('/api/stadistics', stadisticsRoutes);
+app.use('/api/notifications', notificationsRoutes);
 
 // RUTA DE CHECK 2
 app.get('/api/status', (req, res) => {

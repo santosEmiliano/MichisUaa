@@ -1,6 +1,6 @@
-const prisma = require('./prisma');
-const bcrypt = require('bcryptjs');
-const { verificarMedallas } = require('../services/medallas.service');
+const prisma = require("./prisma");
+const bcrypt = require("bcryptjs");
+const { verificarMedallas } = require("../services/medallas.service");
 
 async function main() {
   // Limpiar base de datos para evitar duplicados en cada seed
@@ -10,18 +10,61 @@ async function main() {
   await prisma.colonia.deleteMany();
   await prisma.usuario.deleteMany();
 
-  console.log('Creando colonias...');
+  console.log("Creando colonias...");
   const coloniesData = [
-    { nombre: 'Edificio 108', zona: 'Zona central', descripcion: 'Colonia principal frente a la biblioteca central.' },
-    { nombre: 'Zona alberca', zona: 'Area deportiva', descripcion: 'Jardines alrededor de la alberca universitaria.' },
-    { nombre: 'UMD', zona: 'Unidad médico-didáctica', descripcion: 'Estacionamiento y entrada principal de UMD.' },
-    { nombre: 'Edificio 114', zona: 'Zona noreste', descripcion: 'Pasillo B y área de jardines cercanos a la cafetería norte.' },
-    { nombre: 'Edificio 117', zona: 'Zona sur', descripcion: 'Jardines exteriores del edificio 117, límite contra plaza universidad.' },
-    { nombre: 'Edificio 59', zona: 'Zona este', descripcion: 'Zona de los laboratorios de electrónica y sistemas.' },
-    { nombre: 'Jardín Botánico', zona: 'Zona oeste', descripcion: 'Área protegida con abundante vegetación y refugios naturales.' },
-    { nombre: 'Velaria', zona: 'Explanada', descripcion: 'Zona techada donde se realizan eventos masivos.' },
-    { nombre: 'Edificio 20', zona: 'Zona antigua', descripcion: 'Cerca de los primeros edificios de la universidad.' },
-    { nombre: 'Biblioteca Norte', zona: 'Zona norte', descripcion: 'Jardines traseros de la biblioteca norte.' },
+    {
+      nombre: "Edificio 108",
+      zona: "Zona central",
+      descripcion: "Colonia principal frente a la biblioteca central.",
+    },
+    {
+      nombre: "Zona alberca",
+      zona: "Area deportiva",
+      descripcion: "Jardines alrededor de la alberca universitaria.",
+    },
+    {
+      nombre: "UMD",
+      zona: "Unidad médico-didáctica",
+      descripcion: "Estacionamiento y entrada principal de UMD.",
+    },
+    {
+      nombre: "Edificio 114",
+      zona: "Zona noreste",
+      descripcion:
+        "Pasillo B y área de jardines cercanos a la cafetería norte.",
+    },
+    {
+      nombre: "Edificio 117",
+      zona: "Zona sur",
+      descripcion:
+        "Jardines exteriores del edificio 117, límite contra plaza universidad.",
+    },
+    {
+      nombre: "Edificio 59",
+      zona: "Zona este",
+      descripcion: "Zona de los laboratorios de electrónica y sistemas.",
+    },
+    {
+      nombre: "Jardín Botánico",
+      zona: "Zona oeste",
+      descripcion:
+        "Área protegida con abundante vegetación y refugios naturales.",
+    },
+    {
+      nombre: "Velaria",
+      zona: "Explanada",
+      descripcion: "Zona techada donde se realizan eventos masivos.",
+    },
+    {
+      nombre: "Edificio 20",
+      zona: "Zona antigua",
+      descripcion: "Cerca de los primeros edificios de la universidad.",
+    },
+    {
+      nombre: "Biblioteca Norte",
+      zona: "Zona norte",
+      descripcion: "Jardines traseros de la biblioteca norte.",
+    },
   ];
 
   const createdColonies = [];
@@ -30,21 +73,33 @@ async function main() {
     createdColonies.push(col);
   }
 
-  console.log('Creando usuarios...');
+  console.log("Creando usuarios...");
   const saltos = await bcrypt.genSalt(10);
-  const hashPassword = await bcrypt.hash('1234', saltos);
+  const hashPassword = await bcrypt.hash("1234", saltos);
 
   const usersData = [
-    { nombre: 'Admin MichisUAA', email: 'admin@michis.uaa.mx', admin: true },
-    { nombre: 'Emiliano Santos', email: 'esantos@michis.uaa.mx', admin: true },
-    { nombre: 'Mario Rodriguez', email: 'mrodriguez@michis.uaa.mx', admin: true },
-    { nombre: 'Héctor Dueñas', email: 'hduenas@michis.uaa.mx', admin: false },
-    { nombre: 'Juan Hernandez', email: 'jhernandez@michis.uaa.mx', admin: false },
-    { nombre: 'Javier Narvaez', email: 'jnarvaez@michis.uaa.mx', admin: false },
-    { nombre: 'Brenda Osorio', email: 'bosorio@michis.uaa.mx', admin: false },
-    { nombre: 'Ana Gomez', email: 'agomez@michis.uaa.mx', admin: false },
-    { nombre: 'Carlos Lopez', email: 'clopez@michis.uaa.mx', admin: false },
-    { nombre: 'Laura Martinez', email: 'lmartinez@michis.uaa.mx', admin: false },
+    { nombre: "Admin MichisUAA", email: "admin@michis.uaa.mx", admin: true },
+    { nombre: "Emiliano Santos", email: "esantos@michis.uaa.mx", admin: true },
+    {
+      nombre: "Mario Rodriguez",
+      email: "mrodriguez@michis.uaa.mx",
+      admin: true,
+    },
+    { nombre: "Héctor Dueñas", email: "hduenas@michis.uaa.mx", admin: false },
+    {
+      nombre: "Juan Hernandez",
+      email: "jhernandez@michis.uaa.mx",
+      admin: false,
+    },
+    { nombre: "Javier Narvaez", email: "jnarvaez@michis.uaa.mx", admin: false },
+    { nombre: "Brenda Osorio", email: "bosorio@michis.uaa.mx", admin: false },
+    { nombre: "Ana Gomez", email: "agomez@michis.uaa.mx", admin: false },
+    { nombre: "Carlos Lopez", email: "clopez@michis.uaa.mx", admin: false },
+    {
+      nombre: "Laura Martinez",
+      email: "lmartinez@michis.uaa.mx",
+      admin: false,
+    },
   ];
 
   const createdUsers = [];
@@ -61,24 +116,57 @@ async function main() {
         password: hashPassword,
         admin: u.admin,
         usuariosCols: {
-          create: [
-            { Colonia_idColonia: col1 },
-            { Colonia_idColonia: col2 }
-          ]
-        }
-      }
+          create: [{ Colonia_idColonia: col1 }, { Colonia_idColonia: col2 }],
+        },
+      },
     });
     createdUsers.push(user);
   }
 
-  const adminUsers = createdUsers.filter(u => u.admin);
+  const adminUsers = createdUsers.filter((u) => u.admin);
 
-  console.log('Creando animales variados...');
+  console.log("Creando animales variados...");
   const catNames = [
-    'Manchas', 'Michi', 'Wakanda', 'Canela', 'Gatillo', 'Jose Pablo', 'Chispas', 'Kneecap', 'Luna', 'Tigre',
-    'Garfield', 'Felix', 'Salem', 'Pelusa', 'Tom', 'Silvestre', 'Bola de Nieve', 'Botas', 'Simba', 'Nala',
-    'Oreo', 'Pantera', 'Romeo', 'Benito', 'Cucho', 'Demostenes', 'Espanto', 'Don Gato', 'Copito', 'Misifu',
-    'Mish', 'Zeus', 'Apolo', 'Loki', 'Thor', 'Mia', 'Kira', 'Coco', 'Milo', 'Leo'
+    "Manchas",
+    "Michi",
+    "Wakanda",
+    "Canela",
+    "Gatillo",
+    "Jose Pablo",
+    "Chispas",
+    "Kneecap",
+    "Luna",
+    "Tigre",
+    "Garfield",
+    "Felix",
+    "Salem",
+    "Pelusa",
+    "Tom",
+    "Silvestre",
+    "Bola de Nieve",
+    "Botas",
+    "Simba",
+    "Nala",
+    "Oreo",
+    "Pantera",
+    "Romeo",
+    "Benito",
+    "Cucho",
+    "Demostenes",
+    "Espanto",
+    "Don Gato",
+    "Copito",
+    "Misifu",
+    "Mish",
+    "Zeus",
+    "Apolo",
+    "Loki",
+    "Thor",
+    "Mia",
+    "Kira",
+    "Coco",
+    "Milo",
+    "Leo",
   ];
 
   const createdAnimals = [];
@@ -87,19 +175,26 @@ async function main() {
   for (let i = 0; i < createdColonies.length; i++) {
     const colonyId = createdColonies[i].idColonia;
     // Crear entre 3 y 5 gatos por colonia
-    const numCats = Math.floor(Math.random() * 3) + 3; 
+    const numCats = Math.floor(Math.random() * 3) + 3;
 
     for (let j = 0; j < numCats; j++) {
       if (nameIndex >= catNames.length) nameIndex = 0;
-      
+
       const isEsterilizado = Math.random() > 0.3; // 70% esterilizados
-      const estadoOptions = ['Registrado', 'Registrado', 'Registrado', 'Desaparecido', 'NoRegistrado'];
-      const estado = estadoOptions[Math.floor(Math.random() * estadoOptions.length)];
-      
+      const estadoOptions = [
+        "Registrado",
+        "Registrado",
+        "Registrado",
+        "Desaparecido",
+        "NoRegistrado",
+      ];
+      const estado =
+        estadoOptions[Math.floor(Math.random() * estadoOptions.length)];
+
       const birthYear = 2018 + Math.floor(Math.random() * 6);
       const birthMonth = Math.floor(Math.random() * 12);
       const fechaNac = new Date(birthYear, birthMonth, 15);
-      
+
       let fechaEsterilizacion = null;
       if (isEsterilizado) {
         const estYear = birthYear + 1 + Math.floor(Math.random() * 2);
@@ -114,34 +209,43 @@ async function main() {
         createdAt.setDate(createdAt.getDate() - Math.floor(Math.random() * 6));
       } else {
         // Hace 10 a 300 días
-        createdAt.setDate(createdAt.getDate() - (10 + Math.floor(Math.random() * 290)));
+        createdAt.setDate(
+          createdAt.getDate() - (10 + Math.floor(Math.random() * 290)),
+        );
       }
 
       let fechaDesaparicion = null;
-      if (estado === 'Desaparecido') {
-         // Generar una fecha aleatoria de desaparición desde la fecha de creación hasta hoy
-         fechaDesaparicion = new Date(createdAt.getTime() + Math.random() * (new Date().getTime() - createdAt.getTime()));
+      if (estado === "Desaparecido") {
+        // Generar una fecha aleatoria de desaparición desde la fecha de creación hasta hoy
+        fechaDesaparicion = new Date(
+          createdAt.getTime() +
+            Math.random() * (new Date().getTime() - createdAt.getTime()),
+        );
       }
+
+      const sexoOptions = ["Macho", "Hembra"];
+      const sexo = sexoOptions[Math.floor(Math.random() * sexoOptions.length)];
 
       const animal = await prisma.animal.create({
         data: {
           nombre: catNames[nameIndex],
           Colonia_idColonia: colonyId,
+          sexo: sexo,
           esterilizado: isEsterilizado,
           estado: estado,
           fecha_nac: fechaNac,
           fecha_esterilizacion: fechaEsterilizacion,
           fecha_desaparicion: fechaDesaparicion,
           descripcion: `Un gato muy peculiar llamado ${catNames[nameIndex]}, visto frecuentemente en la colonia.`,
-          createdAt: createdAt
-        }
+          createdAt: createdAt,
+        },
       });
       createdAnimals.push(animal);
       nameIndex++;
     }
   }
 
-  console.log('Creando avistamientos...');
+  console.log("Creando avistamientos...");
   const baseLat = 21.913;
   const baseLng = -102.314;
 
@@ -164,7 +268,8 @@ async function main() {
       createdAt.setHours(14, 15, 0);
     } else {
       // 17 en adelante: aleatorio
-      randomUser = createdUsers[Math.floor(Math.random() * createdUsers.length)];
+      randomUser =
+        createdUsers[Math.floor(Math.random() * createdUsers.length)];
       daysAgo = Math.floor(Math.random() * 60);
       createdAt.setDate(createdAt.getDate() - daysAgo);
       createdAt.setHours(14, 15, 0);
@@ -174,12 +279,18 @@ async function main() {
     if (i >= 10 && i < 17) {
       // Para Emiliano Santos (i de 10 a 16), aseguramos gatos de colonias distintas para el logro de 5 colonias diferentes
       const targetColonyId = createdColonies[i - 10].idColonia;
-      randomAnimal = createdAnimals.find(a => a.Colonia_idColonia === targetColonyId) || createdAnimals[0];
+      randomAnimal =
+        createdAnimals.find((a) => a.Colonia_idColonia === targetColonyId) ||
+        createdAnimals[0];
     } else {
-      randomAnimal = Math.random() > 0.2 ? createdAnimals[Math.floor(Math.random() * createdAnimals.length)] : null; // 20% sin identificar
+      randomAnimal =
+        Math.random() > 0.2
+          ? createdAnimals[Math.floor(Math.random() * createdAnimals.length)]
+          : null; // 20% sin identificar
     }
 
-    const randomAdmin = adminUsers[Math.floor(Math.random() * adminUsers.length)];
+    const randomAdmin =
+      adminUsers[Math.floor(Math.random() * adminUsers.length)];
 
     const latOffset = (Math.random() - 0.5) * 0.005;
     const lngOffset = (Math.random() - 0.5) * 0.005;
@@ -188,28 +299,29 @@ async function main() {
     const statusRand = Math.random();
     let verificado = false;
     let verificadoPor = null;
-    let desc = '';
+    let desc = "";
 
     if (randomAnimal === null) {
-       desc = 'Vi un gato que no parece estar en la base de datos, cerca de los árboles.';
-       // Algunos sin identificar quedan pendientes, otros son rechazados
-       if (statusRand > 0.7) {
-          verificadoPor = randomAdmin.idUsuario; // Rechazado
-       }
+      desc =
+        "Vi un gato que no parece estar en la base de datos, cerca de los árboles.";
+      // Algunos sin identificar quedan pendientes, otros son rechazados
+      if (statusRand > 0.7) {
+        verificadoPor = randomAdmin.idUsuario; // Rechazado
+      }
     } else {
-       if (statusRand < 0.4) {
-         // Verificado
-         verificado = true;
-         verificadoPor = randomAdmin.idUsuario;
-         desc = `Confirmado, vi a ${randomAnimal.nombre} descansando.`;
-       } else if (statusRand < 0.6) {
-         // Rechazado
-         verificadoPor = randomAdmin.idUsuario;
-         desc = `Creo que vi a ${randomAnimal.nombre}, aunque estaba un poco lejos.`;
-       } else {
-         // Pendiente
-         desc = `Reporte de ${randomAnimal.nombre} en la zona.`;
-       }
+      if (statusRand < 0.4) {
+        // Verificado
+        verificado = true;
+        verificadoPor = randomAdmin.idUsuario;
+        desc = `Confirmado, vi a ${randomAnimal.nombre} descansando.`;
+      } else if (statusRand < 0.6) {
+        // Rechazado
+        verificadoPor = randomAdmin.idUsuario;
+        desc = `Creo que vi a ${randomAnimal.nombre}, aunque estaba un poco lejos.`;
+      } else {
+        // Pendiente
+        desc = `Reporte de ${randomAnimal.nombre} en la zona.`;
+      }
     }
 
     await prisma.avistamiento.create({
@@ -221,17 +333,17 @@ async function main() {
         latitud: baseLat + latOffset,
         verificado: verificado,
         verificadoPor: verificadoPor,
-        createdAt: createdAt
-      }
+        createdAt: createdAt,
+      },
     });
   }
 
-  console.log('Verificando medallas para los usuarios generados...');
+  console.log("Verificando medallas para los usuarios generados...");
   for (const u of createdUsers) {
     await verificarMedallas(u.idUsuario);
   }
 
-  console.log('Seed completado exitosamente con datos variados y completos.');
+  console.log("Seed completado exitosamente con datos variados y completos.");
 }
 
 main()

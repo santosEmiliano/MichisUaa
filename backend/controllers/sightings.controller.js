@@ -2,6 +2,12 @@ const sightingFunctions = require("../model/sightings.model");
 const fileUtils = require("../utils/fileUpload");
 const API_URL = process.env.API_URL || "";
 const { verificarMedallas } = require("../services/medallas.service");
+const {
+    notificarNuevoAvistamiento,
+    notificarAvistamientoVerificado,
+    notificarAvistamientoRechazado,
+    notificarAvistamientoRevocado
+} = require("../services/notificaciones.service");
 
 // GET ALL
 const readSightings = async (req, res) => {
@@ -64,6 +70,10 @@ const registerSighting = async (req, res) => {
       })
       .catch(err => console.error("Error en la verificación de medallas en segundo plano:", err));
 
+    // Notificar a administradores sobre el nuevo avistamiento — no bloquea la respuesta
+    notificarNuevoAvistamiento(newSighting)
+      .catch(err => console.error("Error al notificar nuevo avistamiento:", err));
+
     return res.status(201).json({
       mensaje: "Avistamiento registrado correctamente",
       avistamiento: newSighting,
@@ -101,6 +111,25 @@ const modifySighting = async (req, res) => {
       req.body,
     );
 
+    // Notificar al reportante según la acción del admin — en segundo plano
+    const changedVerification = 'verificado' in req.body
+    const changedVerificador = 'verificadoPor' in req.body
+
+    if (changedVerification || changedVerificador) {
+      if (req.body.verificado === true) {
+        notificarAvistamientoVerificado(oldSighting, req.userId)
+          .catch(err => console.error("Error al notificar verificación:", err))
+      } else if (
+        req.body.verificadoPor !== undefined &&
+        (req.body.verificadoPor === null || req.body.verificadoPor === 0 || req.body.verificadoPor === '')
+      ) {
+        notificarAvistamientoRevocado(oldSighting)
+          .catch(err => console.error("Error al notificar revocación:", err))
+      } else if (req.body.verificado === false && req.userId) {
+        notificarAvistamientoRechazado(oldSighting, req.userId)
+          .catch(err => console.error("Error al notificar rechazo:", err))
+      }
+    }
     // Revisar medallas tras verificar o rechazar un avistamiento por un admin
     if (oldSighting.usuarioId) {
       verificarMedallas(oldSighting.usuarioId)

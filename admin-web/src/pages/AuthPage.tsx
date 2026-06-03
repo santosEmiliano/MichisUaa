@@ -196,7 +196,7 @@ const AuthPage = ({ onLogin }: AuthPageProps) => {
             <button
               type="submit"
               disabled={loading}
-              className="w-full bg-gradient-to-r from-orange to-[#d8aa71] text-white font-bold rounded-xl px-4 py-4 mt-2 hover:scale-[1.02] active:scale-[0.98] transition-all duration-200 shadow-lg shadow-orange/20 disabled:opacity-50 disabled:cursor-not-allowed flex items-center justify-center gap-2"
+              className="w-full bg-gradient-to-r from-[#e8893c] to-[#d8aa71] text-white font-bold rounded-xl px-4 py-4 mt-2 hover:scale-[1.02] active:scale-[0.98] transition-all duration-200 shadow-lg shadow-orange-500/20 disabled:opacity-50 disabled:cursor-not-allowed flex items-center justify-center gap-2"
             >
               {loading ? (
                 <>
