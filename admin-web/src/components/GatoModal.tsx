@@ -225,13 +225,13 @@ export const GatoModal = ({ isOpen, onClose, onSuccess, catToEdit }: CatModalPro
             <select
               value={coloniaId}
               onChange={(e) => setColoniaId(e.target.value)}
-              className="appearance-none w-full bg-gris border border-sidebar-separador text-secondary rounded-xl px-4 py-3 pr-10 focus:outline-none focus:border-acento-naranja focus:bg-[rgba(232,137,60,0.05)] hover:border-acento-naranja transition-all duration-200 cursor-pointer [&>option]:bg-gris [&>option]:text-main"
+              className="appearance-none w-full bg-gris border border-sidebar-separador text-secondary rounded-xl px-4 py-3 pr-10 focus:outline-none focus:border-acento-naranja focus:bg-[rgba(232,137,60,0.05)] hover:border-acento-naranja transition-all duration-200 cursor-pointer"
             >
-              <option value="" disabled>
+              <option value="" disabled className="bg-gris text-main">
                 Seleccionar colonia
               </option>
               {colonias.map((col) => (
-                <option key={col.idColonia} value={col.idColonia}>
+                <option key={col.idColonia} value={col.idColonia} className="bg-gris text-main">
                   {col.nombre}
                 </option>
               ))}
@@ -274,11 +274,11 @@ export const GatoModal = ({ isOpen, onClose, onSuccess, catToEdit }: CatModalPro
             <select
               value={estado}
               onChange={(e) => setEstado(e.target.value)}
-              className="appearance-none w-full bg-gris border border-sidebar-separador text-secondary rounded-xl px-4 py-3 pr-10 focus:outline-none focus:border-acento-naranja focus:bg-[rgba(232,137,60,0.05)] hover:border-acento-naranja transition-all duration-200 cursor-pointer [&>option]:bg-gris [&>option]:text-main"
+              className="appearance-none w-full bg-gris border border-sidebar-separador text-secondary rounded-xl px-4 py-3 pr-10 focus:outline-none focus:border-acento-naranja focus:bg-[rgba(232,137,60,0.05)] hover:border-acento-naranja transition-all duration-200 cursor-pointer"
             >
-              <option value="Registrado">Registrado</option>
-              <option value="Desaparecido">Desaparecido</option>
-              <option value="NoRegistrado">No Registrado</option>
+              <option value="Registrado" className="bg-gris text-main">Registrado</option>
+              <option value="Desaparecido" className="bg-gris text-main">Desaparecido</option>
+              <option value="NoRegistrado" className="bg-gris text-main">No Registrado</option>
             </select>
             <Icons.ChevronDown className="absolute right-3 top-3.5 w-5 h-5 text-secondary pointer-events-none" />
           </div>
