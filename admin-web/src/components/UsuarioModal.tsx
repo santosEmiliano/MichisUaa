@@ -110,7 +110,7 @@ export const UsuarioModal = ({ isOpen, onClose, userToEdit, onSuccess }: UserMod
   const isEditing = !!userToEdit;
   const [showPassword, setShowPassword] = useState(false);
   const [showConfirm, setShowConfirm] = useState(false);
-  const [role, setRole] = useState<"Administrador" | "Simpatizante">("Administrador");
+  const [role, setRole] = useState<"Administrador" | "Simpatizante">("Simpatizante");
 
   // Colonias seleccionadas (ids). Se enviarán al back cuando el endpoint esté listo.
   // TODO: conectar al createUser cuando el back soporte asignación de colonias en la creación.
@@ -201,7 +201,7 @@ export const UsuarioModal = ({ isOpen, onClose, userToEdit, onSuccess }: UserMod
     setEmail("");
     setPassword("");
     setConfirmPassword("");
-    setRole("Administrador");
+    setRole("Simpatizante");
     setSelectedColonias([]);
     setFieldErrors({});
     setSubmitted(false);
@@ -233,7 +233,7 @@ export const UsuarioModal = ({ isOpen, onClose, userToEdit, onSuccess }: UserMod
           admin: role === "Administrador",
         };
         if (password) body.password = password;
-        if (selectedColonias.length > 0) body.coloniasIds = selectedColonias;
+        if (selectedColonias.length > 0 && role === "Administrador") body.coloniasIds = selectedColonias;
         await userService.updateUser(userToEdit.id, body);
         alertService.success("El usuario ha sido actualizado correctamente.", "Usuario Actualizado");
       } else {
@@ -421,50 +421,52 @@ export const UsuarioModal = ({ isOpen, onClose, userToEdit, onSuccess }: UserMod
           </div>
         </div>
 
-        <div className="pt-1">
-          <div className="flex items-center justify-between mb-3">
-            <label className="block text-main font-bold">Colonias Asignadas</label>
-            {selectedColonias.length > 0 && (
-              <span className="text-xs font-semibold px-2.5 py-1 rounded-full bg-[rgba(232,137,60,0.18)] text-[#e8893c] border border-[#e8893c]">
-                {selectedColonias.length} seleccionada{selectedColonias.length > 1 ? "s" : ""}
-              </span>
-            )}
-          </div>
-          <div className="grid grid-cols-1 gap-2">
-            {colonias.map((colonia) => {
-              const checked = selectedColonias.includes(colonia.id);
-              return (
-                <div
-                  key={colonia.id}
-                  onClick={() => toggleColonia(colonia.id)}
-                  className={`flex items-center gap-3 cursor-pointer rounded-xl border px-4 py-3 transition-all duration-200 ${
-                    checked
-                      ? "border-[#e8893c] bg-[rgba(232,137,60,0.10)]"
-                      : "border-sidebar-separador bg-gris hover:border-[#e8893c] hover:bg-[rgba(232,137,60,0.05)]"
-                  }`}
-                >
+        {role === "Administrador" && (
+          <div className="pt-1">
+            <div className="flex items-center justify-between mb-3">
+              <label className="block text-main font-bold">Colonias Asignadas</label>
+              {selectedColonias.length > 0 && (
+                <span className="text-xs font-semibold px-2.5 py-1 rounded-full bg-[rgba(232,137,60,0.18)] text-[#e8893c] border border-[#e8893c]">
+                  {selectedColonias.length} seleccionada{selectedColonias.length > 1 ? "s" : ""}
+                </span>
+              )}
+            </div>
+            <div className="grid grid-cols-1 gap-2">
+              {colonias.map((colonia) => {
+                const checked = selectedColonias.includes(colonia.id);
+                return (
                   <div
-                    className={`w-4 h-4 rounded flex-shrink-0 flex items-center justify-center border transition-all duration-200 ${
+                    key={colonia.id}
+                    onClick={() => toggleColonia(colonia.id)}
+                    className={`flex items-center gap-3 cursor-pointer rounded-xl border px-4 py-3 transition-all duration-200 ${
                       checked
-                        ? "bg-[#e8893c] border-[#e8893c]"
-                        : "border-sidebar-separador bg-transparent"
+                        ? "border-[#e8893c] bg-[rgba(232,137,60,0.10)]"
+                        : "border-sidebar-separador bg-gris hover:border-[#e8893c] hover:bg-[rgba(232,137,60,0.05)]"
                     }`}
                   >
-                    {checked && (
-                      <svg className="w-2.5 h-2.5 text-white" viewBox="0 0 10 8" fill="none">
-                        <path d="M1 4l2.5 2.5L9 1" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" />
-                      </svg>
-                    )}
+                    <div
+                      className={`w-4 h-4 rounded flex-shrink-0 flex items-center justify-center border transition-all duration-200 ${
+                        checked
+                          ? "bg-[#e8893c] border-[#e8893c]"
+                          : "border-sidebar-separador bg-transparent"
+                      }`}
+                    >
+                      {checked && (
+                        <svg className="w-2.5 h-2.5 text-white" viewBox="0 0 10 8" fill="none">
+                          <path d="M1 4l2.5 2.5L9 1" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" />
+                        </svg>
+                      )}
+                    </div>
+                    <div className="min-w-0">
+                      <p className="text-sm font-semibold text-main truncate">{colonia.name}</p>
+                      <p className="text-xs text-secondary">{colonia.location}</p>
+                    </div>
                   </div>
-                  <div className="min-w-0">
-                    <p className="text-sm font-semibold text-main truncate">{colonia.name}</p>
-                    <p className="text-xs text-secondary">{colonia.location}</p>
-                  </div>
-                </div>
-              );
-            })}
+                );
+              })}
+            </div>
           </div>
-        </div>
+        )}
       </form>
     </ModalCrud>
   );
