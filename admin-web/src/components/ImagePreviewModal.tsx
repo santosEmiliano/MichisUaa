@@ -1,4 +1,5 @@
 import { useEffect, useRef, useState } from "react";
+import { createPortal } from "react-dom";
 import Icons from "./Icons";
 
 const CLOSE_DURATION = 200;
@@ -47,10 +48,11 @@ export const ImagePreviewModal = ({ isOpen, imageUrl, onClose }: ImagePreviewMod
 
   if (!isOpen && !isClosing) return null;
 
-  return (
+  return createPortal(
     <div
-      className={`fixed inset-0 z-[100] flex items-center justify-center p-4 sm:p-8 md:p-12 bg-black/80 backdrop-blur-sm cursor-pointer ${isClosing ? "animate-overlay-out" : "animate-overlay-in"
+      className={`fixed inset-0 flex items-center justify-center p-4 sm:p-8 md:p-12 bg-black/80 backdrop-blur-sm cursor-pointer ${isClosing ? "animate-overlay-out" : "animate-overlay-in"
         }`}
+      style={{ zIndex: 9999 }}
       onClick={handleClose}
       role="presentation"
     >
@@ -80,6 +82,7 @@ export const ImagePreviewModal = ({ isOpen, imageUrl, onClose }: ImagePreviewMod
           />
         )}
       </div>
-    </div>
+    </div>,
+    document.body
   );
 };

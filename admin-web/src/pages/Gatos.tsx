@@ -50,7 +50,11 @@ const getColumns = (onImageClick: (url: string) => void): ColumnDef<Cat>[] => [
           src={cat.fotoUrl}
           alt={cat.nombre}
           className="w-12 h-12 rounded-xl object-cover cursor-pointer hover:opacity-80 transition-opacity"
-          onClick={() => onImageClick(cat.fotoUrl!)}
+          onClick={(e) => {
+            e.stopPropagation();
+            e.preventDefault();
+            onImageClick(cat.fotoUrl!);
+          }}
         />
       ) : (
         <div className="w-12 h-12 rounded-xl bg-gris flex items-center justify-center">
@@ -357,7 +361,11 @@ const GatosPage = () => {
                       src={cat.fotoUrl} 
                       alt={cat.nombre} 
                       className="w-full h-full object-cover cursor-pointer hover:scale-110 transition-transform duration-300"
-                      onClick={() => setPreviewImage(cat.fotoUrl!)}
+                      onClick={(e) => {
+                        e.stopPropagation();
+                        e.preventDefault();
+                        setPreviewImage(cat.fotoUrl!);
+                      }}
                     />
                   ) : (
                     <Icons.Cats className="w-6 h-6 text-secondary" />
