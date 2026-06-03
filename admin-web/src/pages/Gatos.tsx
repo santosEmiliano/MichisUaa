@@ -6,6 +6,7 @@ import type { Cat } from "../types/models";
 import { GatoModal } from "../components/GatoModal";
 import { LoadingScreen } from "../components/LoadingScreen";
 import { alertService } from "../services/alertService";
+import { ImagePreviewModal } from "../components/ImagePreviewModal";
 
 type EstadoCat = Cat["estado"];
 
@@ -40,7 +41,7 @@ const esterilizadoBadge = {
   },
 };
 
-const columns: ColumnDef<Cat>[] = [
+const getColumns = (onImageClick: (url: string) => void): ColumnDef<Cat>[] => [
   {
     header: "Foto",
     render: (cat) =>
@@ -48,7 +49,8 @@ const columns: ColumnDef<Cat>[] = [
         <img
           src={cat.fotoUrl}
           alt={cat.nombre}
-          className="w-12 h-12 rounded-xl object-cover"
+          className="w-12 h-12 rounded-xl object-cover cursor-pointer hover:opacity-80 transition-opacity"
+          onClick={() => onImageClick(cat.fotoUrl!)}
         />
       ) : (
         <div className="w-12 h-12 rounded-xl bg-gris flex items-center justify-center">
@@ -147,6 +149,7 @@ const GatosPage = () => {
   const [loading, setLoading] = useState(true);
   const [modalOpen, setModalOpen] = useState(false);
   const [catToEdit, setCatToEdit] = useState<Cat | null>(null);
+  const [previewImage, setPreviewImage] = useState<string | null>(null);
   
   const colonias = [...new Set(cats.map((c) => c.colonia))];
   const [rowsPerPage, setRowsPerPage] = useState(8);
@@ -328,7 +331,7 @@ const GatosPage = () => {
       ) : (
         <DataTable
           data={filteredCats}
-          columns={columns}
+          columns={getColumns(setPreviewImage)}
           searchPlaceholder="Buscar por nombre o colonia..."
           rowsPerPage={rowsPerPage}
           onFilterChange={handleFilterChange}
@@ -350,7 +353,12 @@ const GatosPage = () => {
               <div className="p-4 flex gap-4 border-b border-sidebar-separador/50 bg-gris/30 items-center">
                 <div className="w-14 h-14 rounded-2xl overflow-hidden bg-gris flex items-center justify-center shrink-0 border border-sidebar-separador">
                   {cat.fotoUrl ? (
-                    <img src={cat.fotoUrl} alt={cat.nombre} className="w-full h-full object-cover" />
+                    <img 
+                      src={cat.fotoUrl} 
+                      alt={cat.nombre} 
+                      className="w-full h-full object-cover cursor-pointer hover:scale-110 transition-transform duration-300"
+                      onClick={() => setPreviewImage(cat.fotoUrl!)}
+                    />
                   ) : (
                     <Icons.Cats className="w-6 h-6 text-secondary" />
                   )}
@@ -399,6 +407,12 @@ const GatosPage = () => {
         }} 
         onSuccess={fetchCats}
         catToEdit={catToEdit}
+      />
+
+      <ImagePreviewModal
+        isOpen={!!previewImage}
+        imageUrl={previewImage}
+        onClose={() => setPreviewImage(null)}
       />
     </div>
   );
