@@ -223,11 +223,15 @@ export const GatoModal = ({
           </label>
           <input
             type="text"
+            maxLength={80}
             value={nombre}
             onChange={(e) => setNombre(e.target.value)}
             placeholder="Ej. Manchas"
             className="w-full bg-gris border border-sidebar-separador rounded-xl px-4 py-3.5 text-main focus:outline-none focus:border-acento-naranja focus:bg-[rgba(232,137,60,0.05)] transition-all duration-200 placeholder-secondary hover:border-acento-naranja"
           />
+          <div className={`text-xs text-right mt-1 ${nombre.length >= 80 ? 'text-red-500 font-bold' : 'text-secondary'}`}>
+            {nombre.length} / 80
+          </div>
         </div>
 
         <div>
