@@ -1,4 +1,4 @@
-import React, { useEffect, useRef, useState } from "react";
+import { useEffect, useRef, useState } from "react";
 import Icons from "./Icons";
 
 const CLOSE_DURATION = 200;
