@@ -8,6 +8,7 @@ async function createAnimal(data) {
       data: {
         Colonia_idColonia: data.Colonia_idColonia,
         nombre: data.nombre,
+        sexo: data.sexo || "Hembra",
         esterilizado: data.esterilizado || false,
         foto_url: data.foto_url || null,
         estado: data.estado || "Registrado",
@@ -49,6 +50,7 @@ async function getAnimalsPublic() {
         foto_url: true,
         nombre: true,
         estado: true,
+        sexo: true,
         colonia: {
           select: {
             nombre: true,
@@ -73,6 +75,7 @@ async function getAnimalsPublic() {
         foto_url: animal.foto_url,
         nombre: animal.nombre,
         estado: animal.estado,
+        sexo: animal.sexo,
         colonia: animal.colonia.nombre,
         coordenadas: ultimoAvistamiento
           ? {
@@ -112,6 +115,7 @@ async function updateAnimal(id, data) {
     if (data.Colonia_idColonia !== undefined)
       updateData.Colonia_idColonia = data.Colonia_idColonia;
     if (data.nombre !== undefined) updateData.nombre = data.nombre;
+    if (data.sexo !== undefined) updateData.sexo = data.sexo;
     if (data.esterilizado !== undefined)
       updateData.esterilizado = data.esterilizado;
     if (data.foto_url !== undefined) updateData.foto_url = data.foto_url;
