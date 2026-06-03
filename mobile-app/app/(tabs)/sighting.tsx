@@ -5,7 +5,7 @@ import Colors from '@/constants/Colors';
 import { router, useFocusEffect } from 'expo-router';
 import * as ImagePicker from 'expo-image-picker';
 import * as Location from 'expo-location';
-import { Region } from 'react-native-maps';
+import type { Region } from 'react-native-maps';
 import { MapView, Marker } from '@/components/Map';
 import { getPublicAnimals, PublicAnimal } from '@/services/animalsApi';
 import { createSighting } from '@/services/sightingsApi';
