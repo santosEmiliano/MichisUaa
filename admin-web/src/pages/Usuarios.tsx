@@ -4,9 +4,10 @@ import Icons from "../components/Icons";
 import { DataTable, type ColumnDef } from "../components/DataTable";
 import type { User } from "../types/models";
 import { UsuarioModal } from "../components/UsuarioModal";
+import { PasswordConfirmModal } from "../components/PasswordConfirmModal";
 import { LoadingScreen } from "../components/LoadingScreen";
 import { userService } from "../services/userApi";
-import { DeleteConfirmModal } from "../components/DeleteConfirmModal";
+import { alertService } from "../services/alertService";
 
 
 type RolUser = User["rol"];
@@ -79,8 +80,13 @@ const UsuariosPage = () => {
   const [loading, setLoading] = useState(true);
   const [modalOpen, setModalOpen] = useState(false);
   const [userToEdit, setUserToEdit] = useState<User | null>(null);
-  const [deleteModalOpen, setDeleteModalOpen] = useState(false);
-  const [userToDelete, setUserToDelete] = useState<User | null>(null);
+  const [pendingAction, setPendingAction] = useState<{ type: "edit" | "delete"; user: User } | null>(null);
+
+  const currentUserId = Number(localStorage.getItem("userId") || "0");
+  const currentUserEmail = useMemo(() => {
+    return users.find((u) => u.id === currentUserId)?.email || "";
+  }, [users, currentUserId]);
+
   const [badgeTarget, setBadgeTarget] = useState<HTMLElement | null>(null);
   const [actionsTarget, setActionsTarget] = useState<HTMLElement | null>(null);
   const [activeFilters, setActiveFilters] = useState<Record<string, string>>({});
@@ -107,6 +113,10 @@ const UsuariosPage = () => {
       setUsers(data);
     } catch (error) {
       console.error("Error fetching users:", error);
+      alertService.error(
+        "No pudimos cargar la lista de usuarios. Por favor, verifica tu conexión e intenta de nuevo más tarde.",
+        "Error de Carga"
+      );
     } finally {
       setLoading(false);
     }
@@ -117,21 +127,17 @@ const UsuariosPage = () => {
     fetchUsers();
   }, []);
 
-  const confirmDelete = (user: User) => {
-    setUserToDelete(user);
-    setDeleteModalOpen(true);
-  };
-
-  const handleDeleteUser = async () => {
-    if (!userToDelete) return;
+  const executeDelete = async (user: User) => {
     try {
-      await userService.deleteUser(userToDelete.id);
-      setUsers((prev) => prev.filter((u) => u.id !== userToDelete.id));
+      await userService.deleteUser(user.id);
+      setUsers((prev) => prev.filter((u) => u.id !== user.id));
+      alertService.success("El usuario ha sido eliminado correctamente.", "Usuario Eliminado");
     } catch (error) {
       console.error("Error eliminando usuario:", error);
-    } finally {
-      setDeleteModalOpen(false);
-      setUserToDelete(null);
+      alertService.error(
+        "No pudimos eliminar al usuario. Por favor, intenta de nuevo más tarde.",
+        "Error al Eliminar"
+      );
     }
   };
 
@@ -192,11 +198,14 @@ const UsuariosPage = () => {
           columns={columns}
           searchPlaceholder="Buscar por nombre o email..."
           rowsPerPage={rowsPerPage}
+          canEdit={(user) => user.id === currentUserId || user.rol === "Simpatizante"}
+          canDelete={(user) => user.rol === "Simpatizante"}
           onEdit={(user) => {
-            setUserToEdit(user);
-            setModalOpen(true);
+            setPendingAction({ type: "edit", user });
           }}
-          onDelete={confirmDelete}
+          onDelete={(user) => {
+            setPendingAction({ type: "delete", user });
+          }}
           onFilterChange={handleFilterChange}
           filters={[
             {
@@ -258,21 +267,22 @@ const UsuariosPage = () => {
 
               {/* Footer: Acciones */}
               <div className="flex flex-col sm:flex-row items-center gap-2 mt-4 pt-1">
-                <button
-                  onClick={() => {
-                    setUserToEdit(user);
-                    setModalOpen(true);
-                  }}
-                  className="w-full px-4 py-2 rounded-lg border border-sidebar-separador text-main text-sm font-bold hover:bg-hover transition-colors flex items-center justify-center gap-2"
-                >
-                  <Icons.Edit className="w-4 h-4" /> Editar
-                </button>
-                <button
-                  onClick={() => confirmDelete(user)}
-                  className="w-full px-4 py-2 rounded-lg border border-badge-rojo/30 text-badge-rojo text-sm font-bold bg-badge-rojo/5 hover:bg-badge-rojo/10 transition-colors flex items-center justify-center gap-2"
-                >
-                  <Icons.Trash2 className="w-4 h-4" /> Eliminar
-                </button>
+                {(user.id === currentUserId || user.rol === "Simpatizante") && (
+                  <button
+                    onClick={() => setPendingAction({ type: "edit", user })}
+                    className="w-full px-4 py-2 rounded-lg border border-sidebar-separador text-main text-sm font-bold hover:bg-hover transition-colors flex items-center justify-center gap-2"
+                  >
+                    <Icons.Edit className="w-4 h-4" /> Editar
+                  </button>
+                )}
+                {user.rol === "Simpatizante" && (
+                  <button
+                    onClick={() => setPendingAction({ type: "delete", user })}
+                    className="w-full px-4 py-2 rounded-lg border border-badge-rojo/30 text-badge-rojo text-sm font-bold bg-badge-rojo/5 hover:bg-badge-rojo/10 transition-colors flex items-center justify-center gap-2"
+                  >
+                    <Icons.Trash2 className="w-4 h-4" /> Eliminar
+                  </button>
+                )}
               </div>
             </div>
           )}
@@ -288,18 +298,28 @@ const UsuariosPage = () => {
         onSuccess={fetchUsers}
         userToEdit={userToEdit}
       />
-      <DeleteConfirmModal
-        isOpen={deleteModalOpen}
-        onClose={() => {
-          setDeleteModalOpen(false);
-          setUserToDelete(null);
-        }}
-        onConfirm={handleDeleteUser}
-        title={
-          userToDelete
-            ? `¿Eliminar usuario "${userToDelete.nombre}"?`
-            : "¿Eliminar usuario?"
+      
+      <PasswordConfirmModal
+        isOpen={!!pendingAction}
+        onClose={() => setPendingAction(null)}
+        email={currentUserEmail}
+        title={pendingAction?.type === "edit" ? "Validación Requerida" : "Confirmar Eliminación"}
+        message={
+          pendingAction?.type === "edit"
+            ? pendingAction?.user.id === currentUserId
+              ? "Por tu seguridad, ingresa tu contraseña para editar tu perfil de administrador."
+              : `Ingresa tu contraseña para modificar el perfil del simpatizante "${pendingAction?.user?.nombre}".`
+            : `Estás a punto de eliminar al simpatizante "${pendingAction?.user?.nombre}". Ingresa tu contraseña de administrador para confirmar y continuar con esta acción destructiva.`
         }
+        onSuccess={() => {
+          if (pendingAction?.type === "edit") {
+            setUserToEdit(pendingAction.user);
+            setModalOpen(true);
+          } else if (pendingAction?.type === "delete") {
+            executeDelete(pendingAction.user);
+          }
+          setPendingAction(null);
+        }}
       />
     </div>
   );

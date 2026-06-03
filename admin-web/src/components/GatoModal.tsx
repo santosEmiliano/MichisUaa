@@ -2,6 +2,7 @@ import { useState, useEffect } from "react";
 import { ModalCrud } from "./ModalCrud";
 import Icons from "./Icons";
 import type { Cat } from "../types/models";
+import { alertService } from "../services/alertService";
 
 interface CatModalProps {
   isOpen: boolean;
@@ -36,6 +37,10 @@ export const GatoModal = ({ isOpen, onClose, onSuccess, catToEdit }: CatModalPro
           }
         } catch (error) {
           console.error("Error fetching colonias:", error);
+          alertService.error(
+            "No pudimos cargar las colonias disponibles. Intenta de nuevo más tarde.",
+            "Error de Carga"
+          );
         }
       };
       fetchColonias();
@@ -89,7 +94,7 @@ export const GatoModal = ({ isOpen, onClose, onSuccess, catToEdit }: CatModalPro
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     if (!nombre || !coloniaId) {
-      alert("El nombre y la colonia son obligatorios.");
+      alertService.warning("El nombre y la colonia son obligatorios.", "Información Incompleta");
       return;
     }
     
@@ -100,7 +105,10 @@ export const GatoModal = ({ isOpen, onClose, onSuccess, catToEdit }: CatModalPro
       today.setHours(0, 0, 0, 0); // Ignorar la hora actual para comparar solo el día
       
       if (selectedDate > today) {
-        alert("La fecha de nacimiento no puede ser mayor a la fecha actual.");
+        alertService.warning(
+          "La fecha de nacimiento no puede ser mayor a la fecha actual.",
+          "Fecha Inválida"
+        );
         return;
       }
     }
@@ -129,11 +137,19 @@ export const GatoModal = ({ isOpen, onClose, onSuccess, catToEdit }: CatModalPro
 
       if (!res.ok) throw new Error(catToEdit ? "Error al actualizar el gato" : "Error al registrar el gato");
       
+      alertService.success(
+        catToEdit ? "El gato ha sido actualizado correctamente." : "El gato ha sido registrado correctamente.",
+        catToEdit ? "Gato Actualizado" : "Gato Registrado"
+      );
+      
       onSuccess?.();
       onClose();
     } catch (error) {
       console.error("Error guardando gato:", error);
-      alert("Hubo un error al guardar el gato.");
+      alertService.error(
+        "Ocurrió un problema al guardar la información del gato. Por favor, intenta de nuevo.",
+        "Error al Guardar"
+      );
     } finally {
       setLoading(false);
     }
@@ -209,13 +225,13 @@ export const GatoModal = ({ isOpen, onClose, onSuccess, catToEdit }: CatModalPro
             <select
               value={coloniaId}
               onChange={(e) => setColoniaId(e.target.value)}
-              className="appearance-none w-full bg-gris border border-sidebar-separador text-secondary rounded-xl px-4 py-3 pr-10 focus:outline-none focus:border-acento-naranja focus:bg-[rgba(232,137,60,0.05)] hover:border-acento-naranja transition-all duration-200 cursor-pointer [&>option]:bg-gris [&>option]:text-main"
+              className="appearance-none w-full bg-gris border border-sidebar-separador text-secondary rounded-xl px-4 py-3 pr-10 focus:outline-none focus:border-acento-naranja focus:bg-[rgba(232,137,60,0.05)] hover:border-acento-naranja transition-all duration-200 cursor-pointer"
             >
-              <option value="" disabled>
+              <option value="" disabled className="bg-gris text-main">
                 Seleccionar colonia
               </option>
               {colonias.map((col) => (
-                <option key={col.idColonia} value={col.idColonia}>
+                <option key={col.idColonia} value={col.idColonia} className="bg-gris text-main">
                   {col.nombre}
                 </option>
               ))}
@@ -258,11 +274,11 @@ export const GatoModal = ({ isOpen, onClose, onSuccess, catToEdit }: CatModalPro
             <select
               value={estado}
               onChange={(e) => setEstado(e.target.value)}
-              className="appearance-none w-full bg-gris border border-sidebar-separador text-secondary rounded-xl px-4 py-3 pr-10 focus:outline-none focus:border-acento-naranja focus:bg-[rgba(232,137,60,0.05)] hover:border-acento-naranja transition-all duration-200 cursor-pointer [&>option]:bg-gris [&>option]:text-main"
+              className="appearance-none w-full bg-gris border border-sidebar-separador text-secondary rounded-xl px-4 py-3 pr-10 focus:outline-none focus:border-acento-naranja focus:bg-[rgba(232,137,60,0.05)] hover:border-acento-naranja transition-all duration-200 cursor-pointer"
             >
-              <option value="Registrado">Registrado</option>
-              <option value="Desaparecido">Desaparecido</option>
-              <option value="NoRegistrado">No Registrado</option>
+              <option value="Registrado" className="bg-gris text-main">Registrado</option>
+              <option value="Desaparecido" className="bg-gris text-main">Desaparecido</option>
+              <option value="NoRegistrado" className="bg-gris text-main">No Registrado</option>
             </select>
             <Icons.ChevronDown className="absolute right-3 top-3.5 w-5 h-5 text-secondary pointer-events-none" />
           </div>

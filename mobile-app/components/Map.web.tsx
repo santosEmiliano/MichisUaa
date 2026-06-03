@@ -1,14 +1,24 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect, useRef } from 'react';
 import { View } from 'react-native';
 import { Map, Overlay } from 'pigeon-maps';
 
 export const MapView = React.forwardRef((props: any, ref: any) => {
-  const initialCenter = props.initialRegion 
+  const initialCenter = props.region 
+    ? [props.region.latitude, props.region.longitude]
+    : props.initialRegion 
     ? [props.initialRegion.latitude, props.initialRegion.longitude] 
     : [21.9135, -102.3164];
     
   const [internalCenter, setInternalCenter] = useState<[number, number]>(initialCenter as [number, number]);
   const [internalZoom, setInternalZoom] = useState<number>(16);
+  const timeoutRef = useRef<any>(null);
+
+  // Sincronizar cuando la 'region' externa cambia (ej. componente controlado en minimapas)
+  useEffect(() => {
+    if (props.region) {
+      setInternalCenter([props.region.latitude, props.region.longitude]);
+    }
+  }, [props.region?.latitude, props.region?.longitude]);
 
   // Simulamos la API nativa de react-native-maps para que el botón de recentrar funcione en web
   React.useImperativeHandle(ref, () => ({
@@ -25,16 +35,24 @@ export const MapView = React.forwardRef((props: any, ref: any) => {
   // Notificamos a la app móvil cuando el usuario mueve el mapa web manualmente
   const handleBoundsChanged = ({ center, zoom }: any) => {
     setInternalCenter(center);
-    setInternalZoom(zoom); // Guardamos el zoom actual del usuario
+    setInternalZoom(zoom);
+    
+    const regionObj = {
+      latitude: center[0],
+      longitude: center[1],
+      latitudeDelta: 0.015,
+      longitudeDelta: 0.015,
+    };
+
     if (props.onRegionChangeComplete) {
-      props.onRegionChangeComplete({
-        latitude: center[0],
-        longitude: center[1],
-        latitudeDelta: 0.015,
-        longitudeDelta: 0.015,
-      });
+      clearTimeout(timeoutRef.current);
+      timeoutRef.current = setTimeout(() => {
+        props.onRegionChangeComplete(regionObj);
+      }, 250); // Pequeño retraso para simular el "Complete" cuando deja de arrastrar
     }
   };
+
+  const allowInteraction = props.scrollEnabled !== false && props.zoomEnabled !== false;
 
   return (
     <View style={[{flex: 1, backgroundColor: '#f0f0f0'}, props.style]}>
@@ -42,8 +60,8 @@ export const MapView = React.forwardRef((props: any, ref: any) => {
         center={internalCenter} 
         zoom={internalZoom} 
         onBoundsChanged={handleBoundsChanged}
-        mouseEvents={true}
-        touchEvents={true}
+        mouseEvents={allowInteraction}
+        touchEvents={allowInteraction}
       >
         {props.children}
       </Map>
@@ -61,23 +79,27 @@ export const Callout = (props: any) => {
 
 export const Marker = (props: any) => {
   const [showCallout, setShowCallout] = useState(false);
-  const coord = props.coordinate;
+  const { coordinate, onPress, children, ...pigeonProps } = props;
   
-  if (!coord) return null;
+  if (!coordinate) return null;
   
   const toggleCallout = (e: any) => {
     if (e.stopPropagation) e.stopPropagation();
     setShowCallout(!showCallout);
-    if (props.onPress) props.onPress(e);
+    if (onPress) onPress(e);
   };
 
   // Separar los hijos que son Callouts de los que son la vista normal del marcador
-  const childrenArray = React.Children.toArray(props.children);
+  const childrenArray = React.Children.toArray(children);
   const callouts = childrenArray.filter((c: any) => c.type === Callout);
   const nonCallouts = childrenArray.filter((c: any) => c.type !== Callout);
 
   return (
-    <Overlay anchor={[coord.latitude, coord.longitude]} offset={[20, 40]}>
+    <Overlay 
+      anchor={[coordinate.latitude, coordinate.longitude]} 
+      offset={[17, 34]} 
+      {...pigeonProps}
+    >
       <View 
         // @ts-ignore - Propiedad de react-native-web
         onClick={toggleCallout} 

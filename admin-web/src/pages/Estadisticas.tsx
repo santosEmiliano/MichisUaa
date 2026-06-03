@@ -1,7 +1,14 @@
-import { useState, useEffect } from "react";
-import { PieChart, Pie, Cell, AreaChart, Area, ResponsiveContainer } from "recharts";
+import { useState, useEffect, useRef, useCallback } from "react";
+import {
+  PieChart,
+  Pie,
+  Cell,
+  AreaChart,
+  Area,
+} from "recharts";
 import { MetricCard } from "../components/MetricCard";
 import { LoadingScreen } from "../components/LoadingScreen";
+import { alertService } from "../services/alertService";
 
 const Estadisticas = () => {
   // Información de estadísticas
@@ -13,13 +20,33 @@ const Estadisticas = () => {
   const [desaparicionesTrend, setDesaparicionesTrend] = useState(0);
   const [avistamientosSemana, setAvistamientosSemana] = useState(0);
   const [avistamientosTrend, setAvistamientosTrend] = useState(0);
-  const [sterilizedState, setSterilizedState] = useState<{ name: string; value: number; color: string }[]>([]);
+  const [sterilizedState, setSterilizedState] = useState<
+    { name: string; value: number; color: string }[]
+  >([]);
 
   // Información de gráficas
-  const BAR_COLORS = ["#E8893C", "#3B82F6", "#2B9E76", "#E05252", "#84A98C", "#6366F1"];
-  const [barData, setBarData] = useState<{ colonia: string; total: number; color: string; width: string }[]>([]);
-  const [sighingsTendencyData, setSighingsTendencyData] = useState<{ name: string; value: number }[]>([]);
-  const [coloniesSummaryData, setColoniesSummaryData] = useState<{ nombreColonia: string; totalGatos: number; porcentajeEsterilizados: number; status?: string }[]>([]);
+  const BAR_COLORS = [
+    "#E8893C",
+    "#3B82F6",
+    "#2B9E76",
+    "#E05252",
+    "#84A98C",
+    "#6366F1",
+  ];
+  const [barData, setBarData] = useState<
+    { colonia: string; total: number; color: string; width: string }[]
+  >([]);
+  const [sighingsTendencyData, setSighingsTendencyData] = useState<
+    { name: string; value: number }[]
+  >([]);
+  const [coloniesSummaryData, setColoniesSummaryData] = useState<
+    {
+      nombreColonia: string;
+      totalGatos: number;
+      porcentajeEsterilizados: number;
+      status?: string;
+    }[]
+  >([]);
 
   const getStatusColor = (percentage: number) => {
     if (percentage > 80) return "#2B9E76"; // Green
@@ -30,31 +57,72 @@ const Estadisticas = () => {
   const [animatedBarWidths, setAnimatedBarWidths] = useState<string[]>([]);
   const [isLoading, setIsLoading] = useState(true);
 
+  // Track AreaChart container size
+  const areaContainerRef = useRef<HTMLDivElement>(null);
+  const [areaSize, setAreaSize] = useState({ width: 0, height: 0 });
+
+  const updateAreaSize = useCallback(() => {
+    if (areaContainerRef.current) {
+      const { width, height } = areaContainerRef.current.getBoundingClientRect();
+      if (width > 0 && height > 0) {
+        setAreaSize({ width: Math.floor(width), height: Math.floor(height) });
+      }
+    }
+  }, []);
+
+  useEffect(() => {
+    if (isLoading) return;
+    // Measure after layout settles
+    const timer = setTimeout(updateAreaSize, 50);
+    window.addEventListener("resize", updateAreaSize);
+    return () => {
+      clearTimeout(timer);
+      window.removeEventListener("resize", updateAreaSize);
+    };
+  }, [isLoading, updateAreaSize]);
+
   useEffect(() => {
     if (barData.length === 0) return;
-    // Inicializa las barras en 0%
-    setAnimatedBarWidths(barData.map(() => "0%"));
-  
-    const timers = barData.map((item, index) => {
-      return setTimeout(() => {
-        setAnimatedBarWidths((prev) => {
-          const newWidths = [...prev];
-          newWidths[index] = item.width;
-          return newWidths;
-        });
-      }, index * 150 + 100);
+
+    const rafId = requestAnimationFrame(() => {
+      // Inicializa las barras en 0%
+      setAnimatedBarWidths(barData.map(() => "0%"));
     });
 
-    return () => timers.forEach(clearTimeout);
+    const timers = barData.map((item, index) => {
+      return setTimeout(
+        () => {
+          setAnimatedBarWidths((prev) => {
+            const newWidths = [...prev];
+            newWidths[index] = item.width;
+            return newWidths;
+          });
+        },
+        index * 150 + 100,
+      );
+    });
+
+    return () => {
+      cancelAnimationFrame(rafId);
+      timers.forEach(clearTimeout);
+    };
   }, [barData]);
 
   const fetchData = async () => {
-    setIsLoading(true);
     try {
       const token = localStorage.getItem("token") || "";
       const headers = { Authorization: `Bearer ${token}` };
 
-      const [resTotalCats, resEsterilizados, resDesapariciones, resAvistamientos, resBarData, resSighingsTendency, resColoniesSummary, resSterilizedState] = await Promise.all([
+      const [
+        resTotalCats,
+        resEsterilizados,
+        resDesapariciones,
+        resAvistamientos,
+        resBarData,
+        resSighingsTendency,
+        resColoniesSummary,
+        resSterilizedState,
+      ] = await Promise.all([
         fetch("/michisuaa/api/stadistics/totalCats", { headers }),
         fetch("/michisuaa/api/stadistics/sterilizedCount", { headers }),
         fetch("/michisuaa/api/stadistics/missingCats", { headers }),
@@ -67,7 +135,7 @@ const Estadisticas = () => {
 
       if (resTotalCats.ok) {
         const dataTotal = await resTotalCats.json();
-        if (typeof dataTotal === 'number') {
+        if (typeof dataTotal === "number") {
           setTotalGatos(dataTotal);
           setGatosAddedWeek(0); // fallback if backend hasn't restarted
         } else {
@@ -82,7 +150,7 @@ const Estadisticas = () => {
       }
       if (resDesapariciones.ok) {
         const data = await resDesapariciones.json();
-        if (typeof data === 'number') {
+        if (typeof data === "number") {
           setDesapariciones(data);
           setDesaparicionesTrend(0);
         } else {
@@ -92,7 +160,7 @@ const Estadisticas = () => {
       }
       if (resAvistamientos.ok) {
         const data = await resAvistamientos.json();
-        if (typeof data === 'number') {
+        if (typeof data === "number") {
           setAvistamientosSemana(data);
           setAvistamientosTrend(0);
         } else {
@@ -100,34 +168,43 @@ const Estadisticas = () => {
           setAvistamientosTrend(data.trend);
         }
       }
-      if (resSighingsTendency.ok) setSighingsTendencyData(await resSighingsTendency.json());
-      if (resColoniesSummary.ok) setColoniesSummaryData(await resColoniesSummary.json());
-      if (resSterilizedState.ok) setSterilizedState(await resSterilizedState.json());
+      if (resSighingsTendency.ok)
+        setSighingsTendencyData(await resSighingsTendency.json());
+      if (resColoniesSummary.ok)
+        setColoniesSummaryData(await resColoniesSummary.json());
+      if (resSterilizedState.ok)
+        setSterilizedState(await resSterilizedState.json());
 
       if (resBarData.ok) {
-        const rawBarData = await resBarData.json();
-        const sorted = rawBarData.sort((a: any, b: any) => b.total - a.total);
+        const rawBarData: { colonia: string; total: number }[] = await resBarData.json();
+        const sorted = rawBarData.sort((a, b) => b.total - a.total);
         const maxVal = sorted.length > 0 ? sorted[0].total : 1;
-        const processed = sorted.map((item: any, i: number) => ({
+        const processed = sorted.map((item, i) => ({
           colonia: item.colonia,
           total: item.total,
           color: BAR_COLORS[i % BAR_COLORS.length],
-          width: `${Math.max((item.total / maxVal) * 100, 5)}%`
+          width: `${Math.max((item.total / maxVal) * 100, 5)}%`,
         }));
         setBarData(processed);
       }
     } catch (error) {
       console.error("Error fetching data:", error);
+      alertService.error(
+        "No pudimos cargar las estadísticas. Verifica tu conexión e intenta de nuevo más tarde.",
+        "Error de Carga",
+      );
     } finally {
       // Pequeño delay para que la transición no sea brusca
       setTimeout(() => setIsLoading(false), 600);
     }
-  }
+  };
 
   useEffect(() => {
-    fetchData();
+    const timer = setTimeout(() => {
+      fetchData();
+    }, 0);
+    return () => clearTimeout(timer);
   }, []);
-
 
   if (isLoading) {
     return <LoadingScreen message="Cargando Estadísticas" />;
@@ -147,7 +224,7 @@ const Estadisticas = () => {
           title="Esterilizados"
           value={esterilizados}
           valueSuffix="%"
-          trendText={`${esterilizadosTrend > 0 ? '+' : ''}${esterilizadosTrend}% vs semana pasada`}
+          trendText={`${esterilizadosTrend > 0 ? "+" : ""}${esterilizadosTrend}% vs semana pasada`}
           trendType={esterilizadosTrend >= 0 ? "success" : "danger"}
           borderColor="#2B9E76"
         />
@@ -161,7 +238,7 @@ const Estadisticas = () => {
         <MetricCard
           title="Avistamientos esta semana"
           value={avistamientosSemana}
-          trendText={`${avistamientosTrend > 0 ? '+' : ''}${avistamientosTrend} vs semana pasada`}
+          trendText={`${avistamientosTrend > 0 ? "+" : ""}${avistamientosTrend} vs semana pasada`}
           trendType={avistamientosTrend >= 0 ? "success" : "danger"}
           borderColor="#3B82F6"
         />
@@ -170,22 +247,27 @@ const Estadisticas = () => {
       <div className="grid grid-cols-1 xl:grid-cols-[1.5fr_1fr] gap-6">
         <div className="bg-gris-oscuro rounded-3xl p-6 shadow-lg border border-sidebar-separador">
           <div className="flex justify-between items-end mb-6">
-            <h2 className="text-xl font-bold text-main">Avistamientos por colonia</h2>
+            <h2 className="text-xl font-bold text-main">
+              Avistamientos confirmados por colonia
+            </h2>
           </div>
-          
+
           <div className="grid grid-cols-1 md:grid-cols-2 gap-x-8 gap-y-4">
             {barData.map((item, i) => (
               <div key={i} className="flex items-center gap-3">
-                <span className="w-20 sm:w-24 text-xs sm:text-sm text-secondary font-medium truncate" title={item.colonia}>
+                <span
+                  className="w-20 sm:w-24 text-xs sm:text-sm text-secondary font-medium truncate"
+                  title={item.colonia}
+                >
                   {item.colonia}
                 </span>
                 <div className="flex-1 bg-black/40 h-8 rounded-lg overflow-hidden relative">
-                  <div 
+                  <div
                     className="h-full rounded-lg"
-                    style={{ 
-                      width: animatedBarWidths[i] || "0%", 
+                    style={{
+                      width: animatedBarWidths[i] || "0%",
                       backgroundColor: item.color,
-                      transition: "width 1s cubic-bezier(0.16, 1, 0.3, 1)"
+                      transition: "width 1s cubic-bezier(0.16, 1, 0.3, 1)",
                     }}
                   />
                 </div>
@@ -198,11 +280,12 @@ const Estadisticas = () => {
         </div>
 
         <div className="bg-gris-oscuro rounded-3xl p-6 shadow-lg border-t-2 border-t-[#E8893C] border-x border-b border-sidebar-separador flex flex-col items-center xl:items-start">
-          <h2 className="text-xl font-bold text-main mb-6 text-center xl:text-left w-full">Estado de esterilización</h2>
+          <h2 className="text-xl font-bold text-main mb-6 text-center xl:text-left w-full">
+            Estado de esterilización
+          </h2>
           <div className="flex flex-col xl:flex-row items-center xl:justify-center w-full flex-1">
             <div className="w-48 h-48 relative shrink-0">
-              <ResponsiveContainer width="100%" height="100%">
-                <PieChart>
+                <PieChart width={192} height={192}>
                   <Pie
                     data={sterilizedState}
                     cx="50%"
@@ -217,18 +300,28 @@ const Estadisticas = () => {
                     ))}
                   </Pie>
                 </PieChart>
-              </ResponsiveContainer>
               <div className="absolute inset-0 flex flex-col items-center justify-center pointer-events-none">
-                <span className="text-3xl font-bold text-main">{esterilizados}<span className="text-2xl text-secondary">%</span></span>
+                <span className="text-3xl font-bold text-main">
+                  {esterilizados}
+                  <span className="text-2xl text-secondary">%</span>
+                </span>
                 <span className="text-secondary text-sm">esteril</span>
               </div>
             </div>
-            
+
             <div className="flex flex-wrap xl:flex-col items-center xl:items-start justify-center gap-4 mt-6 xl:mt-0 xl:ml-8 w-full xl:w-auto">
               {sterilizedState.map((item, i) => (
-                <div key={i} className="flex items-center gap-2 bg-card xl:bg-transparent xl:border-0 xl:shadow-none xl:px-0 px-3 py-1.5 rounded-full border border-sidebar-separador shadow-sm">
-                  <div className="w-3 h-3 rounded-full shrink-0" style={{ backgroundColor: item.color }}></div>
-                  <span className="text-secondary text-xs sm:text-sm font-medium">{item.name}</span>
+                <div
+                  key={i}
+                  className="flex items-center gap-2 bg-card xl:bg-transparent xl:border-0 xl:shadow-none xl:px-0 px-3 py-1.5 rounded-full border border-sidebar-separador shadow-sm"
+                >
+                  <div
+                    className="w-3 h-3 rounded-full shrink-0"
+                    style={{ backgroundColor: item.color }}
+                  ></div>
+                  <span className="text-secondary text-xs sm:text-sm font-medium">
+                    {item.name}
+                  </span>
                 </div>
               ))}
             </div>
@@ -240,36 +333,46 @@ const Estadisticas = () => {
         {/* Line Chart */}
         <div className="bg-gris-oscuro rounded-3xl p-6 shadow-lg border-t-2 border-t-[#3B82F6] border-x border-b border-sidebar-separador flex flex-col">
           <div className="flex justify-between items-end mb-6">
-            <h2 className="text-xl font-bold text-main">Tendencia de avistamientos</h2>
+            <h2 className="text-xl font-bold text-main">
+              Tendencia de avistamientos
+            </h2>
             <span className="text-secondary text-sm">Por semana</span>
           </div>
-          
-          <div className="flex-1 min-h-[200px] w-full mt-4 relative">
-            <ResponsiveContainer width="100%" height="100%">
-              <AreaChart data={sighingsTendencyData} margin={{ top: 5, right: 10, left: 10, bottom: 20 }}>
+
+          <div ref={areaContainerRef} className="flex-1 min-h-[200px] w-full mt-4 relative">
+            {areaSize.width > 0 && areaSize.height > 0 && (
+              <AreaChart
+                width={areaSize.width}
+                height={areaSize.height}
+                data={sighingsTendencyData}
+                margin={{ top: 5, right: 10, left: 10, bottom: 20 }}
+              >
                 <defs>
                   <linearGradient id="colorValue" x1="0" y1="0" x2="0" y2="1">
-                    <stop offset="5%" stopColor="#E8893C" stopOpacity={0.8}/>
-                    <stop offset="95%" stopColor="#E8893C" stopOpacity={0}/>
+                    <stop offset="5%" stopColor="#E8893C" stopOpacity={0.8} />
+                    <stop offset="95%" stopColor="#E8893C" stopOpacity={0} />
                   </linearGradient>
                 </defs>
-                <Area 
-                  type="monotone" 
-                  dataKey="value" 
-                  stroke="#E8893C" 
-                  strokeWidth={2} 
+                <Area
+                  type="monotone"
+                  dataKey="value"
+                  stroke="#E8893C"
+                  strokeWidth={2}
                   fillOpacity={1}
                   fill="url(#colorValue)"
                   dot={false}
                 />
               </AreaChart>
-            </ResponsiveContainer>
+            )}
 
             <div className="absolute bottom-0 left-0 right-0 flex justify-between px-4">
               {sighingsTendencyData.map((_, i) => (
-                <div key={i} className="text-[10px] text-secondary flex flex-col items-center">
+                <div
+                  key={i}
+                  className="text-[10px] text-secondary flex flex-col items-center"
+                >
                   <span>Sem</span>
-                  <span>{i+1}</span>
+                  <span>{i + 1}</span>
                 </div>
               ))}
             </div>
@@ -281,7 +384,7 @@ const Estadisticas = () => {
           <div className="p-6 pb-4">
             <h2 className="text-xl font-bold text-main">Resumen por colonia</h2>
           </div>
-          
+
           {/* Tabla unificada para móvil y tablet */}
           <div className="block md:hidden">
             <div className="bg-gris px-6 py-2 grid grid-cols-[2fr_1fr_1fr] gap-4 text-xs font-bold text-sidebar-secundario border-b border-sidebar-separador">
@@ -291,12 +394,22 @@ const Estadisticas = () => {
             </div>
             <div className="flex flex-col">
               {coloniesSummaryData.map((row, i) => (
-                <div key={i} className="px-6 py-3 grid grid-cols-[2fr_1fr_1fr] gap-4 text-sm text-secondary border-b border-sidebar-separador items-center">
+                <div
+                  key={i}
+                  className="px-6 py-3 grid grid-cols-[2fr_1fr_1fr] gap-4 text-sm text-secondary border-b border-sidebar-separador items-center"
+                >
                   <span className="truncate pr-2">{row.nombreColonia}</span>
                   <span>{row.totalGatos}</span>
                   <div className="flex items-center gap-2">
                     <span>{row.porcentajeEsterilizados}%</span>
-                    <div className="w-2 h-2 rounded-full shrink-0" style={{ backgroundColor: getStatusColor(row.porcentajeEsterilizados) }}></div>
+                    <div
+                      className="w-2 h-2 rounded-full shrink-0"
+                      style={{
+                        backgroundColor: getStatusColor(
+                          row.porcentajeEsterilizados,
+                        ),
+                      }}
+                    ></div>
                   </div>
                 </div>
               ))}
@@ -313,19 +426,31 @@ const Estadisticas = () => {
                 <span>Esteriles</span>
               </div>
               <div className="flex flex-col">
-                {coloniesSummaryData.filter((_, i) => i % 2 === 0).map((row, i) => (
-                  <div key={`left-${i}`} className="px-6 py-3 grid grid-cols-[2fr_1fr_1fr] gap-4 text-sm text-secondary border-b border-sidebar-separador items-center">
-                    <span className="truncate pr-2">{row.nombreColonia}</span>
-                    <span>{row.totalGatos}</span>
-                    <div className="flex items-center gap-2">
-                      <span>{row.porcentajeEsterilizados}%</span>
-                      <div className="w-2 h-2 rounded-full shrink-0" style={{ backgroundColor: getStatusColor(row.porcentajeEsterilizados) }}></div>
+                {coloniesSummaryData
+                  .filter((_, i) => i % 2 === 0)
+                  .map((row, i) => (
+                    <div
+                      key={`left-${i}`}
+                      className="px-6 py-3 grid grid-cols-[2fr_1fr_1fr] gap-4 text-sm text-secondary border-b border-sidebar-separador items-center"
+                    >
+                      <span className="truncate pr-2">{row.nombreColonia}</span>
+                      <span>{row.totalGatos}</span>
+                      <div className="flex items-center gap-2">
+                        <span>{row.porcentajeEsterilizados}%</span>
+                        <div
+                          className="w-2 h-2 rounded-full shrink-0"
+                          style={{
+                            backgroundColor: getStatusColor(
+                              row.porcentajeEsterilizados,
+                            ),
+                          }}
+                        ></div>
+                      </div>
                     </div>
-                  </div>
-                ))}
+                  ))}
               </div>
             </div>
-            
+
             {/* Right Table */}
             <div className="flex-1 border-l border-sidebar-separador">
               <div className="bg-gris px-6 py-2 grid grid-cols-[2fr_1fr_1fr] gap-4 text-xs font-bold text-sidebar-secundario border-b border-sidebar-separador">
@@ -334,16 +459,28 @@ const Estadisticas = () => {
                 <span>Esteriles</span>
               </div>
               <div className="flex flex-col">
-                {coloniesSummaryData.filter((_, i) => i % 2 !== 0).map((row, i) => (
-                  <div key={`right-${i}`} className="px-6 py-3 grid grid-cols-[2fr_1fr_1fr] gap-4 text-sm text-secondary border-b border-sidebar-separador items-center">
-                    <span className="truncate pr-2">{row.nombreColonia}</span>
-                    <span>{row.totalGatos}</span>
-                    <div className="flex items-center gap-2">
-                      <span>{row.porcentajeEsterilizados}%</span>
-                      <div className="w-2 h-2 rounded-full shrink-0" style={{ backgroundColor: getStatusColor(row.porcentajeEsterilizados) }}></div>
+                {coloniesSummaryData
+                  .filter((_, i) => i % 2 !== 0)
+                  .map((row, i) => (
+                    <div
+                      key={`right-${i}`}
+                      className="px-6 py-3 grid grid-cols-[2fr_1fr_1fr] gap-4 text-sm text-secondary border-b border-sidebar-separador items-center"
+                    >
+                      <span className="truncate pr-2">{row.nombreColonia}</span>
+                      <span>{row.totalGatos}</span>
+                      <div className="flex items-center gap-2">
+                        <span>{row.porcentajeEsterilizados}%</span>
+                        <div
+                          className="w-2 h-2 rounded-full shrink-0"
+                          style={{
+                            backgroundColor: getStatusColor(
+                              row.porcentajeEsterilizados,
+                            ),
+                          }}
+                        ></div>
+                      </div>
                     </div>
-                  </div>
-                ))}
+                  ))}
               </div>
             </div>
           </div>

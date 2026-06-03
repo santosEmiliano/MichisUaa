@@ -3,9 +3,10 @@ import { Link } from "react-router-dom";
 import { MetricCard } from "../components/MetricCard";
 import { AvistamientoModal } from "../components/AvistamientoModal";
 import { DataTable, type ColumnDef } from "../components/DataTable";
-import type { Avistamiento } from "../types/models";
+import type { Avistamiento, BackendAvistamiento } from "../types/models";
 import { LoadingScreen } from "../components/LoadingScreen";
 import Icons from "../components/Icons";
+import { alertService } from "../services/alertService";
 const getInitials = (name: string) => {
   if (name === "No Identificado") return "?";
   return name.substring(0, 2).charAt(0).toUpperCase() + name.substring(1, 2).toLowerCase();
@@ -55,7 +56,7 @@ const Dashboard = () => {
 
       if (resAvistamientos.ok) {
         const dataAvistamientos = await resAvistamientos.json();
-        const mapped: Avistamiento[] = dataAvistamientos.map((item: any) => {
+        const mapped: Avistamiento[] = dataAvistamientos.map((item: BackendAvistamiento) => {
           let estado: Avistamiento["estado"] = "Pendiente";
           if (item.verificado) estado = "Verificado";
           else if (item.verificadoPor !== null) estado = "Rechazado";
@@ -80,7 +81,7 @@ const Dashboard = () => {
             fechaHora: fecha.toLocaleString('es-MX', { dateStyle: 'medium', timeStyle: 'short' })
           };
         });
-        setPendientes(mapped.filter((a: any) => a.estado === "Pendiente" || a.estado === "Sin identificar"));
+        setPendientes(mapped.filter((a) => a.estado === "Pendiente" || a.estado === "Sin identificar"));
       }
       
       if (resTotalCats.ok) {
@@ -103,6 +104,10 @@ const Dashboard = () => {
       }
     } catch (error) {
       console.error(error);
+      alertService.error(
+        "No pudimos cargar los datos del dashboard. Verifica tu conexión e intenta de nuevo.",
+        "Error de Carga"
+      );
     } finally {
       // Delay suave para la pantalla de carga
       setTimeout(() => setLoading(false), 600);

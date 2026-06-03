@@ -130,6 +130,16 @@ const modifySighting = async (req, res) => {
           .catch(err => console.error("Error al notificar rechazo:", err))
       }
     }
+    // Revisar medallas tras verificar o rechazar un avistamiento por un admin
+    if (oldSighting.usuarioId) {
+      verificarMedallas(oldSighting.usuarioId)
+        .then(nuevas => {
+          if (nuevas.length > 0) {
+            console.log(`Usuario ${oldSighting.usuarioId} ganó nuevas medallas tras actualización: ${nuevas.map(m => m.tipo).join(', ')}`);
+          }
+        })
+        .catch(err => console.error("Error en la verificación de medallas tras actualizar:", err));
+    }
 
     return res.status(200).json({
       mensaje: "Avistamiento actualizado correctamente",

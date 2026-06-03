@@ -4,8 +4,9 @@ import Icons from "../components/Icons";
 import { DataTable, type ColumnDef } from "../components/DataTable";
 import type { Cat } from "../types/models";
 import { GatoModal } from "../components/GatoModal";
-import { DeleteConfirmModal } from "../components/DeleteConfirmModal";
 import { LoadingScreen } from "../components/LoadingScreen";
+import { alertService } from "../services/alertService";
+import { ImagePreviewModal } from "../components/ImagePreviewModal";
 
 type EstadoCat = Cat["estado"];
 
@@ -40,7 +41,7 @@ const esterilizadoBadge = {
   },
 };
 
-const columns: ColumnDef<Cat>[] = [
+const getColumns = (onImageClick: (url: string) => void): ColumnDef<Cat>[] => [
   {
     header: "Foto",
     render: (cat) =>
@@ -48,7 +49,12 @@ const columns: ColumnDef<Cat>[] = [
         <img
           src={cat.fotoUrl}
           alt={cat.nombre}
-          className="w-12 h-12 rounded-xl object-cover"
+          className="w-12 h-12 rounded-xl object-cover cursor-pointer hover:opacity-80 transition-opacity"
+          onClick={(e) => {
+            e.stopPropagation();
+            e.preventDefault();
+            onImageClick(cat.fotoUrl!);
+          }}
         />
       ) : (
         <div className="w-12 h-12 rounded-xl bg-gris flex items-center justify-center">
@@ -147,8 +153,7 @@ const GatosPage = () => {
   const [loading, setLoading] = useState(true);
   const [modalOpen, setModalOpen] = useState(false);
   const [catToEdit, setCatToEdit] = useState<Cat | null>(null);
-  const [deleteModalOpen, setDeleteModalOpen] = useState(false);
-  const [catToDelete, setCatToDelete] = useState<Cat | null>(null);
+  const [previewImage, setPreviewImage] = useState<string | null>(null);
   
   const colonias = [...new Set(cats.map((c) => c.colonia))];
   const [rowsPerPage, setRowsPerPage] = useState(8);
@@ -180,33 +185,31 @@ const GatosPage = () => {
     });
   }, [cats, activeFilters]);
 
-  const confirmDelete = (cat: Cat) => {
-    setCatToDelete(cat);
-    setDeleteModalOpen(true);
-  };
+  const confirmDelete = async (cat: Cat) => {
+    const confirm = await alertService.questionAsync(
+      `¿Estás seguro que deseas eliminar al gato "${cat.nombre}"? Esta acción no se puede deshacer.`,
+      "Eliminar Gato"
+    );
 
-  const handleDeleteCat = async () => {
-    if (!catToDelete) return;
-    
+    if (!confirm) return;
+
     try {
       const token = localStorage.getItem("token") || "";
-      const res = await fetch(`/michisuaa/api/animal/${catToDelete.id}`, {
+      const res = await fetch(`/michisuaa/api/animal/${cat.id}`, {
         method: "DELETE",
-        headers: {
-          Authorization: `Bearer ${token}`
-        }
+        headers: { Authorization: `Bearer ${token}` }
       });
       
       if (!res.ok) throw new Error("Error al eliminar el gato");
       
-      // Filtramos de la lista local para no recargar la página
-      setCats((prev) => prev.filter((c) => c.id !== catToDelete.id));
+      setCats((prev) => prev.filter((c) => c.id !== cat.id));
+      alertService.success("El gato ha sido eliminado correctamente.", "Gato Eliminado");
     } catch (error) {
       console.error("Error eliminando gato:", error);
-      alert("Hubo un error al intentar eliminar el gato.");
-    } finally {
-      setDeleteModalOpen(false);
-      setCatToDelete(null);
+      alertService.error(
+        "Ocurrió un problema al intentar eliminar el gato. Por favor, intenta de nuevo más tarde.",
+        "Error al Eliminar"
+      );
     }
   };
 
@@ -290,6 +293,10 @@ const GatosPage = () => {
         setCats(mappedCats);
       } catch (error) {
         console.error("Error fetching cats:", error);
+        alertService.error(
+          "No pudimos cargar la lista de gatos. Verifica tu conexión e intenta de nuevo.",
+          "Error de Carga"
+        );
       } finally {
         setLoading(false);
       }
@@ -328,7 +335,7 @@ const GatosPage = () => {
       ) : (
         <DataTable
           data={filteredCats}
-          columns={columns}
+          columns={getColumns(setPreviewImage)}
           searchPlaceholder="Buscar por nombre o colonia..."
           rowsPerPage={rowsPerPage}
           onFilterChange={handleFilterChange}
@@ -350,7 +357,16 @@ const GatosPage = () => {
               <div className="p-4 flex gap-4 border-b border-sidebar-separador/50 bg-gris/30 items-center">
                 <div className="w-14 h-14 rounded-2xl overflow-hidden bg-gris flex items-center justify-center shrink-0 border border-sidebar-separador">
                   {cat.fotoUrl ? (
-                    <img src={cat.fotoUrl} alt={cat.nombre} className="w-full h-full object-cover" />
+                    <img 
+                      src={cat.fotoUrl} 
+                      alt={cat.nombre} 
+                      className="w-full h-full object-cover cursor-pointer hover:scale-110 transition-transform duration-300"
+                      onClick={(e) => {
+                        e.stopPropagation();
+                        e.preventDefault();
+                        setPreviewImage(cat.fotoUrl!);
+                      }}
+                    />
                   ) : (
                     <Icons.Cats className="w-6 h-6 text-secondary" />
                   )}
@@ -400,10 +416,11 @@ const GatosPage = () => {
         onSuccess={fetchCats}
         catToEdit={catToEdit}
       />
-      <DeleteConfirmModal 
-        isOpen={deleteModalOpen} 
-        onClose={() => setDeleteModalOpen(false)} 
-        onConfirm={handleDeleteCat} 
+
+      <ImagePreviewModal
+        isOpen={!!previewImage}
+        imageUrl={previewImage}
+        onClose={() => setPreviewImage(null)}
       />
     </div>
   );

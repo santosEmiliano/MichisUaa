@@ -7,6 +7,8 @@ import Icons from "../components/Icons";
 import { AvistamientoModal } from "../components/AvistamientoModal";
 import { avistamientosApi } from "../services/avistamientosApi";
 import { LoadingScreen } from "../components/LoadingScreen";
+import { alertService } from "../services/alertService";
+import { ImagePreviewModal } from "../components/ImagePreviewModal";
 
 const filters: FilterDef[] = [
   {
@@ -27,6 +29,7 @@ const Avistamientos = () => {
   const [isModalOpen, setIsModalOpen] = useState(false);
   const [activeFilters, setActiveFilters] = useState<Record<string, string>>({});
   const [rowsPerPage, setRowsPerPage] = useState(8);
+  const [previewImage, setPreviewImage] = useState<string | null>(null);
   
   const [actionsContainer, setActionsContainer] = useState<Element | null>(null);
 
@@ -83,6 +86,10 @@ const Avistamientos = () => {
       setAvistamientos(mapped);
     } catch (error) {
       console.error(error);
+      alertService.error(
+        "No pudimos cargar los avistamientos recientes. Intenta de nuevo más tarde.",
+        "Error de Carga"
+      );
     } finally {
       setLoading(false);
     }
@@ -107,13 +114,23 @@ const Avistamientos = () => {
   };
 
   const handleQuickReject = async (id: number) => {
+    const confirm = await alertService.questionAsync(
+      "¿Estás seguro de que deseas rechazar este avistamiento?",
+      "Rechazar Avistamiento"
+    );
+    if (!confirm) return;
+
     try {
       setLoading(true);
       await avistamientosApi.rechazarAvistamiento(id);
       await fetchDatos();
+      alertService.success("El avistamiento ha sido rechazado correctamente.", "Avistamiento Rechazado");
     } catch (error) {
       console.error(error);
-      alert("Error al rechazar el avistamiento");
+      alertService.error(
+        "Ocurrió un problema al intentar rechazar el avistamiento. Por favor, intenta de nuevo.",
+        "Error al Rechazar"
+      );
     } finally {
       setLoading(false);
     }
@@ -181,7 +198,12 @@ const Avistamientos = () => {
           <img
             src={row.fotoUrl}
             alt={row.animalName}
-            className="w-12 h-12 rounded-xl object-cover"
+            className="w-12 h-12 rounded-xl object-cover cursor-pointer hover:opacity-80 transition-opacity"
+            onClick={(e) => {
+              e.stopPropagation();
+              e.preventDefault();
+              setPreviewImage(row.fotoUrl!);
+            }}
           />
         ) : (
           <div className="w-12 h-12 rounded-xl bg-gris flex items-center justify-center">
@@ -299,7 +321,16 @@ const Avistamientos = () => {
                 <div className="p-4 flex gap-4 border-b border-sidebar-separador/50 bg-gris/30 items-center">
                   <div className="w-14 h-14 rounded-2xl overflow-hidden bg-gris flex items-center justify-center shrink-0 border border-sidebar-separador">
                     {row.fotoUrl ? (
-                      <img src={row.fotoUrl} alt={row.animalName} className="w-full h-full object-cover" />
+                      <img 
+                        src={row.fotoUrl} 
+                        alt={row.animalName} 
+                        className="w-full h-full object-cover cursor-pointer hover:scale-110 transition-transform duration-300"
+                        onClick={(e) => {
+                          e.stopPropagation();
+                          e.preventDefault();
+                          setPreviewImage(row.fotoUrl!);
+                        }} 
+                      />
                     ) : (
                       <Icons.Cats className="w-6 h-6 text-secondary" />
                     )}
@@ -350,6 +381,12 @@ const Avistamientos = () => {
         onClose={() => setIsModalOpen(false)}
         onSuccess={fetchDatos}
         avistamiento={selectedAvistamiento}
+      />
+
+      <ImagePreviewModal
+        isOpen={!!previewImage}
+        imageUrl={previewImage}
+        onClose={() => setPreviewImage(null)}
       />
     </div>
   );
