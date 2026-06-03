@@ -32,7 +32,17 @@ export const MapView = React.forwardRef((props: any, ref: any) => {
     }
   }));
 
-  // Notificamos a la app móvil cuando el usuario mueve el mapa web manualmente
+  const handleAnimationStart = () => {
+    if (props.onRegionChange) {
+      props.onRegionChange({
+        latitude: internalCenter[0],
+        longitude: internalCenter[1],
+        latitudeDelta: 0.015,
+        longitudeDelta: 0.015,
+      });
+    }
+  };
+
   const handleBoundsChanged = ({ center, zoom }: any) => {
     setInternalCenter(center);
     setInternalZoom(zoom);
@@ -44,6 +54,7 @@ export const MapView = React.forwardRef((props: any, ref: any) => {
       longitudeDelta: 0.015,
     };
 
+    // Keep firing onRegionChange just in case bounds change programmatically
     if (props.onRegionChange) {
       props.onRegionChange(regionObj);
     }
@@ -64,6 +75,7 @@ export const MapView = React.forwardRef((props: any, ref: any) => {
         center={internalCenter} 
         zoom={internalZoom} 
         onBoundsChanged={handleBoundsChanged}
+        onAnimationStart={handleAnimationStart}
         mouseEvents={allowInteraction}
         touchEvents={allowInteraction}
       >
@@ -83,23 +95,27 @@ export const Callout = (props: any) => {
 
 export const Marker = (props: any) => {
   const [showCallout, setShowCallout] = useState(false);
-  const coord = props.coordinate;
+  const { coordinate, onPress, children, ...pigeonProps } = props;
   
-  if (!coord) return null;
+  if (!coordinate) return null;
   
   const toggleCallout = (e: any) => {
     if (e.stopPropagation) e.stopPropagation();
     setShowCallout(!showCallout);
-    if (props.onPress) props.onPress(e);
+    if (onPress) onPress(e);
   };
 
   // Separar los hijos que son Callouts de los que son la vista normal del marcador
-  const childrenArray = React.Children.toArray(props.children);
+  const childrenArray = React.Children.toArray(children);
   const callouts = childrenArray.filter((c: any) => c.type === Callout);
   const nonCallouts = childrenArray.filter((c: any) => c.type !== Callout);
 
   return (
-    <Overlay anchor={[coord.latitude, coord.longitude]} offset={[20, 40]}>
+    <Overlay 
+      anchor={[coordinate.latitude, coordinate.longitude]} 
+      offset={[17, 34]} 
+      {...pigeonProps}
+    >
       <View 
         // @ts-ignore - Propiedad de react-native-web
         onClick={toggleCallout} 
