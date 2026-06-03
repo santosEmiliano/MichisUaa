@@ -198,7 +198,7 @@ const UsuariosPage = () => {
           columns={columns}
           searchPlaceholder="Buscar por nombre o email..."
           rowsPerPage={rowsPerPage}
-          canEdit={(user) => user.id === currentUserId}
+          canEdit={(user) => user.id === currentUserId || user.rol === "Simpatizante"}
           canDelete={(user) => user.rol === "Simpatizante"}
           onEdit={(user) => {
             setPendingAction({ type: "edit", user });
@@ -267,7 +267,7 @@ const UsuariosPage = () => {
 
               {/* Footer: Acciones */}
               <div className="flex flex-col sm:flex-row items-center gap-2 mt-4 pt-1">
-                {user.id === currentUserId && (
+                {(user.id === currentUserId || user.rol === "Simpatizante") && (
                   <button
                     onClick={() => setPendingAction({ type: "edit", user })}
                     className="w-full px-4 py-2 rounded-lg border border-sidebar-separador text-main text-sm font-bold hover:bg-hover transition-colors flex items-center justify-center gap-2"
@@ -306,7 +306,9 @@ const UsuariosPage = () => {
         title={pendingAction?.type === "edit" ? "Validación Requerida" : "Confirmar Eliminación"}
         message={
           pendingAction?.type === "edit"
-            ? "Por tu seguridad, ingresa tu contraseña para editar tu perfil de administrador."
+            ? pendingAction?.user.id === currentUserId
+              ? "Por tu seguridad, ingresa tu contraseña para editar tu perfil de administrador."
+              : `Ingresa tu contraseña para modificar el perfil del simpatizante "${pendingAction?.user?.nombre}".`
             : `Estás a punto de eliminar al simpatizante "${pendingAction?.user?.nombre}". Ingresa tu contraseña de administrador para confirmar y continuar con esta acción destructiva.`
         }
         onSuccess={() => {
