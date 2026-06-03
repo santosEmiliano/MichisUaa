@@ -192,6 +192,13 @@ const GatosPage = () => {
         if (cat.esterilizado !== isEsterilizadoFilter) return false;
       }
 
+      if (
+        activeFilters["Sexo"] &&
+        activeFilters["Sexo"] !== ""
+      ) {
+        if (cat.genero !== activeFilters["Sexo"]) return false;
+      }
+
       return true;
     });
   }, [cats, activeFilters]);
@@ -371,6 +378,7 @@ const GatosPage = () => {
               label: "Todos los estados",
               options: ["Registrado", "Desaparecido", "No Registrado"],
             },
+            { label: "Sexo", options: ["Macho", "Hembra"] },
             { label: "Esterilizados", options: ["Sí", "No"] },
           ]}
           mobileRender={(cat) => (
