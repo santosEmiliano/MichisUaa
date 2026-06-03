@@ -193,29 +193,36 @@ export default function MapScreen() {
         clusterColor="#F28C38"
       >
         {filteredAnimals.map((animal) => {
+          if (!animal.coordenadas) return null;
+
           const statusColor = animal.estado === 'Verificado' ? '#4CAF50' : animal.estado === 'Desaparecido' ? '#F44336' : '#FF9800';
+          const isAnonymous = animal.tipo === 'avistamiento';
           
           return (
             <Marker
-              key={animal._id || `animal-${animal.originalIndex}`}
+              key={`marker-${animal.id}`}
               coordinate={{
                 latitude: Number(animal.coordenadas.latitud),
                 longitude: Number(animal.coordenadas.longitud),
               }}
               tracksViewChanges={false}
             >
-              <View style={[styles.customMarker, { borderColor: statusColor }]}>
-                {animal.foto ? (
-                  <Image source={{ uri: animal.foto }} style={styles.markerImage} />
+              <View style={[
+                styles.customMarker,
+                { borderColor: statusColor },
+                isAnonymous && { borderStyle: 'dashed', backgroundColor: '#f5f5f5' }
+              ]}>
+                {animal.foto_url ? (
+                  <Image source={{ uri: animal.foto_url }} style={styles.markerImage} />
                 ) : (
-                  <Text style={styles.markerText}>{animal.nombre?.charAt(0) || '?'}</Text>
+                  <Text style={styles.markerText}>{isAnonymous ? '?' : (animal.nombre?.charAt(0) || '?')}</Text>
                 )}
               </View>
               <Callout tooltip>
                 <View style={styles.calloutContainer}>
-                  {animal.foto && <Image source={{ uri: animal.foto }} style={styles.calloutImage} />}
+                  {animal.foto_url && <Image source={{ uri: animal.foto_url }} style={styles.calloutImage} />}
                   <Text style={styles.calloutTitle}>{animal.nombre}</Text>
-                  <Text style={styles.calloutText}>{animal.raza}</Text>
+                  <Text style={styles.calloutText}>{isAnonymous ? 'Avistamiento no identificado' : animal.colonia}</Text>
                   <Text style={[styles.calloutStatus, { color: statusColor }]}>{animal.estado}</Text>
                 </View>
               </Callout>
