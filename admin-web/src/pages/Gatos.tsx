@@ -146,6 +146,7 @@ interface BackendAnimal {
   esterilizado: boolean;
   estado: string;
   foto_url?: string;
+  sexo?: string;
 }
 
 const GatosPage = () => {
