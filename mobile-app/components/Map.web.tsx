@@ -1,7 +1,8 @@
-import React, { useState, useEffect, useRef } from 'react';
+import React, { useState, useEffect, useRef, useMemo } from 'react';
 import { View } from 'react-native';
 // @ts-ignore
 import { Map, Overlay } from 'pigeon-maps';
+import Supercluster from 'supercluster';
 
 export const MapView = React.forwardRef((props: any, ref: any) => {
   const initialCenter = props.region 
@@ -22,6 +23,7 @@ export const MapView = React.forwardRef((props: any, ref: any) => {
     
   const [internalCenter, setInternalCenter] = useState<[number, number]>(initialCenter as [number, number]);
   const [internalZoom, setInternalZoom] = useState<number>(initialZoom);
+  const [bounds, setBounds] = useState<any>(null);
   const timeoutRef = useRef<any>(null);
 
   useEffect(() => {
@@ -41,9 +43,10 @@ export const MapView = React.forwardRef((props: any, ref: any) => {
     }
   }));
 
-  const handleBoundsChanged = ({ center, zoom }: any) => {
+  const handleBoundsChanged = ({ center, zoom, bounds: newBounds }: any) => {
     setInternalCenter(center);
     setInternalZoom(zoom);
+    setBounds(newBounds);
     
     const regionObj = {
       latitude: center[0],
@@ -62,6 +65,73 @@ export const MapView = React.forwardRef((props: any, ref: any) => {
 
   const allowInteraction = props.scrollEnabled !== false && props.zoomEnabled !== false;
 
+  const points = useMemo(() => {
+    const childrenArray = React.Children.toArray(props.children);
+    const validMarkers = childrenArray.filter((c: any) => React.isValidElement(c) && c.props.coordinate);
+    return validMarkers.map((child: any, index) => ({
+      type: 'Feature',
+      properties: { cluster: false, childId: index, element: child },
+      geometry: {
+        type: 'Point',
+        coordinates: [child.props.coordinate.longitude, child.props.coordinate.latitude]
+      }
+    }));
+  }, [props.children]);
+
+  const supercluster = useMemo(() => {
+    const sc = new Supercluster({
+      radius: 50,
+      maxZoom: 18
+    });
+    // @ts-ignore
+    sc.load(points);
+    return sc;
+  }, [points]);
+
+  const visibleElements = useMemo(() => {
+    if (!bounds || !props.renderCluster) {
+      return React.Children.map(props.children, (child: any) => {
+        if (React.isValidElement(child) && (child as any).props.coordinate) {
+          return React.cloneElement(child, {
+            // @ts-ignore
+            anchor: [(child as any).props.coordinate.latitude, (child as any).props.coordinate.longitude]
+          });
+        }
+        return child;
+      });
+    }
+
+    const bbox = [bounds.sw[1], bounds.sw[0], bounds.ne[1], bounds.ne[0]];
+    const clusters = supercluster.getClusters(bbox, Math.round(internalZoom));
+
+    return clusters.map((cluster: any) => {
+      const [longitude, latitude] = cluster.geometry.coordinates;
+
+      if (cluster.properties.cluster) {
+        const clusterData = {
+          id: cluster.id,
+          geometry: cluster.geometry,
+          properties: cluster.properties,
+          onPress: () => {
+            setInternalCenter([latitude, longitude]);
+            setInternalZoom(Math.min(internalZoom + 2, 18));
+          }
+        };
+        const clusterElement = props.renderCluster(clusterData);
+        return React.cloneElement(clusterElement, {
+          key: `cluster-${cluster.id}`,
+          coordinate: { latitude, longitude }
+        });
+      } else {
+        const originalElement = cluster.properties.element;
+        return React.cloneElement(originalElement, {
+          anchor: [latitude, longitude],
+          key: `marker-${cluster.properties.childId}`
+        });
+      }
+    });
+  }, [points, supercluster, bounds, internalZoom, props.renderCluster, props.children]);
+
   return (
     <View style={[{flex: 1, backgroundColor: '#f0f0f0'}, props.style]}>
       <Map 
@@ -77,15 +147,7 @@ export const MapView = React.forwardRef((props: any, ref: any) => {
           }
         }}
       >
-        {React.Children.map(props.children, (child: any) => {
-          if (React.isValidElement(child) && (child as any).props.coordinate) {
-            return React.cloneElement(child, {
-              // @ts-ignore
-              anchor: [(child as any).props.coordinate.latitude, (child as any).props.coordinate.longitude]
-            });
-          }
-          return child;
-        })}
+        {visibleElements}
       </Map>
     </View>
   );
@@ -152,5 +214,5 @@ export const Marker = (props: any) => {
 };
 
 export const MapClustering = React.forwardRef((props: any, ref: any) => {
-  return <MapView ref={ref} {...props}>{props.children}</MapView>;
+  return <MapView ref={ref} {...props} />;
 });
