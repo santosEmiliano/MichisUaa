@@ -184,6 +184,30 @@ export const AvistamientoModal = ({ isOpen, onClose, onSuccess, avistamiento }: 
     }
   };
 
+  const handleBorrarVerificacion = async () => {
+    const confirm = await alertService.questionAsync(
+      "¿Seguro que desea usted eliminar el siguiente avistamiento? (Es una accion permanente!)",
+      "Eliminar avistamiento"
+    );
+    if (!confirm) return;
+
+    try {
+      setIsProcessing(true);
+      await avistamientosApi.deleteAvistamiento(displayAvistamiento.id);
+      alertService.success("El avistamiento ha sido eliminado", "Avistamiento eliminado");
+      if (onSuccess) onSuccess;
+      onClose();
+    } catch (error) {
+      console.log(error);
+      alertService.error(
+        "Ocurrio un problema al momento de eliminar el avistamiento. Porfavor intentarlo mas tarde",
+        "Error al eliminar"
+      )
+    } finally {
+      setIsProcessing(false);
+    }
+  }
+
   return (
     <div
       className={`fixed inset-0 z-50 flex justify-end ${
