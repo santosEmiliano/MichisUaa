@@ -74,7 +74,15 @@ export const MapView = React.forwardRef((props: any, ref: any) => {
         mouseEvents={allowInteraction}
         touchEvents={allowInteraction}
       >
-        {props.children}
+        {React.Children.map(props.children, (child: any) => {
+          if (React.isValidElement(child) && child.props.coordinate) {
+            return React.cloneElement(child, {
+              // @ts-ignore
+              anchor: [child.props.coordinate.latitude, child.props.coordinate.longitude]
+            });
+          }
+          return child;
+        })}
       </Map>
     </View>
   );
@@ -93,7 +101,8 @@ export const Marker = (props: any) => {
   
   // Extraemos SOLO las props que usamos — nunca pasamos props de react-native-maps
   // a pigeon-maps porque corrompen el anclado geográfico del Overlay.
-  const { coordinate, onPress, children } = props;
+  // pigeon-maps inyecta 'left' y 'top' porque MapView ahora inyecta 'anchor' al Marker.
+  const { coordinate, onPress, children, left, top } = props;
   
   if (!coordinate) return null;
   
@@ -109,11 +118,13 @@ export const Marker = (props: any) => {
   const nonCallouts = childrenArray.filter((c: any) => c.type !== Callout);
 
   // offset: [x, y] — el punto (x,y) del overlay coincide con la coordenada del mapa.
-  // Para un marcador de 44×44px queremos anclar en la base-centro: [22, 44]
+  // Para un marcador de 44×44px queremos anclar en la base-centro: [17, 34]
   return (
     <Overlay 
       anchor={[coordinate.latitude, coordinate.longitude]} 
       offset={[17, 34]}
+      left={left}
+      top={top}
     >
       <View 
         // @ts-ignore
