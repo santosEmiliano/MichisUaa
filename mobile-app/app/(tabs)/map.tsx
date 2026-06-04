@@ -163,7 +163,7 @@ export default function MapScreen() {
         if (activeFilter === 'Todos') return true;
         if (activeFilter === 'Desaparecidos') return animal.estado === 'Desaparecido';
         if (activeFilter === 'No Registrados') return animal.estado === 'NoRegistrado';
-        if (activeFilter === 'Activos') return animal.estado !== 'Desaparecido' && animal.estado !== 'NoRegistrado';
+        if (activeFilter === 'Registrados') return animal.estado === 'Registrado';
 
         return true;
       });
@@ -296,7 +296,7 @@ export default function MapScreen() {
             justifyContent: (Platform.OS === 'web' && !isSmallScreen) ? 'center' : 'flex-start' 
           }}
         >
-          {['Todos', 'Activos', 'No Registrados', 'Desaparecidos'].map((filter) => (
+          {['Todos', 'Verificados', 'No Registrados', 'Desaparecidos'].map((filter) => (
             <TouchableOpacity
               key={filter}
               style={[
