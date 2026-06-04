@@ -217,18 +217,29 @@ export default function MapScreen() {
               }}
               tracksViewChanges={!markersReady}
             >
-              <View style={[styles.customMarker, { borderColor: statusColor }]}>
+              <View style={[
+                styles.customMarker, 
+                { 
+                  borderColor: statusColor,
+                  backgroundColor: theme === 'dark' ? '#2A2A2A' : 'white'
+                }
+              ]}>
                 {animal.foto_url ? (
                   <Image source={{ uri: animal.foto_url }} style={styles.markerImage} />
                 ) : (
-                  <Text style={styles.markerText}>{animal.nombre?.charAt(0)?.toUpperCase() || '?'}</Text>
+                  <Text style={[styles.markerText, { color: theme === 'dark' ? '#AAA' : '#666' }]}>
+                    {animal.nombre?.charAt(0)?.toUpperCase() || '?'}
+                  </Text>
                 )}
               </View>
               <Callout tooltip>
-                <View style={styles.calloutContainer}>
+                <View style={[
+                  styles.calloutContainer,
+                  { backgroundColor: theme === 'dark' ? '#1E1E1E' : 'white' }
+                ]}>
                   {animal.foto_url && <Image source={{ uri: animal.foto_url }} style={styles.calloutImage} />}
-                  <Text style={styles.calloutTitle}>{animal.nombre}</Text>
-                  <Text style={styles.calloutText}>{animal.colonia}</Text>
+                  <Text style={[styles.calloutTitle, { color: colors.textMain }]}>{animal.nombre}</Text>
+                  <Text style={[styles.calloutText, { color: colors.textSecondary }]}>{animal.colonia}</Text>
                   <Text style={[styles.calloutStatus, { color: statusColor }]}>{animal.estado}</Text>
                 </View>
               </Callout>
