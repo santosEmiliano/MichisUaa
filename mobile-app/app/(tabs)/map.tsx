@@ -141,16 +141,32 @@ export default function MapScreen() {
 
   // Filtros
   const filteredAnimals = useMemo(() => {
+    // Agrupar por coordenadas para separar solo los que están empalmados exactamente en el mismo lugar
+    const locationCounts: Record<string, number> = {};
+
     return animals
       .map((animal, index) => {
         let jitteredCoords = animal.coordenadas;
         if (animal.coordenadas) {
-          const offsetLat = Math.sin(index) * 0.000005;
-          const offsetLng = Math.cos(index) * 0.000005;
-          jitteredCoords = {
-            latitud: Number(animal.coordenadas.latitud) + offsetLat,
-            longitud: Number(animal.coordenadas.longitud) + offsetLng,
-          };
+          const locKey = `${animal.coordenadas.latitud},${animal.coordenadas.longitud}`;
+          const count = locationCounts[locKey] || 0;
+          locationCounts[locKey] = count + 1;
+          
+          if (count > 0) {
+            // A partir del segundo animal en la misma coordenada, los colocamos en un radio pequeño
+            const angle = (count * 137.5) * (Math.PI / 180); // Ángulo áureo para distribuirlos bien
+            const radius = 0.00006 * Math.sqrt(count); // Aprox 6 metros, crece si hay muchos
+            
+            jitteredCoords = {
+              latitud: Number(animal.coordenadas.latitud) + Math.sin(angle) * radius,
+              longitud: Number(animal.coordenadas.longitud) + Math.cos(angle) * radius,
+            };
+          } else {
+            jitteredCoords = {
+              latitud: Number(animal.coordenadas.latitud),
+              longitud: Number(animal.coordenadas.longitud),
+            };
+          }
         }
         return { ...animal, originalIndex: index, coordenadas: jitteredCoords };
       })
