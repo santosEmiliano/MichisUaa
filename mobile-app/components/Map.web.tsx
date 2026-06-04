@@ -102,16 +102,16 @@ export const Marker = (props: any) => {
   return (
     <Overlay 
       anchor={[coordinate.latitude, coordinate.longitude]} 
-      offset={[22, 44]}
+      offset={[17, 34]}
     >
-      {/* @ts-ignore */}
-      <div
+      <View 
+        // @ts-ignore
         onClick={toggleCallout}
-        style={{ cursor: 'pointer', position: 'relative', display: 'flex', alignItems: 'center', justifyContent: 'center' }}
+        style={{ cursor: 'pointer', alignItems: 'center', position: 'relative' }}
       >
         {showCallout && callouts}
         {nonCallouts}
-      </div>
+      </View>
     </Overlay>
   );
 };
