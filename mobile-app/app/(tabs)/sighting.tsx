@@ -20,6 +20,7 @@ export default function SightingScreen() {
   const [locationCoords, setLocationCoords] = useState<{ latitude: number, longitude: number } | null>(null);
   const [description, setDescription] = useState<string>('');
   const [animals, setAnimals] = useState<PublicAnimal[]>([]);
+  const [searchQuery, setSearchQuery] = useState('');
   const [selectedAnimalId, setSelectedAnimalId] = useState<number | null>(null);
   const [loadingAnimals, setLoadingAnimals] = useState(true);
   const [isSubmitting, setIsSubmitting] = useState(false);
@@ -186,15 +187,17 @@ export default function SightingScreen() {
   const containerWidth = Math.min(width, 1200) - 40;
   const cols = Math.max(2, Math.floor(containerWidth / 97));
   const itemsPerPage = cols * 3;
-  const totalPages = Math.max(1, Math.ceil(animals.length / itemsPerPage));
-  const displayedAnimals = isDesktop ? animals.slice(catPage * itemsPerPage, (catPage + 1) * itemsPerPage) : animals;
+  
+  const filteredAnimals = animals.filter(a => a.nombre.toLowerCase().includes(searchQuery.toLowerCase()));
+  const totalPages = Math.max(1, Math.ceil(filteredAnimals.length / itemsPerPage));
+  const displayedAnimals = isDesktop ? filteredAnimals.slice(catPage * itemsPerPage, (catPage + 1) * itemsPerPage) : filteredAnimals;
 
   const handleNextPage = () => setCatPage(p => Math.min(totalPages - 1, p + 1));
   const handlePrevPage = () => setCatPage(p => Math.max(0, p - 1));
 
   useEffect(() => {
     setCatPage(0);
-  }, [isDesktop, animals.length, width]);
+  }, [isDesktop, filteredAnimals.length, width, searchQuery]);
 
   const warningBannerSection = (
     <View style={styles.warningBanner}>
@@ -311,6 +314,18 @@ export default function SightingScreen() {
   const animalSection = (
     <View style={styles.section}>
       <Text style={styles.sectionTitle}>¿Qué gato es?</Text>
+      
+      <View style={styles.searchContainer}>
+        <Ionicons name="search" size={20} color={Colors.dark.textSecondary} style={styles.searchIcon} />
+        <TextInput
+          style={styles.searchInput}
+          placeholder="Buscar gato..."
+          placeholderTextColor={Colors.dark.textSecondary}
+          value={searchQuery}
+          onChangeText={setSearchQuery}
+        />
+      </View>
+
       {loadingAnimals ? (
         <ActivityIndicator size="small" color={Colors.dark.accentOrange} />
       ) : isDesktop ? (
@@ -332,7 +347,7 @@ export default function SightingScreen() {
         </View>
       ) : (
         <ScrollView horizontal showsHorizontalScrollIndicator={false} contentContainerStyle={styles.animalList}>
-          {animals.map(animalCardComponent)}
+          {filteredAnimals.map(animalCardComponent)}
         </ScrollView>
       )}
       <View style={styles.hintBox}>
@@ -736,6 +751,25 @@ const styles = StyleSheet.create({
     borderColor: Colors.dark.borderColor,
     fontSize: 16,
     minHeight: 120,
+  },
+  searchContainer: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    backgroundColor: Colors.dark.bgPanel,
+    borderRadius: 16,
+    paddingHorizontal: 15,
+    marginBottom: 15,
+    borderWidth: 1,
+    borderColor: Colors.dark.borderColor,
+  },
+  searchIcon: {
+    marginRight: 10,
+  },
+  searchInput: {
+    flex: 1,
+    color: Colors.dark.textWhite,
+    fontSize: 16,
+    paddingVertical: 12,
   },
   animalList: {
     gap: 12,
