@@ -8,9 +8,20 @@ export const MapView = React.forwardRef((props: any, ref: any) => {
     : props.initialRegion 
     ? [props.initialRegion.latitude, props.initialRegion.longitude] 
     : [21.9135, -102.3164];
+
+  // Convierte latitudeDelta a zoom de pigeon-maps para igualar la escala nativa
+  const latDeltaToZoom = (latDelta: number): number => {
+    return Math.round(Math.log2(0.15 / latDelta)) + 11;
+  };
+
+  const initialZoom = props.initialRegion?.latitudeDelta
+    ? latDeltaToZoom(props.initialRegion.latitudeDelta)
+    : props.region?.latitudeDelta
+    ? latDeltaToZoom(props.region.latitudeDelta)
+    : 14;
     
   const [internalCenter, setInternalCenter] = useState<[number, number]>(initialCenter as [number, number]);
-  const [internalZoom, setInternalZoom] = useState<number>(16);
+  const [internalZoom, setInternalZoom] = useState<number>(initialZoom);
   const timeoutRef = useRef<any>(null);
 
   // Sincronizar cuando la 'region' externa cambia (ej. componente controlado en minimapas)
@@ -25,7 +36,7 @@ export const MapView = React.forwardRef((props: any, ref: any) => {
     animateToRegion: (region: any, duration?: number) => {
       const newCenter: [number, number] = [region.latitude, region.longitude];
       setInternalCenter(newCenter);
-      setInternalZoom(16);
+      setInternalZoom(region.latitudeDelta ? latDeltaToZoom(region.latitudeDelta) : initialZoom);
       if (props.onRegionChangeComplete) {
         props.onRegionChangeComplete(region);
       }

@@ -38,73 +38,51 @@ async function getAllAnimals() {
   }
 }
 
-// READ PUBLIC
+// READ PUBLIC — Cada avistamiento = un marcador en el mapa
 async function getAnimalsPublic() {
   try {
-    const animals = await prisma.animal.findMany({
-      select: {
-        idAnimal: true,
-        foto_url: true,
-        nombre: true,
-        estado: true,
-        colonia: {
-          select: { nombre: true }
-        },
-        avistamientos: {
-          orderBy: { createdAt: 'desc' },
-          take: 1,
-          select: { latitud: true, longitud: true }
-        }
-      }
-    });
-
-    const animalsResult = animals.map(animal => {
-      const ultimoAvistamiento = animal.avistamientos[0];
-      return {
-        id: animal.idAnimal,
-        tipo: 'animal',
-        foto_url: animal.foto_url,
-        nombre: animal.nombre,
-        estado: animal.estado,
-        colonia: animal.colonia.nombre,
-        coordenadas: ultimoAvistamiento ? {
-          latitud: ultimoAvistamiento.latitud,
-          longitud: ultimoAvistamiento.longitud
-        } : null
-      };
-    });
-
-    const avistamientosAnonimos = await prisma.avistamiento.findMany({
-      where: { animalId: null },
+    const avistamientos = await prisma.avistamiento.findMany({
       orderBy: { createdAt: 'desc' },
       select: {
         idAvistamiento: true,
         latitud: true,
         longitud: true,
         foto_url: true,
-        descripcion: true
+        descripcion: true,
+        animal: {
+          select: {
+            idAnimal: true,
+            nombre: true,
+            estado: true,
+            foto_url: true,
+            colonia: {
+              select: { nombre: true }
+            }
+          }
+        }
       }
     });
 
-    const anonimosResult = avistamientosAnonimos.map(av => ({
-      id: `av-${av.idAvistamiento}`,
-      tipo: 'avistamiento',
-      foto_url: av.foto_url,
-      nombre: av.descripcion ? av.descripcion.substring(0, 30) : 'Gato sin identificar',
-      estado: 'NoRegistrado',
-      colonia: 'Sin colonia',
-      coordenadas: {
-        latitud: av.latitud,
-        longitud: av.longitud
-      }
-    }));
-
-    return [...animalsResult, ...anonimosResult];
+    return avistamientos.map(av => {
+      const tieneAnimal = av.animal !== null;
+      return {
+        id: `av-${av.idAvistamiento}`,
+        foto_url: tieneAnimal ? av.animal.foto_url : av.foto_url,
+        nombre: tieneAnimal ? av.animal.nombre : (av.descripcion?.substring(0, 30) || 'Gato sin identificar'),
+        estado: tieneAnimal ? av.animal.estado : 'NoRegistrado',
+        colonia: tieneAnimal ? av.animal.colonia.nombre : 'Sin colonia',
+        coordenadas: {
+          latitud: av.latitud,
+          longitud: av.longitud
+        }
+      };
+    });
   } catch (error) {
     console.error("Error obteniendo animales públicos:", error);
     throw error;
   }
 }
+
 
 // READ ONE
 async function getAnimalById(id) {
