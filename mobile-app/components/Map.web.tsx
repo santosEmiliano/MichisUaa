@@ -1,5 +1,6 @@
 import React, { useState, useEffect, useRef } from 'react';
 import { View } from 'react-native';
+// @ts-ignore
 import { Map, Overlay } from 'pigeon-maps';
 
 export const MapView = React.forwardRef((props: any, ref: any) => {
@@ -76,10 +77,10 @@ export const MapView = React.forwardRef((props: any, ref: any) => {
         }}
       >
         {React.Children.map(props.children, (child: any) => {
-          if (React.isValidElement(child) && child.props.coordinate) {
+          if (React.isValidElement(child) && (child as any).props.coordinate) {
             return React.cloneElement(child, {
               // @ts-ignore
-              anchor: [child.props.coordinate.latitude, child.props.coordinate.longitude]
+              anchor: [(child as any).props.coordinate.latitude, (child as any).props.coordinate.longitude]
             });
           }
           return child;
@@ -116,7 +117,6 @@ export const Marker = (props: any) => {
 
   useEffect(() => {
     const handleClose = (e: any) => {
-      // If event was triggered by another marker (detail !== coordinate) or the map (detail === null)
       if (e.detail !== coordinate) {
         setShowCallout(false);
       }
