@@ -444,6 +444,13 @@ export const AvistamientoModal = ({ isOpen, onClose, onSuccess, avistamiento }: 
               </button>
             </>
           )}
+          <button
+            onClick={handleBorrarVerificacion}
+            disabled={isProcessing}
+            className="w-full sm:w-auto justify-center px-6 py-3 sm:py-2.5 rounded-xl border border-sidebar-separador text-main font-bold hover:text-main hover:bg-gris transition-all duration-200 flex items-center gap-2 disabled:opacity-50"
+          >
+            <Icons.Trash2 className="w-5 h-5" />
+          </button>
         </div>
       </div>
     </div>
