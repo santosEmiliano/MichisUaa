@@ -1,5 +1,5 @@
 import React, { useState, useEffect, useRef } from 'react';
-import { View } from 'react-native';
+import { View, Animated } from 'react-native';
 // @ts-ignore
 import { Map, Overlay } from 'pigeon-maps';
 
@@ -101,6 +101,8 @@ export const Callout = (props: any) => {
 
 export const Marker = (props: any) => {
   const [showCallout, setShowCallout] = useState(false);
+  const [renderCallout, setRenderCallout] = useState(false);
+  const animValue = useRef(new Animated.Value(0)).current;
   
   const { coordinate, onPress, children, left, top } = props;
   
@@ -109,24 +111,52 @@ export const Marker = (props: any) => {
   const toggleCallout = (e: any) => {
     if (e.stopPropagation) e.stopPropagation();
     const willShow = !showCallout;
+    
     if (willShow && typeof window !== 'undefined') {
       window.dispatchEvent(new CustomEvent('close-callouts', { detail: coordinate }));
     }
+    
     setShowCallout(willShow);
+    
+    if (willShow) {
+      setRenderCallout(true);
+      Animated.spring(animValue, {
+        toValue: 1,
+        friction: 6,
+        tension: 80,
+        useNativeDriver: true,
+      }).start();
+    } else {
+      Animated.timing(animValue, {
+        toValue: 0,
+        duration: 150,
+        useNativeDriver: true,
+      }).start(() => {
+        setRenderCallout(false);
+      });
+    }
+    
     if (onPress) onPress(e);
   };
 
   useEffect(() => {
     const handleClose = (e: any) => {
-      if (e.detail !== coordinate) {
+      if (e.detail !== coordinate && showCallout) {
         setShowCallout(false);
+        Animated.timing(animValue, {
+          toValue: 0,
+          duration: 150,
+          useNativeDriver: true,
+        }).start(() => {
+          setRenderCallout(false);
+        });
       }
     };
     if (typeof window !== 'undefined') {
       window.addEventListener('close-callouts', handleClose);
       return () => window.removeEventListener('close-callouts', handleClose);
     }
-  }, [coordinate]);
+  }, [coordinate, showCallout, animValue]);
 
   const childrenArray = React.Children.toArray(children);
   const callouts = childrenArray.filter((c: any) => c.type === Callout);
@@ -144,7 +174,20 @@ export const Marker = (props: any) => {
         onClick={toggleCallout}
         style={{ cursor: 'pointer', alignItems: 'center', position: 'relative' }}
       >
-        {showCallout && callouts}
+        {renderCallout && (
+          <Animated.View style={{ 
+            opacity: animValue, 
+            transform: [
+              { scale: animValue.interpolate({ inputRange: [0, 1], outputRange: [0.8, 1] }) },
+              { translateY: animValue.interpolate({ inputRange: [0, 1], outputRange: [10, 0] }) }
+            ],
+            position: 'absolute', 
+            bottom: 50, 
+            zIndex: 1000 
+          }}>
+            {callouts.map((c: any) => c.props.children)}
+          </Animated.View>
+        )}
         {nonCallouts}
       </View>
     </Overlay>

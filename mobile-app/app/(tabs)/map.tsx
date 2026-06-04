@@ -16,6 +16,26 @@ const UAA_REGION = {
   longitudeDelta: 0.015,
 };
 
+const AnimatedPin = ({ children, style }: any) => {
+  const scale = useRef(new Animated.Value(0)).current;
+
+  useEffect(() => {
+    Animated.spring(scale, {
+      toValue: 1,
+      friction: 6,
+      tension: 60,
+      useNativeDriver: true,
+    }).start();
+  }, []);
+
+  // Merge the scale transform with the necessary -45deg rotation for the pin shape
+  return (
+    <Animated.View style={[style, { transform: [{ scale }, { rotate: '-45deg' }] }]}>
+      {children}
+    </Animated.View>
+  );
+};
+
 export default function MapScreen() {
   const [location, setLocation] = useState<Location.LocationObject | null>(null);
   const [searchText, setSearchText] = useState('');
@@ -192,13 +212,12 @@ export default function MapScreen() {
 
     return (
       <Marker
-        key={`cluster-${id}`}
+        key={`cluster-${id}-${activeFilter}`}
         coordinate={{
           longitude: geometry.coordinates[0],
           latitude: geometry.coordinates[1],
         }}
         onPress={onPress}
-        tracksViewChanges={false}
       >
         <View style={styles.clusterContainer}>
           <Text style={styles.clusterText}>{points}</Text>
@@ -227,7 +246,7 @@ export default function MapScreen() {
           
           return (
             <Marker
-              key={`animal-${animal.id ?? animal.originalIndex}`}
+              key={`animal-${animal.id ?? animal.originalIndex}-${activeFilter}`}
               coordinate={{
                 latitude: Number(animal.coordenadas.latitud),
                 longitude: Number(animal.coordenadas.longitud),
@@ -236,7 +255,7 @@ export default function MapScreen() {
               anchor={{ x: 0.5, y: 1.2 }}
               centerOffset={{ x: 0, y: -20 }}
             >
-              <View style={[
+              <AnimatedPin style={[
                 styles.customMarker, 
                 { 
                   borderColor: statusColor,
@@ -250,7 +269,7 @@ export default function MapScreen() {
                     {animal.nombre?.charAt(0)?.toUpperCase() || '?'}
                   </Text>
                 )}
-              </View>
+              </AnimatedPin>
               <Callout tooltip>
                 <View style={[
                   styles.calloutContainer,
