@@ -6,6 +6,7 @@ export interface Coordenadas {
 }
 
 export interface AnimalPublic {
+  id: number | string;
   nombre: string;
   estado: string;
   foto_url: string | null;

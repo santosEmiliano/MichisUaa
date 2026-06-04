@@ -16,6 +16,26 @@ const UAA_REGION = {
   longitudeDelta: 0.015,
 };
 
+const AnimatedPin = ({ children, style }: any) => {
+  const scale = useRef(new Animated.Value(0)).current;
+
+  useEffect(() => {
+    Animated.spring(scale, {
+      toValue: 1,
+      friction: 6,
+      tension: 60,
+      useNativeDriver: true,
+    }).start();
+  }, []);
+
+  // Merge the scale transform with the necessary -45deg rotation for the pin shape
+  return (
+    <Animated.View style={[style, { transform: [{ scale }, { rotate: '-45deg' }] }]}>
+      {children}
+    </Animated.View>
+  );
+};
+
 export default function MapScreen() {
   const [location, setLocation] = useState<Location.LocationObject | null>(null);
   const [searchText, setSearchText] = useState('');
@@ -39,6 +59,8 @@ export default function MapScreen() {
   // Estados para los animales
   const [animals, setAnimals] = useState<AnimalPublic[]>([]);
   const [isLoading, setIsLoading] = useState(true);
+  // Fix Android: tracksViewChanges=false antes del primer layout deja marcadores en blanco
+  const [markersReady, setMarkersReady] = useState(false);
 
   const [mapRegion, setMapRegion] = useState(UAA_REGION);
 
@@ -112,6 +134,15 @@ export default function MapScreen() {
     fetchAnimals();
   }, []);
 
+  // Una vez cargados los animales, damos tiempo al mapa para
+  // dibujar los marcadores antes de congelar el tracking (fix Android)
+  useEffect(() => {
+    if (!isLoading && animals.length > 0) {
+      const t = setTimeout(() => setMarkersReady(true), 500);
+      return () => clearTimeout(t);
+    }
+  }, [isLoading, animals]);
+
   // Efecto para animar los filtros
   useEffect(() => {
     Animated.parallel([
@@ -130,16 +161,32 @@ export default function MapScreen() {
 
   // Filtros
   const filteredAnimals = useMemo(() => {
+    // Agrupar por coordenadas para separar solo los que están empalmados exactamente en el mismo lugar
+    const locationCounts: Record<string, number> = {};
+
     return animals
       .map((animal, index) => {
         let jitteredCoords = animal.coordenadas;
         if (animal.coordenadas) {
-          const offsetLat = Math.sin(index) * 0.000005;
-          const offsetLng = Math.cos(index) * 0.000005;
-          jitteredCoords = {
-            latitud: Number(animal.coordenadas.latitud) + offsetLat,
-            longitud: Number(animal.coordenadas.longitud) + offsetLng,
-          };
+          const locKey = `${animal.coordenadas.latitud},${animal.coordenadas.longitud}`;
+          const count = locationCounts[locKey] || 0;
+          locationCounts[locKey] = count + 1;
+          
+          if (count > 0) {
+            // A partir del segundo animal en la misma coordenada, los colocamos en un radio pequeño
+            const angle = (count * 137.5) * (Math.PI / 180); // Ángulo áureo para distribuirlos bien
+            const radius = 0.00006 * Math.sqrt(count); // Aprox 6 metros, crece si hay muchos
+            
+            jitteredCoords = {
+              latitud: Number(animal.coordenadas.latitud) + Math.sin(angle) * radius,
+              longitud: Number(animal.coordenadas.longitud) + Math.cos(angle) * radius,
+            };
+          } else {
+            jitteredCoords = {
+              latitud: Number(animal.coordenadas.latitud),
+              longitud: Number(animal.coordenadas.longitud),
+            };
+          }
         }
         return { ...animal, originalIndex: index, coordenadas: jitteredCoords };
       })
@@ -152,7 +199,7 @@ export default function MapScreen() {
         if (activeFilter === 'Todos') return true;
         if (activeFilter === 'Desaparecidos') return animal.estado === 'Desaparecido';
         if (activeFilter === 'No Registrados') return animal.estado === 'NoRegistrado';
-        if (activeFilter === 'Activos') return animal.estado !== 'Desaparecido' && animal.estado !== 'NoRegistrado';
+        if (activeFilter === 'Registrados') return animal.estado === 'Registrado';
 
         return true;
       });
@@ -165,16 +212,15 @@ export default function MapScreen() {
 
     return (
       <Marker
-        key={`cluster-${id}`}
+        key={`cluster-${id}-${activeFilter}`}
         coordinate={{
           longitude: geometry.coordinates[0],
           latitude: geometry.coordinates[1],
         }}
         onPress={onPress}
-        tracksViewChanges={false}
       >
         <View style={styles.clusterContainer}>
-          <Text style={styles.clusterText}>+{points} Grupo</Text>
+          <Text style={styles.clusterText}>{points}</Text>
         </View>
       </Marker>
     );
@@ -187,35 +233,51 @@ export default function MapScreen() {
         provider="google"
         style={styles.map}
         initialRegion={UAA_REGION}
+        minZoomLevel={14}
         onRegionChangeComplete={(region) => setMapRegion(region)}
         renderCluster={renderCluster}
         showsUserLocation={true}
         clusterColor="#F28C38"
       >
         {filteredAnimals.map((animal) => {
-          const statusColor = animal.estado === 'Verificado' ? '#4CAF50' : animal.estado === 'Desaparecido' ? '#F44336' : '#FF9800';
+          if (!animal.coordenadas) return null;
+
+          const statusColor = animal.estado === 'Registrado' ? '#4CAF50' : animal.estado === 'Desaparecido' ? '#F44336' : '#FF9800';
           
           return (
             <Marker
-              key={animal._id || `animal-${animal.originalIndex}`}
+              key={`animal-${animal.id ?? animal.originalIndex}-${activeFilter}`}
               coordinate={{
                 latitude: Number(animal.coordenadas.latitud),
                 longitude: Number(animal.coordenadas.longitud),
               }}
-              tracksViewChanges={false}
+              tracksViewChanges={!markersReady}
+              anchor={{ x: 0.5, y: 1.2 }}
+              centerOffset={{ x: 0, y: -20 }}
             >
-              <View style={[styles.customMarker, { borderColor: statusColor }]}>
-                {animal.foto ? (
-                  <Image source={{ uri: animal.foto }} style={styles.markerImage} />
+              <AnimatedPin style={[
+                styles.customMarker, 
+                { 
+                  borderColor: statusColor,
+                  backgroundColor: theme === 'dark' ? '#2A2A2A' : 'white'
+                }
+              ]}>
+                {animal.foto_url ? (
+                  <Image source={{ uri: animal.foto_url }} style={styles.markerImage} />
                 ) : (
-                  <Text style={styles.markerText}>{animal.nombre?.charAt(0) || '?'}</Text>
+                  <Text style={[styles.markerText, { color: theme === 'dark' ? '#AAA' : '#666' }]}>
+                    {animal.nombre?.charAt(0)?.toUpperCase() || '?'}
+                  </Text>
                 )}
-              </View>
+              </AnimatedPin>
               <Callout tooltip>
-                <View style={styles.calloutContainer}>
-                  {animal.foto && <Image source={{ uri: animal.foto }} style={styles.calloutImage} />}
-                  <Text style={styles.calloutTitle}>{animal.nombre}</Text>
-                  <Text style={styles.calloutText}>{animal.raza}</Text>
+                <View style={[
+                  styles.calloutContainer,
+                  { backgroundColor: theme === 'dark' ? '#1E1E1E' : 'white' }
+                ]}>
+                  {animal.foto_url && <Image source={{ uri: animal.foto_url }} style={styles.calloutImage} />}
+                  <Text style={[styles.calloutTitle, { color: colors.textMain }]}>{animal.nombre}</Text>
+                  <Text style={[styles.calloutText, { color: colors.textSecondary }]}>{animal.colonia}</Text>
                   <Text style={[styles.calloutStatus, { color: statusColor }]}>{animal.estado}</Text>
                 </View>
               </Callout>
@@ -272,7 +334,7 @@ export default function MapScreen() {
             justifyContent: (Platform.OS === 'web' && !isSmallScreen) ? 'center' : 'flex-start' 
           }}
         >
-          {['Todos', 'Activos', 'No Registrados', 'Desaparecidos'].map((filter) => (
+          {['Todos', 'Registrados', 'No Registrados', 'Desaparecidos'].map((filter) => (
             <TouchableOpacity
               key={filter}
               style={[
@@ -309,7 +371,7 @@ export default function MapScreen() {
       ]}>
         <View style={[styles.legendItem, Platform.OS === 'web' && { marginVertical: isSmallScreen ? 4 : 8 } as any]}>
           <View style={[styles.legendDot, { backgroundColor: '#4CAF50' }, Platform.OS === 'web' && { width: isSmallScreen ? 12 : 16, height: isSmallScreen ? 12 : 16, borderRadius: isSmallScreen ? 6 : 8, marginRight: 12 } as any]} />
-          <Text style={[styles.legendText, { color: colors.textMain }, Platform.OS === 'web' && { fontSize: isSmallScreen ? 13 : 16, fontWeight: '600' } as any]}>Verificado</Text>
+          <Text style={[styles.legendText, { color: colors.textMain }, Platform.OS === 'web' && { fontSize: isSmallScreen ? 13 : 16, fontWeight: '600' } as any]}>Registrado</Text>
         </View>
         <View style={[styles.legendItem, Platform.OS === 'web' && { marginVertical: isSmallScreen ? 4 : 8 } as any]}>
           <View style={[styles.legendDot, { backgroundColor: '#FF9800' }, Platform.OS === 'web' && { width: isSmallScreen ? 12 : 16, height: isSmallScreen ? 12 : 16, borderRadius: isSmallScreen ? 6 : 8, marginRight: 12 } as any]} />
@@ -444,24 +506,28 @@ const styles = StyleSheet.create({
     fontWeight: '500',
   },
   customMarker: {
-    width: 40,
-    height: 40,
-    borderRadius: 20,
+    width: 44,
+    height: 44,
+    borderRadius: 22,
+    borderBottomLeftRadius: 0,
     borderWidth: 3,
     backgroundColor: 'white',
     justifyContent: 'center',
     alignItems: 'center',
     overflow: 'hidden',
+    transform: [{ rotate: '-45deg' }],
   },
   markerImage: {
     width: '100%',
     height: '100%',
     resizeMode: 'cover',
+    transform: [{ rotate: '45deg' }],
   },
   markerText: {
     fontSize: 18,
     fontWeight: 'bold',
     color: '#666',
+    transform: [{ rotate: '45deg' }],
   },
   calloutContainer: {
     backgroundColor: 'white',
