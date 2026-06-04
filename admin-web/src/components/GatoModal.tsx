@@ -11,16 +11,24 @@ interface CatModalProps {
   catToEdit?: Cat | null;
 }
 
-export const GatoModal = ({ isOpen, onClose, onSuccess, catToEdit }: CatModalProps) => {
+export const GatoModal = ({
+  isOpen,
+  onClose,
+  onSuccess,
+  catToEdit,
+}: CatModalProps) => {
+  const [sexo, setSexo] = useState<"Macho" | "Hembra">("Hembra");
   const [esterilizado, setEsterilizado] = useState<boolean>(true);
   const [imagePreview, setImagePreview] = useState<string | null>(null);
   const [file, setFile] = useState<File | null>(null);
-  
+
   const [nombre, setNombre] = useState("");
   const [coloniaId, setColoniaId] = useState("");
   const [estado, setEstado] = useState("Registrado");
   const [fechaNac, setFechaNac] = useState("");
-  const [colonias, setColonias] = useState<{idColonia: number, nombre: string}[]>([]);
+  const [colonias, setColonias] = useState<
+    { idColonia: number; nombre: string }[]
+  >([]);
   const [loading, setLoading] = useState(false);
 
   useEffect(() => {
@@ -29,7 +37,7 @@ export const GatoModal = ({ isOpen, onClose, onSuccess, catToEdit }: CatModalPro
         try {
           const token = localStorage.getItem("token") || "";
           const res = await fetch("/michisuaa/api/colonies/", {
-            headers: { Authorization: `Bearer ${token}` }
+            headers: { Authorization: `Bearer ${token}` },
           });
           if (res.ok) {
             const data = await res.json();
@@ -39,7 +47,7 @@ export const GatoModal = ({ isOpen, onClose, onSuccess, catToEdit }: CatModalPro
           console.error("Error fetching colonias:", error);
           alertService.error(
             "No pudimos cargar las colonias disponibles. Intenta de nuevo más tarde.",
-            "Error de Carga"
+            "Error de Carga",
           );
         }
       };
@@ -48,7 +56,12 @@ export const GatoModal = ({ isOpen, onClose, onSuccess, catToEdit }: CatModalPro
       if (catToEdit) {
         setNombre(catToEdit.nombre);
         setColoniaId(catToEdit.coloniaId ? catToEdit.coloniaId.toString() : "");
-        setEstado(catToEdit.estado === "No Registrado" ? "NoRegistrado" : catToEdit.estado);
+        setEstado(
+          catToEdit.estado === "No Registrado"
+            ? "NoRegistrado"
+            : catToEdit.estado,
+        );
+        setSexo(catToEdit.genero || "Hembra");
         setFechaNac(catToEdit.fecha_nac || "");
         setEsterilizado(catToEdit.esterilizado);
         setImagePreview(catToEdit.fotoUrl || null);
@@ -57,6 +70,7 @@ export const GatoModal = ({ isOpen, onClose, onSuccess, catToEdit }: CatModalPro
         setNombre("");
         setColoniaId("");
         setEstado("Registrado");
+        setSexo("Hembra");
         setFechaNac("");
         setEsterilizado(true);
         setImagePreview(null);
@@ -65,13 +79,16 @@ export const GatoModal = ({ isOpen, onClose, onSuccess, catToEdit }: CatModalPro
     } else {
       // Avoid flickering on close
       setTimeout(() => {
-        setNombre("");
-        setColoniaId("");
-        setEstado("Registrado");
-        setFechaNac("");
-        setEsterilizado(true);
-        setImagePreview(null);
-        setFile(null);
+        if (!catToEdit) {
+          setNombre("");
+          setColoniaId("");
+          setEstado("Registrado");
+          setSexo("Hembra");
+          setFechaNac("");
+          setEsterilizado(true);
+          setImagePreview(null);
+          setFile(null);
+        }
       }, 200);
     }
   }, [isOpen, catToEdit]);
@@ -94,37 +111,41 @@ export const GatoModal = ({ isOpen, onClose, onSuccess, catToEdit }: CatModalPro
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     if (!nombre || !coloniaId) {
-      alertService.warning("El nombre y la colonia son obligatorios.", "Información Incompleta");
+      alertService.warning(
+        "El nombre y la colonia son obligatorios.",
+        "Información Incompleta",
+      );
       return;
     }
-    
+
     if (fechaNac) {
       // Necesitamos asegurar que comparemos correctamente las fechas sin problemas de zonas horarias
       const selectedDate = new Date(fechaNac + "T00:00:00");
       const today = new Date();
       today.setHours(0, 0, 0, 0); // Ignorar la hora actual para comparar solo el día
-      
+
       if (selectedDate > today) {
         alertService.warning(
           "La fecha de nacimiento no puede ser mayor a la fecha actual.",
-          "Fecha Inválida"
+          "Fecha Inválida",
         );
         return;
       }
     }
-    
+
     setLoading(true);
     try {
       const token = localStorage.getItem("token") || "";
       const formData = new FormData();
       formData.append("nombre", nombre);
       formData.append("Colonia_idColonia", coloniaId);
+      formData.append("sexo", sexo);
       formData.append("esterilizado", esterilizado.toString());
       formData.append("estado", estado);
       if (fechaNac) formData.append("fecha_nac", fechaNac);
       if (file) formData.append("foto", file);
 
-      const url = catToEdit 
+      const url = catToEdit
         ? `/michisuaa/api/animal/${catToEdit.id}`
         : "/michisuaa/api/animal/";
       const method = catToEdit ? "PUT" : "POST";
@@ -132,23 +153,30 @@ export const GatoModal = ({ isOpen, onClose, onSuccess, catToEdit }: CatModalPro
       const res = await fetch(url, {
         method,
         headers: { Authorization: `Bearer ${token}` },
-        body: formData
+        body: formData,
       });
 
-      if (!res.ok) throw new Error(catToEdit ? "Error al actualizar el gato" : "Error al registrar el gato");
-      
+      if (!res.ok)
+        throw new Error(
+          catToEdit
+            ? "Error al actualizar el gato"
+            : "Error al registrar el gato",
+        );
+
       alertService.success(
-        catToEdit ? "El gato ha sido actualizado correctamente." : "El gato ha sido registrado correctamente.",
-        catToEdit ? "Gato Actualizado" : "Gato Registrado"
+        catToEdit
+          ? "El gato ha sido actualizado correctamente."
+          : "El gato ha sido registrado correctamente.",
+        catToEdit ? "Gato Actualizado" : "Gato Registrado",
       );
-      
+
       onSuccess?.();
       onClose();
     } catch (error) {
       console.error("Error guardando gato:", error);
       alertService.error(
         "Ocurrió un problema al guardar la información del gato. Por favor, intenta de nuevo.",
-        "Error al Guardar"
+        "Error al Guardar",
       );
     } finally {
       setLoading(false);
@@ -168,9 +196,15 @@ export const GatoModal = ({ isOpen, onClose, onSuccess, catToEdit }: CatModalPro
         type="submit"
         form="gato-form"
         disabled={loading}
-        className={`px-6 py-2.5 rounded-xl border border-[#e8893c] bg-[var(--bg-active-item)] text-[#e8893c] font-bold hover:bg-[rgba(232,137,60,0.30)] hover:border-acento-naranja transition-all duration-200 ${loading ? 'opacity-50 cursor-not-allowed' : ''}`}
+        className={`px-6 py-2.5 rounded-xl border border-[#e8893c] bg-[var(--bg-active-item)] text-[#e8893c] font-bold hover:bg-[rgba(232,137,60,0.30)] hover:border-acento-naranja transition-all duration-200 ${loading ? "opacity-50 cursor-not-allowed" : ""}`}
       >
-        {loading ? (catToEdit ? 'Actualizando...' : 'Registrando...') : (catToEdit ? 'Guardar Cambios' : 'Registrar Gato')}
+        {loading
+          ? catToEdit
+            ? "Actualizando..."
+            : "Registrando..."
+          : catToEdit
+            ? "Guardar Cambios"
+            : "Registrar Gato"}
       </button>
     </div>
   );
@@ -189,11 +223,15 @@ export const GatoModal = ({ isOpen, onClose, onSuccess, catToEdit }: CatModalPro
           </label>
           <input
             type="text"
+            maxLength={80}
             value={nombre}
             onChange={(e) => setNombre(e.target.value)}
             placeholder="Ej. Manchas"
             className="w-full bg-gris border border-sidebar-separador rounded-xl px-4 py-3.5 text-main focus:outline-none focus:border-acento-naranja focus:bg-[rgba(232,137,60,0.05)] transition-all duration-200 placeholder-secondary hover:border-acento-naranja"
           />
+          <div className={`text-xs text-right mt-1 ${nombre.length >= 80 ? 'text-red-500 font-bold' : 'text-secondary'}`}>
+            {nombre.length} / 80
+          </div>
         </div>
 
         <div>
@@ -201,19 +239,27 @@ export const GatoModal = ({ isOpen, onClose, onSuccess, catToEdit }: CatModalPro
             Foto del Gato
           </label>
           <div className="relative flex flex-col items-center justify-center w-full h-32 bg-gris border-2 border-dashed border-sidebar-separador rounded-xl hover:border-acento-naranja hover:bg-[rgba(232,137,60,0.05)] transition-all duration-200 cursor-pointer group overflow-hidden">
-            <input 
-              type="file" 
+            <input
+              type="file"
               accept="image/*"
               className="absolute inset-0 w-full h-full opacity-0 cursor-pointer z-10"
               onChange={handleImageChange}
             />
             {imagePreview ? (
-              <img src={imagePreview} alt="Vista previa del gato" className="w-full h-full object-cover" />
+              <img
+                src={imagePreview}
+                alt="Vista previa del gato"
+                className="w-full h-full object-cover"
+              />
             ) : (
               <div className="flex flex-col items-center justify-center group-hover:text-acento-naranja transition-colors duration-200">
                 <Icons.ImagePlus className="w-8 h-8 text-secondary group-hover:text-acento-naranja mb-2 transition-colors duration-200" />
-                <span className="text-secondary group-hover:text-acento-naranja text-sm font-medium transition-colors duration-200">Haz clic para subir una imagen</span>
-                <span className="text-secondary/70 group-hover:text-acento-naranja/70 text-xs mt-1 transition-colors duration-200">PNG, JPG, GIF hasta 5MB</span>
+                <span className="text-secondary group-hover:text-acento-naranja text-sm font-medium transition-colors duration-200">
+                  Haz clic para subir una imagen
+                </span>
+                <span className="text-secondary/70 group-hover:text-acento-naranja/70 text-xs mt-1 transition-colors duration-200">
+                  PNG, JPG, GIF hasta 5MB
+                </span>
               </div>
             )}
           </div>
@@ -225,18 +271,50 @@ export const GatoModal = ({ isOpen, onClose, onSuccess, catToEdit }: CatModalPro
             <select
               value={coloniaId}
               onChange={(e) => setColoniaId(e.target.value)}
-              className="appearance-none w-full bg-gris border border-sidebar-separador text-secondary rounded-xl px-4 py-3 pr-10 focus:outline-none focus:border-acento-naranja focus:bg-[rgba(232,137,60,0.05)] hover:border-acento-naranja transition-all duration-200 cursor-pointer [&>option]:bg-gris [&>option]:text-main"
+              className="appearance-none w-full bg-gris border border-sidebar-separador text-secondary rounded-xl px-4 py-3 pr-10 focus:outline-none focus:border-acento-naranja focus:bg-[rgba(232,137,60,0.05)] hover:border-acento-naranja transition-all duration-200 cursor-pointer"
             >
-              <option value="" disabled>
+              <option value="" disabled className="bg-gris text-main">
                 Seleccionar colonia
               </option>
               {colonias.map((col) => (
-                <option key={col.idColonia} value={col.idColonia}>
+                <option
+                  key={col.idColonia}
+                  value={col.idColonia}
+                  className="bg-gris text-main"
+                >
                   {col.nombre}
                 </option>
               ))}
             </select>
             <Icons.ChevronDown className="absolute right-3 top-3.5 w-5 h-5 text-secondary pointer-events-none" />
+          </div>
+        </div>
+
+        <div>
+          <label className="block text-main font-bold mb-2">
+            Sexo
+          </label>
+          <div className="grid grid-cols-2 gap-4">
+            <div
+              onClick={() => setSexo("Macho")}
+              className={`cursor-pointer rounded-xl border p-4 text-center transition-all duration-200 ${
+                sexo === "Macho"
+                  ? "border-[#e8893c] bg-[rgba(232,137,60,0.18)]"
+                  : "border-sidebar-separador bg-gris hover:border-[#e8893c] hover:bg-[rgba(232,137,60,0.18)]"
+              }`}
+            >
+              <div className="font-bold text-base text-main">Macho</div>
+            </div>
+            <div
+              onClick={() => setSexo("Hembra")}
+              className={`cursor-pointer rounded-xl border p-4 text-center transition-all duration-200 ${
+                sexo === "Hembra"
+                  ? "border-[#e8893c] bg-[rgba(232,137,60,0.18)]"
+                  : "border-sidebar-separador bg-gris hover:border-[#e8893c] hover:bg-[rgba(232,137,60,0.18)]"
+              }`}
+            >
+              <div className="font-bold text-base text-main">Hembra</div>
+            </div>
           </div>
         </div>
 
@@ -274,21 +352,29 @@ export const GatoModal = ({ isOpen, onClose, onSuccess, catToEdit }: CatModalPro
             <select
               value={estado}
               onChange={(e) => setEstado(e.target.value)}
-              className="appearance-none w-full bg-gris border border-sidebar-separador text-secondary rounded-xl px-4 py-3 pr-10 focus:outline-none focus:border-acento-naranja focus:bg-[rgba(232,137,60,0.05)] hover:border-acento-naranja transition-all duration-200 cursor-pointer [&>option]:bg-gris [&>option]:text-main"
+              className="appearance-none w-full bg-gris border border-sidebar-separador text-secondary rounded-xl px-4 py-3 pr-10 focus:outline-none focus:border-acento-naranja focus:bg-[rgba(232,137,60,0.05)] hover:border-acento-naranja transition-all duration-200 cursor-pointer"
             >
-              <option value="Registrado">Registrado</option>
-              <option value="Desaparecido">Desaparecido</option>
-              <option value="NoRegistrado">No Registrado</option>
+              <option value="Registrado" className="bg-gris text-main">
+                Registrado
+              </option>
+              <option value="Desaparecido" className="bg-gris text-main">
+                Desaparecido
+              </option>
+              <option value="NoRegistrado" className="bg-gris text-main">
+                No Registrado
+              </option>
             </select>
             <Icons.ChevronDown className="absolute right-3 top-3.5 w-5 h-5 text-secondary pointer-events-none" />
           </div>
         </div>
 
         <div className="flex items-center justify-between pt-2">
-          <label className="block text-main font-bold">Fecha de Nacimiento (Aprox)</label>
+          <label className="block text-main font-bold">
+            Fecha de Nacimiento (Aprox)
+          </label>
           <input
             type="date"
-            max={new Date().toISOString().split('T')[0]}
+            max={new Date().toISOString().split("T")[0]}
             value={fechaNac}
             onChange={(e) => setFechaNac(e.target.value)}
             className="w-56 bg-gris border border-sidebar-separador rounded-xl px-4 py-3 text-secondary focus:outline-none focus:border-acento-naranja focus:bg-[rgba(232,137,60,0.05)] hover:border-acento-naranja transition-all duration-200"

@@ -1,7 +1,9 @@
-import { useState, useEffect } from "react";
-import { useLocation } from "react-router-dom";
+import { useState, useEffect, useCallback, useRef } from "react";
+import { useLocation, useNavigate } from "react-router-dom";
 import Icons from "./Icons";
 import { useTheme } from "../contexts/ThemeContext";
+import { notificationsApi } from "../services/notificationsApi";
+import type { NotificacionBackend, TipoNotificacion } from "../types/models";
 
 const routeTitles: Record<string, string> = {
   "/": "Dashboard",
@@ -12,7 +14,7 @@ const routeTitles: Record<string, string> = {
   "/usuarios": "Usuarios",
 };
 
-/* ── Notification types & mock data ── */
+/* ── Notification types & helpers ── */
 type NotifType = "sighting" | "alert" | "info" | "report";
 
 interface Notification {
@@ -21,6 +23,7 @@ interface Notification {
   time: string;
   type: NotifType;
   unread: boolean;
+  url: string | null;
 }
 
 const NOTIF_COLORS: Record<NotifType, string> = {
@@ -30,14 +33,40 @@ const NOTIF_COLORS: Record<NotifType, string> = {
   report:   "bg-badge-gris text-badge-gris border-badge-gris",
 };
 
-const mockNotifications: Notification[] = [
-  { id: 1, text: "Nuevo avistamiento en Ed. 108", time: "Hace 5 min",   type: "sighting", unread: true },
-  { id: 2, text: "Reporte mensual generado",      time: "Hace 20 min",  type: "report",   unread: true },
-  { id: 3, text: "Alerta de colonia UMD",         time: "Hace 1 hr",    type: "alert",    unread: true },
-  { id: 4, text: "Gato 'Michi' esterilizado",     time: "Hace 2 hrs",   type: "info",     unread: false },
-  { id: 5, text: "Nuevo avistamiento en Ed. 108",  time: "Hace 3 hrs",   type: "info",     unread: false },
-  { id: 6, text: "Reporte mensual generado",       time: "Hace 30 días", type: "alert",    unread: false },
-];
+const TIPO_MAP: Record<TipoNotificacion, NotifType> = {
+  avistamiento_nuevo: "sighting",
+  avistamiento_verificado: "sighting",
+  avistamiento_rechazado: "alert",
+  gato_desaparecido: "alert",
+  gato_nuevo: "info",
+  sistema: "info",
+};
+
+function timeAgo(dateStr: string): string {
+  const now = Date.now();
+  const then = new Date(dateStr).getTime();
+  const diffMs = now - then;
+  const mins = Math.floor(diffMs / 60000);
+
+  if (mins < 1) return "Ahora";
+  if (mins < 60) return `Hace ${mins} min`;
+  const hrs = Math.floor(mins / 60);
+  if (hrs < 24) return `Hace ${hrs} hr`;
+  const days = Math.floor(hrs / 24);
+  if (days < 30) return `Hace ${days} día${days > 1 ? "s" : ""}`;
+  return new Date(dateStr).toLocaleDateString("es-MX");
+}
+
+function mapNotificacion(n: NotificacionBackend): Notification {
+  return {
+    id: n.id,
+    text: n.titulo,
+    time: timeAgo(n.createdAt),
+    type: TIPO_MAP[n.tipo] || "info",
+    unread: !n.leida,
+    url: n.url,
+  };
+}
 
 /* ── Notification Panel Component ── */
 const NotificationPanel = ({
@@ -45,14 +74,18 @@ const NotificationPanel = ({
   onClose,
   notifications,
   onMarkAllRead,
+  onNotificationClick,
 }: {
   isOpen: boolean;
   onClose: () => void;
   notifications: Notification[];
   onMarkAllRead: () => void;
+  onNotificationClick: (notif: Notification) => void;
 }) => {
   const [shouldRender, setShouldRender] = useState(isOpen);
   const [isExiting, setIsExiting] = useState(false);
+  // Rastrear si el mousedown empezó en el overlay (fuera del panel)
+  const mouseDownOnOverlay = useRef(false);
 
   useEffect(() => {
     if (isOpen) {
@@ -76,21 +109,29 @@ const NotificationPanel = ({
 
   return (
     <>
-      {/* Backdrop */}
       <div
         className={`fixed inset-0 bg-black/40 z-40 transition-opacity duration-300 ${
           isExiting ? "opacity-0" : "opacity-100"
         }`}
-        onClick={handleClose}
+        onMouseDown={() => {
+          mouseDownOnOverlay.current = true;
+        }}
+        onClick={() => {
+          if (mouseDownOnOverlay.current) {
+            handleClose();
+          }
+          mouseDownOnOverlay.current = false;
+        }}
       />
 
-      {/* Panel */}
       <div
         className={`fixed top-0 right-0 h-full w-full max-w-sm z-50 flex flex-col border-l border-white/[0.08] shadow-2xl bg-card ${
           isExiting ? "animate-panel-out" : "animate-panel-in"
         }`}
+        onMouseDown={() => {
+          mouseDownOnOverlay.current = false;
+        }}
       >
-        {/* Header */}
         <div className="flex items-center justify-between px-6 py-5 border-b border-sidebar-separador">
           <h2 className="text-xl font-bold text-main">Notificaciones</h2>
           <button
@@ -101,13 +142,13 @@ const NotificationPanel = ({
           </button>
         </div>
 
-        {/* Notification list */}
         <div className="flex-1 overflow-y-auto px-4 py-4 space-y-2.5">
           {notifications.map((notif, i) => {
             const colorClass = NOTIF_COLORS[notif.type];
             return (
               <div
                 key={notif.id}
+                onClick={() => onNotificationClick(notif)}
                 className={`rounded-xl px-5 py-3.5 cursor-pointer transition-all duration-200 hover:brightness-110 hover:scale-[1.01] animate-row-in border ${colorClass}`}
                 style={{
                   animationDelay: `${i * 60}ms`,
@@ -130,7 +171,6 @@ const NotificationPanel = ({
           )}
         </div>
 
-        {/* Footer */}
         {notifications.length > 0 && (
           <div className="px-6 py-4 border-t border-sidebar-separador">
             <button
@@ -148,23 +188,66 @@ const NotificationPanel = ({
 
 const Header = ({ toggleSidebar }: { toggleSidebar?: () => void }) => {
   const location = useLocation();
+  const navigate = useNavigate();
   const { theme, toggleTheme } = useTheme();
   const [isNotifOpen, setIsNotifOpen] = useState(false);
-  const [notifications, setNotifications] = useState(mockNotifications);
+  const [notifications, setNotifications] = useState<Notification[]>([]);
+  const pollingRef = useRef<ReturnType<typeof setInterval> | null>(null);
+
+  const fetchNotifications = useCallback(async () => {
+    try {
+      const data = await notificationsApi.getAll();
+      setNotifications(data.map(mapNotificacion));
+    } catch {
+      // No pasa nada, dejamos que la info siga en el error
+    }
+  }, []);
+
+  useEffect(() => {
+    fetchNotifications();
+    pollingRef.current = setInterval(fetchNotifications, 30000);
+    return () => {
+      if (pollingRef.current) clearInterval(pollingRef.current);
+    };
+  }, [fetchNotifications]);
+
+  const handleMarkAllRead = useCallback(async () => {
+    try {
+      await notificationsApi.markAllAsRead();
+      setNotifications((prev) => prev.map((n) => ({ ...n, unread: false })));
+    } catch {
+      // Dejamos que valga maiz en silencio
+    }
+  }, []);
+
+  const handleNotificationClick = useCallback(
+    async (notif: Notification) => {
+      if (notif.unread) {
+        try {
+          await notificationsApi.markAsRead(notif.id);
+          setNotifications((prev) =>
+            prev.map((n) => (n.id === notif.id ? { ...n, unread: false } : n))
+          );
+        } catch {
+          // Tambien dejamos que valga maiz en silencio
+        }
+      }
+      if (notif.url) {
+        navigate(notif.url);
+        setIsNotifOpen(false);
+      }
+    },
+    [navigate]
+  );
 
   const isDashboard = location.pathname === "/";
   const currentTitle = routeTitles[location.pathname] || "Panel";
   const unreadCount = notifications.filter((n) => n.unread).length;
 
-  const handleMarkAllRead = () => {
-    setNotifications((prev) => prev.map((n) => ({ ...n, unread: false })));
-  };
-
   return (
     <>
       <header className="sticky top-0 z-20 px-4 py-4 lg:px-10 lg:py-5 flex flex-wrap items-center justify-between gap-y-4 gap-x-2 border-b border-panel bg-gris">
         
-        {/* Bloque Izquierdo/Superior: Ocupa 100% en celular (excepto en Dashboard) para separar título y badge */}
         <div className={`flex items-center justify-between sm:justify-start ${isDashboard ? 'w-auto' : 'w-full'} sm:w-auto shrink-0`}>
           <div className="flex items-center gap-2 lg:gap-3 shrink-0">
             {toggleSidebar && (
@@ -191,7 +274,6 @@ const Header = ({ toggleSidebar }: { toggleSidebar?: () => void }) => {
           />
         </div>
 
-        {/* Bloque Derecho/Inferior: Ocupa 100% centrado en celular (excepto en Dashboard), auto a la derecha en escritorio */}
         <div className={`flex items-center justify-center sm:justify-end gap-3 relative ${isDashboard ? 'w-auto' : 'w-full'} sm:w-auto ml-auto shrink-0`}>
           {isDashboard && (
             <button
@@ -238,6 +320,7 @@ const Header = ({ toggleSidebar }: { toggleSidebar?: () => void }) => {
         onClose={() => setIsNotifOpen(false)}
         notifications={notifications}
         onMarkAllRead={handleMarkAllRead}
+        onNotificationClick={handleNotificationClick}
       />
     </>
   );

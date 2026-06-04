@@ -52,6 +52,8 @@ function validateForm(
       errors.password = "La contraseña es obligatoria.";
     } else if (password.length < 6) {
       errors.password = "Mínimo 6 caracteres.";
+    } else if (/\s/.test(password)) {
+      errors.password = "No debe contener espacios.";
     } else if (!/[A-Z]/.test(password)) {
       errors.password = "Debe contener al menos una mayúscula.";
     } else if (!/[0-9]/.test(password)) {
@@ -61,6 +63,8 @@ function validateForm(
     if (password) {
       if (password.length < 6) {
         errors.password = "Mínimo 6 caracteres.";
+      } else if (/\s/.test(password)) {
+        errors.password = "No debe contener espacios.";
       } else if (!/[A-Z]/.test(password)) {
         errors.password = "Debe contener al menos una mayúscula.";
       } else if (!/[0-9]/.test(password)) {
@@ -305,11 +309,15 @@ export const UsuarioModal = ({ isOpen, onClose, userToEdit, onSuccess }: UserMod
           <label className="block text-main font-bold mb-2">Nombre Completo</label>
           <input
             type="text"
+            maxLength={90}
             value={nombre}
             onChange={(e) => handleChange(setNombre, "nombre", e.target.value)}
             placeholder="Ej. Julián Emmanuel"
             className={inputClass("nombre")}
           />
+          <div className={`text-xs text-right mt-1 ${nombre.length >= 90 ? 'text-red-500 font-bold' : 'text-secondary'}`}>
+            {nombre.length} / 90
+          </div>
           {fieldErrors.nombre && (
             <p className="text-xs text-red-400 mt-1.5">{fieldErrors.nombre}</p>
           )}
@@ -320,11 +328,15 @@ export const UsuarioModal = ({ isOpen, onClose, userToEdit, onSuccess }: UserMod
           <label className="block text-main font-bold mb-2">Email Institucional</label>
           <input
             type="email"
+            maxLength={80}
             value={email}
             onChange={(e) => handleChange(setEmail, "email", e.target.value)}
             placeholder="usuario@edu.uaa.mx"
             className={inputClass("email")}
           />
+          <div className={`text-xs text-right mt-1 ${email.length >= 80 ? 'text-red-500 font-bold' : 'text-secondary'}`}>
+            {email.length} / 80
+          </div>
           {fieldErrors.email && (
             <p className="text-xs text-red-400 mt-1.5">{fieldErrors.email}</p>
           )}
@@ -336,6 +348,7 @@ export const UsuarioModal = ({ isOpen, onClose, userToEdit, onSuccess }: UserMod
           <div className="relative">
             <input
               type={showPassword ? "text" : "password"}
+              maxLength={150}
               value={password}
               onChange={(e) => handleChange(setPassword, "password", e.target.value)}
               placeholder="••••••••"
@@ -348,6 +361,9 @@ export const UsuarioModal = ({ isOpen, onClose, userToEdit, onSuccess }: UserMod
             >
               {showPassword ? <Icons.EyeOff className="w-5 h-5" /> : <Icons.Eye className="w-5 h-5" />}
             </button>
+          </div>
+          <div className={`text-xs text-right mt-1 ${password.length >= 150 ? 'text-red-500 font-bold' : 'text-secondary'}`}>
+            {password.length} / 150
           </div>
           {/* Indicador de fortaleza */}
           {password && (
@@ -363,6 +379,10 @@ export const UsuarioModal = ({ isOpen, onClose, userToEdit, onSuccess }: UserMod
               </p>
             </div>
           )}
+          {/* Texto de requisitos siempre visible */}
+          <p className="text-xs text-secondary mt-2">
+            Mínimo 6 caracteres, una mayúscula, un número y sin espacios.
+          </p>
           {fieldErrors.password && (
             <p className="text-xs text-red-400 mt-1.5">{fieldErrors.password}</p>
           )}
@@ -374,6 +394,7 @@ export const UsuarioModal = ({ isOpen, onClose, userToEdit, onSuccess }: UserMod
           <div className="relative">
             <input
               type={showConfirm ? "text" : "password"}
+              maxLength={150}
               value={confirmPassword}
               onChange={(e) =>
                 handleChange(setConfirmPassword, "confirmPassword", e.target.value)
@@ -389,11 +410,17 @@ export const UsuarioModal = ({ isOpen, onClose, userToEdit, onSuccess }: UserMod
               {showConfirm ? <Icons.EyeOff className="w-5 h-5" /> : <Icons.Eye className="w-5 h-5" />}
             </button>
           </div>
-          {/* Icono de coincidencia */}
-          {confirmPassword && !fieldErrors.confirmPassword && (
+          <div className={`text-xs text-right mt-1 ${confirmPassword.length >= 150 ? 'text-red-500 font-bold' : 'text-secondary'}`}>
+            {confirmPassword.length} / 150
+          </div>
+          {/* Icono de coincidencia y advertencia dinámica */}
+          {confirmPassword && password && confirmPassword === password && (
             <p className="text-xs text-green-400 mt-1.5">✓ Las contraseñas coinciden</p>
           )}
-          {fieldErrors.confirmPassword && (
+          {confirmPassword && password && confirmPassword !== password && (
+            <p className="text-xs text-red-400 mt-1.5">Las contraseñas no coinciden</p>
+          )}
+          {fieldErrors.confirmPassword && (!confirmPassword || !password) && (
             <p className="text-xs text-red-400 mt-1.5">{fieldErrors.confirmPassword}</p>
           )}
         </div>

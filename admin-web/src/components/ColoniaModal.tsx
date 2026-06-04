@@ -110,11 +110,15 @@ export const ColoniaModal = ({
             id="colonia-name"
             type="text"
             required
+            maxLength={100}
             value={form.name}
             onChange={(e) => setForm((f) => ({ ...f, name: e.target.value }))}
             placeholder="Ej. Edificio 108"
             className={inputClass}
           />
+          <div className={`text-xs text-right mt-1 ${form.name.length >= 100 ? 'text-red-500 font-bold' : 'text-secondary'}`}>
+            {form.name.length} / 100
+          </div>
         </div>
 
         <div>
@@ -128,6 +132,7 @@ export const ColoniaModal = ({
             id="colonia-location"
             type="text"
             required
+            maxLength={150}
             value={form.location}
             onChange={(e) =>
               setForm((f) => ({ ...f, location: e.target.value }))
@@ -135,6 +140,9 @@ export const ColoniaModal = ({
             placeholder="Ej. Zona central - Ed. 108"
             className={inputClass}
           />
+          <div className={`text-xs text-right mt-1 ${form.location.length >= 150 ? 'text-red-500 font-bold' : 'text-secondary'}`}>
+            {form.location.length} / 150
+          </div>
         </div>
 
         <div>
@@ -148,6 +156,7 @@ export const ColoniaModal = ({
             id="colonia-desc"
             required
             rows={3}
+            maxLength={400}
             value={form.description}
             onChange={(e) =>
               setForm((f) => ({ ...f, description: e.target.value }))
@@ -155,6 +164,9 @@ export const ColoniaModal = ({
             placeholder="Breve descripción del área y contexto de la colonia."
             className={`${inputClass} resize-none`}
           />
+          <div className={`text-xs text-right mt-1 ${form.description.length >= 400 ? 'text-red-500 font-bold' : 'text-secondary'}`}>
+            {form.description.length} / 400
+          </div>
         </div>
 
         <div>

@@ -1,6 +1,12 @@
 const animalModel = require("../model/animals.model");
 const fileUtils = require("../utils/fileUpload");
+const prisma = require("../db/prisma");
 const API_URL = process.env.API_URL || "";
+const {
+    notificarGatoNuevo,
+    notificarGatoDesaparecido,
+    notificarGatoRecuperado
+} = require("../services/notificaciones.service");
 
 // GET ALL
 const getAnimals = async (req, res) => {
@@ -67,6 +73,20 @@ const createAnimal = async (req, res) => {
     }
 
     const newAnimal = await animalModel.createAnimal(req.body);
+
+    // Notificar en segundo plano
+    const colonia = await prisma.colonia.findUnique({
+        where: { idColonia: newAnimal.Colonia_idColonia }
+    })
+    const coloniaNombre = colonia?.nombre || 'Colonia desconocida'
+
+    if (newAnimal.estado === 'Desaparecido') {
+        notificarGatoDesaparecido(newAnimal, coloniaNombre)
+            .catch(err => console.error("Error al notificar gato desaparecido:", err))
+    } else {
+        notificarGatoNuevo(newAnimal, coloniaNombre)
+            .catch(err => console.error("Error al notificar gato nuevo:", err))
+    }
     
     return res.status(201).json({ 
       mensaje: "Animal registrado correctamente", 
@@ -125,6 +145,19 @@ const updateAnimal = async (req, res) => {
     }
 
     const updatedAnimal = await animalModel.updateAnimal(id, req.body);
+
+    // Notificar cambios de estado en segundo plano
+    if (req.body.estado !== undefined) {
+        const coloniaNombre = existingAnimal.colonia?.nombre || 'Colonia desconocida'
+
+        if (req.body.estado === 'Desaparecido' && existingAnimal.estado !== 'Desaparecido') {
+            notificarGatoDesaparecido(updatedAnimal, coloniaNombre)
+                .catch(err => console.error("Error al notificar gato desaparecido:", err))
+        } else if (req.body.estado !== 'Desaparecido' && existingAnimal.estado === 'Desaparecido') {
+            notificarGatoRecuperado(updatedAnimal, coloniaNombre)
+                .catch(err => console.error("Error al notificar gato recuperado:", err))
+        }
+    }
     
     return res.status(200).json({ 
       mensaje: "Animal actualizado correctamente", 
