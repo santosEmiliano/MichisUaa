@@ -1,4 +1,4 @@
-import React, { useState, useEffect, useCallback } from 'react';
+import React, { useState, useEffect, useCallback, useRef } from 'react';
 import { StyleSheet, View, Text, TouchableOpacity, ScrollView, SafeAreaView, Image, Alert, Modal, TextInput, ActivityIndicator, Platform, useWindowDimensions } from 'react-native';
 import { Ionicons } from '@expo/vector-icons';
 import Colors from '@/constants/Colors';
@@ -32,6 +32,21 @@ export default function SightingScreen() {
       setIsDesktopWeb(!isMobile);
     }
   }, []);
+
+  const scrollRef = useRef<ScrollView>(null);
+  const scrollOffset = useRef(0);
+
+  const handleScroll = (event: any) => {
+    scrollOffset.current = event.nativeEvent.contentOffset.x;
+  };
+
+  const scrollLeft = () => {
+    scrollRef.current?.scrollTo({ x: Math.max(0, scrollOffset.current - 250), animated: true });
+  };
+
+  const scrollRight = () => {
+    scrollRef.current?.scrollTo({ x: scrollOffset.current + 250, animated: true });
+  };
 
   const [isMapModalVisible, setMapModalVisible] = useState(false);
   const [tempRegion, setTempRegion] = useState<Region | null>(null);
@@ -346,9 +361,28 @@ export default function SightingScreen() {
           )}
         </View>
       ) : (
-        <ScrollView horizontal showsHorizontalScrollIndicator={false} contentContainerStyle={styles.animalList}>
-          {filteredAnimals.map(animalCardComponent)}
-        </ScrollView>
+        <View style={styles.mobileScrollWrapper}>
+          {isDesktopWeb && (
+            <TouchableOpacity style={styles.mobileScrollArrow} onPress={scrollLeft}>
+              <Ionicons name="chevron-back" size={24} color={Colors.dark.textWhite} />
+            </TouchableOpacity>
+          )}
+          <ScrollView 
+            ref={scrollRef}
+            horizontal 
+            showsHorizontalScrollIndicator={false} 
+            contentContainerStyle={styles.animalList}
+            onScroll={handleScroll}
+            scrollEventThrottle={16}
+          >
+            {filteredAnimals.map(animalCardComponent)}
+          </ScrollView>
+          {isDesktopWeb && (
+            <TouchableOpacity style={styles.mobileScrollArrow} onPress={scrollRight}>
+              <Ionicons name="chevron-forward" size={24} color={Colors.dark.textWhite} />
+            </TouchableOpacity>
+          )}
+        </View>
       )}
       <View style={styles.hintBox}>
         <Ionicons name="information-circle-outline" size={16} color={Colors.dark.accentOrange} />
@@ -774,6 +808,20 @@ const styles = StyleSheet.create({
   animalList: {
     gap: 12,
     paddingVertical: 5,
+  },
+  mobileScrollWrapper: {
+    flexDirection: 'row',
+    alignItems: 'center',
+  },
+  mobileScrollArrow: {
+    backgroundColor: Colors.dark.fondoGrisOscuro,
+    padding: 8,
+    borderRadius: 12,
+    marginHorizontal: 5,
+    borderWidth: 1,
+    borderColor: Colors.dark.borderColor,
+    justifyContent: 'center',
+    alignItems: 'center',
   },
   animalCard: {
     alignItems: 'center',
