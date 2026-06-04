@@ -16,7 +16,7 @@ const createUser = async (req, res) => {
     if (coincidencia) {
       return res
         .status(400)
-        .json({ message: "El correo ya esta vinculado a una cuenta" });
+        .json({ mensaje: "El correo ya está vinculado a una cuenta" });
     }
 
     const saltos = await bcrypt.genSalt(10);
@@ -46,13 +46,13 @@ const login = async (req, res) => {
     const user = await userModel.searchMail(email);
 
     if (!user) {
-      return res.status(400).json({ mensaje: "Credenciales incorrectas" });
+      return res.status(400).json({ mensaje: "El correo ingresado no se encuentra registrado." });
     }
 
     const passValida = await bcrypt.compare(password, user.password);
 
     if (!passValida) {
-      return res.status(400).json({ mensaje: `Constraseña incorrecta.` });
+      return res.status(400).json({ mensaje: "Contraseña incorrecta." });
     }
 
     const token = tokenfunctions.generateToken(user.idUsuario, user.admin);
@@ -103,6 +103,13 @@ const updateUser = async (req, res) => {
     }
 
     const data = { ...req.body };
+
+    if (data.email && data.email !== oldUser.email) {
+      const coincidencia = await userModel.occupied(data.email);
+      if (coincidencia) {
+        return res.status(400).json({ mensaje: "El correo ya está vinculado a otra cuenta" });
+      }
+    }
 
     if (data.password) {
       const saltos = await bcrypt.genSalt(10);

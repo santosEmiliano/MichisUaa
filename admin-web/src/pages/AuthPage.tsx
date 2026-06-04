@@ -90,10 +90,15 @@ const AuthPage = ({ onLogin }: AuthPageProps) => {
       alertService.success("Has iniciado sesión correctamente.", "¡Bienvenido!");
       onLogin();
     } catch (err: unknown) {
-      alertService.error(
-        err instanceof Error ? err.message : "Hubo un problema al iniciar sesión.",
-        "Error al iniciar sesión"
-      );
+      const msg = err instanceof Error ? err.message : "Hubo un problema al iniciar sesión.";
+      
+      if (msg.toLowerCase().includes("correo")) {
+        setFieldErrors({ ...errors, email: msg });
+      } else if (msg.toLowerCase().includes("contraseña") || msg.toLowerCase().includes("credenciales")) {
+        setFieldErrors({ ...errors, password: msg });
+      } else {
+        alertService.error(msg, "Error al iniciar sesión");
+      }
     } finally {
       setLoading(false);
     }

@@ -134,8 +134,9 @@ const UsuariosPage = () => {
       alertService.success("El usuario ha sido eliminado correctamente.", "Usuario Eliminado");
     } catch (error) {
       console.error("Error eliminando usuario:", error);
+      const msg = error instanceof Error ? error.message : "";
       alertService.error(
-        "No pudimos eliminar al usuario. Por favor, intenta de nuevo más tarde.",
+        msg || "No pudimos eliminar al usuario. Por favor, intenta de nuevo más tarde.",
         "Error al Eliminar"
       );
     }

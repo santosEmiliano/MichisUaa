@@ -175,11 +175,16 @@ const Colonias = () => {
       }
       // Recargar lista
       fetchColoniasYUsuarios();
-    } catch {
+    } catch (error) {
+      const msg = error instanceof Error ? error.message : "";
+      if (msg.toLowerCase().includes("existe") && msg.toLowerCase().includes("nombre")) {
+        throw error;
+      }
       alertService.error(
         "Ocurrió un problema al intentar guardar la colonia. Por favor, revisa la información e intenta de nuevo.",
         "Error al Guardar"
       );
+      throw error;
     }
   };
 
@@ -194,9 +199,10 @@ const Colonias = () => {
       await coloniesService.deleteColony(id);
       fetchColoniasYUsuarios();
       alertService.success("La colonia ha sido eliminada correctamente.", "Colonia Eliminada");
-    } catch {
+    } catch (error) {
+      const msg = error instanceof Error ? error.message : "";
       alertService.error(
-        "Ocurrió un problema al eliminar la colonia. Es posible que tenga gatos asociados.",
+        msg || "Ocurrió un problema al eliminar la colonia. Es posible que tenga gatos asociados.",
         "Error al Eliminar"
       );
     }

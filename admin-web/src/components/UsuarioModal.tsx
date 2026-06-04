@@ -248,10 +248,15 @@ export const UsuarioModal = ({ isOpen, onClose, userToEdit, onSuccess }: UserMod
       onSuccess?.();
       handleClose();
     } catch (err: unknown) {
-      alertService.error(
-        "Ocurrió un problema al guardar la información del usuario. Verifica los datos e intenta de nuevo.",
-        "Error al Guardar"
-      );
+      const msg = err instanceof Error ? err.message : "";
+      if (msg.toLowerCase().includes("correo") && msg.toLowerCase().includes("vinculado")) {
+        setFieldErrors({ ...errors, email: msg });
+      } else {
+        alertService.error(
+          "Ocurrió un problema al guardar la información del usuario. Verifica los datos e intenta de nuevo.",
+          "Error al Guardar"
+        );
+      }
     } finally {
       setLoading(false);
     }

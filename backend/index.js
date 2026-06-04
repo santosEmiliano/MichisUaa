@@ -45,6 +45,18 @@ app.get('/api/status', (req, res) => {
   });
 });
 
+// Middleware Global de Errores (Ej: Multer file size limit)
+app.use((err, req, res, next) => {
+  if (err) {
+    if (err.code === 'LIMIT_FILE_SIZE') {
+      return res.status(400).json({ mensaje: "La imagen es demasiado grande. El límite es 5MB." });
+    }
+    // Otros errores de multer o filtros
+    return res.status(400).json({ mensaje: err.message || "Ocurrió un error al procesar la petición." });
+  }
+  next();
+});
+
 // Importar configuración de Swagger
 const { swaggerDocs } = require('./swagger');
 

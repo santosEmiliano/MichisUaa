@@ -58,6 +58,9 @@ const registerColony = async (req, res) => {
     });
   } catch (error) {
     console.error("Error al crear colonia nueva:", error);
+    if (error.code === 'P2002') {
+      return res.status(400).json({ mensaje: "Ya existe una colonia con este nombre" });
+    }
     return res
       .status(500)
       .json({ mensaje: "Error al registrar la nueva colonia" });
@@ -85,6 +88,9 @@ const modifyColony = async (req, res) => {
     });
   } catch (error) {
     console.error("Error al actualizar colonia:", error);
+    if (error.code === 'P2002') {
+      return res.status(400).json({ mensaje: "Ya existe una colonia con este nombre" });
+    }
     return res.status(500).json({ mensaje: "Error al actualizar la colonia" });
   }
 };
