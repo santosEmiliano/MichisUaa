@@ -318,39 +318,47 @@ export default function RegisterScreen() {
               {/* Sección 3 — Destacada */}
               <View style={styles.termRow}>
                 <View style={[styles.termBadge, styles.termBadgeDanger]}><Text style={styles.termBadgeText}>3</Text></View>
-                <Text style={[styles.termSection, { color: colors.textMain }]}>Conductas prohibidas</Text>
+                <Text style={[styles.termSection, { color: colors.textMain }]}>Conductas prohibidas y sanciones</Text>
               </View>
               <View style={[styles.termWarningBox, { borderColor: 'rgba(232,137,60,0.3)', backgroundColor: 'rgba(232,137,60,0.07)' }]}>
                 <Text style={[styles.termText, { color: colors.textSecondary }]}>
                   Queda estrictamente prohibido:{`\n\n`}
-                  <Text style={{ color: colors.accentOrange }}>•</Text>{` Subir fotografías, datos personales o cualquier información identificable de cualquier persona —sea o no miembro de la universidad— sin su consentimiento explícito.\n\n`}
-                  <Text style={{ color: colors.accentOrange }}>•</Text>{` Publicar, compartir o almacenar contenido explícito, ilegal, ofensivo, discriminatorio o que atente contra la dignidad de cualquier persona.\n\n`}
-                  <Text style={{ color: colors.accentOrange }}>•</Text>{` Usar la plataforma con fines distintos al cuidado y monitoreo felino.\n\n`}
-                  <Text style={{ color: colors.accentOrange }}>•</Text>{` Suplantar identidades o crear cuentas falsas.`}
+                  <Text style={{ color: colors.accentOrange }}>•</Text>{` Subir contenido explícito, contenido ilegal, ofensivo o inapropiado para la red de una universidad. Al estar vinculado a tu correo institucional, cualquier infracción resultará en el borrado inmediato de tu cuenta y el reporte a las autoridades de la UAA para las acciones disciplinarias correspondientes.\n\n`}
+                  <Text style={{ color: colors.accentOrange }}>•</Text>{` Subir fotografías o datos de cualquier persona sin su consentimiento explícito.\n\n`}
+                  <Text style={{ color: colors.accentOrange }}>•</Text>{` Usar la plataforma con fines distintos al cuidado felino o suplantar identidades.`}
                 </Text>
               </View>
 
               {/* Sección 4 */}
               <View style={styles.termRow}>
                 <View style={styles.termBadge}><Text style={styles.termBadgeText}>4</Text></View>
-                <Text style={[styles.termSection, { color: colors.textMain }]}>Deslinde de responsabilidad</Text>
+                <Text style={[styles.termSection, { color: colors.textMain }]}>Canal de emergencias</Text>
               </View>
               <Text style={[styles.termText, { color: colors.textSecondary }]}>
-                El equipo de desarrollo y los administradores de MichisUAA no se hacen responsables del uso indebido que los usuarios hagan de la plataforma. Cualquier contenido publicado es responsabilidad exclusiva de quien lo genera. El incumplimiento de estos términos puede resultar en la suspensión inmediata de la cuenta y, de ser necesario, en el reporte a las autoridades universitarias competentes.
+                El contacto de Instagram proporcionado en la plataforma es única y exclusivamente para atender emergencias reales de las colonias. Queda estrictamente prohibido hacer mal uso de este canal, como enviar mensajes de broma, spam o asuntos irrelevantes.
               </Text>
 
               {/* Sección 5 */}
               <View style={styles.termRow}>
                 <View style={styles.termBadge}><Text style={styles.termBadgeText}>5</Text></View>
-                <Text style={[styles.termSection, { color: colors.textMain }]}>Privacidad de datos</Text>
+                <Text style={[styles.termSection, { color: colors.textMain }]}>Deslinde de responsabilidad</Text>
               </View>
               <Text style={[styles.termText, { color: colors.textSecondary }]}>
-                Los datos proporcionados al registrarse (nombre y correo institucional) se utilizarán únicamente para identificarte dentro de la plataforma. Los datos no serán comercializados ni compartidos con terceros ajenos al funcionamiento técnico de la plataforma.
+                El equipo de desarrollo y los administradores de MichisUAA no se hacen responsables del uso indebido que los usuarios hagan de la plataforma. Cualquier contenido publicado es responsabilidad exclusiva de quien lo genera.
               </Text>
 
               {/* Sección 6 */}
               <View style={styles.termRow}>
                 <View style={styles.termBadge}><Text style={styles.termBadgeText}>6</Text></View>
+                <Text style={[styles.termSection, { color: colors.textMain }]}>Privacidad de datos</Text>
+              </View>
+              <Text style={[styles.termText, { color: colors.textSecondary }]}>
+                Los datos proporcionados al registrarse se utilizarán únicamente para identificarte dentro de la plataforma. Los datos no serán comercializados ni compartidos con terceros ajenos al funcionamiento técnico.
+              </Text>
+
+              {/* Sección 7 */}
+              <View style={styles.termRow}>
+                <View style={styles.termBadge}><Text style={styles.termBadgeText}>7</Text></View>
                 <Text style={[styles.termSection, { color: colors.textMain }]}>Aceptación</Text>
               </View>
               <Text style={[styles.termText, { color: colors.textSecondary, marginBottom: 8 }]}>
