@@ -25,14 +25,14 @@ export const MapView = React.forwardRef((props: any, ref: any) => {
     animateToRegion: (region: any, duration?: number) => {
       const newCenter: [number, number] = [region.latitude, region.longitude];
       setInternalCenter(newCenter);
-      setInternalZoom(16); // Volvemos al zoom default al recentrar
+      setInternalZoom(16);
       if (props.onRegionChangeComplete) {
         props.onRegionChangeComplete(region);
       }
     }
   }));
 
-  // Notificamos a la app móvil cuando el usuario mueve el mapa web manualmente
+  // Notificamos a la app cuando el usuario mueve el mapa web manualmente
   const handleBoundsChanged = ({ center, zoom }: any) => {
     setInternalCenter(center);
     setInternalZoom(zoom);
@@ -48,7 +48,7 @@ export const MapView = React.forwardRef((props: any, ref: any) => {
       clearTimeout(timeoutRef.current);
       timeoutRef.current = setTimeout(() => {
         props.onRegionChangeComplete(regionObj);
-      }, 250); // Pequeño retraso para simular el "Complete" cuando deja de arrastrar
+      }, 250);
     }
   };
 
@@ -79,13 +79,16 @@ export const Callout = (props: any) => {
 
 export const Marker = (props: any) => {
   const [showCallout, setShowCallout] = useState(false);
-  const { coordinate, onPress, children, ...pigeonProps } = props;
+  
+  // Extraemos SOLO las props que usamos — nunca pasamos props de react-native-maps
+  // a pigeon-maps porque corrompen el anclado geográfico del Overlay.
+  const { coordinate, onPress, children } = props;
   
   if (!coordinate) return null;
   
   const toggleCallout = (e: any) => {
     if (e.stopPropagation) e.stopPropagation();
-    setShowCallout(!showCallout);
+    setShowCallout(prev => !prev);
     if (onPress) onPress(e);
   };
 
@@ -94,20 +97,21 @@ export const Marker = (props: any) => {
   const callouts = childrenArray.filter((c: any) => c.type === Callout);
   const nonCallouts = childrenArray.filter((c: any) => c.type !== Callout);
 
+  // offset: [x, y] — el punto (x,y) del overlay coincide con la coordenada del mapa.
+  // Para un marcador de 44×44px queremos anclar en la base-centro: [22, 44]
   return (
     <Overlay 
       anchor={[coordinate.latitude, coordinate.longitude]} 
-      offset={[17, 34]} 
-      {...pigeonProps}
+      offset={[22, 44]}
     >
-      <View 
-        // @ts-ignore - Propiedad de react-native-web
-        onClick={toggleCallout} 
-        style={{ cursor: 'pointer', alignItems: 'center', position: 'relative' }}
+      {/* @ts-ignore */}
+      <div
+        onClick={toggleCallout}
+        style={{ cursor: 'pointer', position: 'relative', display: 'flex', alignItems: 'center', justifyContent: 'center' }}
       >
         {showCallout && callouts}
         {nonCallouts}
-      </View>
+      </div>
     </Overlay>
   );
 };
