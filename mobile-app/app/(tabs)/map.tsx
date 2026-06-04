@@ -214,6 +214,7 @@ export default function MapScreen() {
         provider="google"
         style={styles.map}
         initialRegion={UAA_REGION}
+        minZoomLevel={14}
         onRegionChangeComplete={(region) => setMapRegion(region)}
         renderCluster={renderCluster}
         showsUserLocation={true}

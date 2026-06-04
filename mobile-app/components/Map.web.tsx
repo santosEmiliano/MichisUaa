@@ -66,7 +66,8 @@ export const MapView = React.forwardRef((props: any, ref: any) => {
     <View style={[{flex: 1, backgroundColor: '#f0f0f0'}, props.style]}>
       <Map 
         center={internalCenter} 
-        zoom={internalZoom} 
+        zoom={internalZoom}
+        minZoom={14}
         onBoundsChanged={handleBoundsChanged}
         mouseEvents={allowInteraction}
         touchEvents={allowInteraction}
