@@ -39,6 +39,7 @@ model Animal {
   idAnimal             Int          @id @default(autoincrement())
   Colonia_idColonia    Int
   nombre               String       @db.VarChar(80)
+  sexo                 String?      @db.VarChar(20)
   esterilizado         Boolean      @default(false) @db.TinyInt
   foto_url             String?      @db.VarChar(160)
   estado               EstadoAnimal @default(Registrado)
