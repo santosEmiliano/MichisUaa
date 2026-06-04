@@ -135,7 +135,7 @@ export const Marker = (props: any) => {
   return (
     <Overlay 
       anchor={[coordinate.latitude, coordinate.longitude]} 
-      offset={[17, 34]}
+      offset={[22, 53]}
       left={left}
       top={top}
     >

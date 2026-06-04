@@ -233,6 +233,8 @@ export default function MapScreen() {
                 longitude: Number(animal.coordenadas.longitud),
               }}
               tracksViewChanges={!markersReady}
+              anchor={{ x: 0.5, y: 1.2 }}
+              centerOffset={{ x: 0, y: -20 }}
             >
               <View style={[
                 styles.customMarker, 
