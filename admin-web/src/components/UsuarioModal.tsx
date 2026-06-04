@@ -406,7 +406,7 @@ export const UsuarioModal = ({ isOpen, onClose, userToEdit, onSuccess }: UserMod
             {confirmPassword.length} / 150
           </div>
           {/* Icono de coincidencia */}
-          {confirmPassword && !fieldErrors.confirmPassword && (
+          {confirmPassword && password && confirmPassword === password && (
             <p className="text-xs text-green-400 mt-1.5">✓ Las contraseñas coinciden</p>
           )}
           {fieldErrors.confirmPassword && (
