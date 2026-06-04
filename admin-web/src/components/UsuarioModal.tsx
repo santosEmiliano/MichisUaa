@@ -52,6 +52,8 @@ function validateForm(
       errors.password = "La contraseña es obligatoria.";
     } else if (password.length < 6) {
       errors.password = "Mínimo 6 caracteres.";
+    } else if (/\s/.test(password)) {
+      errors.password = "No debe contener espacios.";
     } else if (!/[A-Z]/.test(password)) {
       errors.password = "Debe contener al menos una mayúscula.";
     } else if (!/[0-9]/.test(password)) {
@@ -61,6 +63,8 @@ function validateForm(
     if (password) {
       if (password.length < 6) {
         errors.password = "Mínimo 6 caracteres.";
+      } else if (/\s/.test(password)) {
+        errors.password = "No debe contener espacios.";
       } else if (!/[A-Z]/.test(password)) {
         errors.password = "Debe contener al menos una mayúscula.";
       } else if (!/[0-9]/.test(password)) {
@@ -375,6 +379,10 @@ export const UsuarioModal = ({ isOpen, onClose, userToEdit, onSuccess }: UserMod
               </p>
             </div>
           )}
+          {/* Texto de requisitos siempre visible */}
+          <p className="text-xs text-secondary mt-2">
+            Mínimo 6 caracteres, una mayúscula, un número y sin espacios.
+          </p>
           {fieldErrors.password && (
             <p className="text-xs text-red-400 mt-1.5">{fieldErrors.password}</p>
           )}
@@ -405,11 +413,14 @@ export const UsuarioModal = ({ isOpen, onClose, userToEdit, onSuccess }: UserMod
           <div className={`text-xs text-right mt-1 ${confirmPassword.length >= 150 ? 'text-red-500 font-bold' : 'text-secondary'}`}>
             {confirmPassword.length} / 150
           </div>
-          {/* Icono de coincidencia */}
+          {/* Icono de coincidencia y advertencia dinámica */}
           {confirmPassword && password && confirmPassword === password && (
             <p className="text-xs text-green-400 mt-1.5">✓ Las contraseñas coinciden</p>
           )}
-          {fieldErrors.confirmPassword && (
+          {confirmPassword && password && confirmPassword !== password && (
+            <p className="text-xs text-red-400 mt-1.5">Las contraseñas no coinciden</p>
+          )}
+          {fieldErrors.confirmPassword && (!confirmPassword || !password) && (
             <p className="text-xs text-red-400 mt-1.5">{fieldErrors.confirmPassword}</p>
           )}
         </div>
