@@ -39,6 +39,8 @@ export default function MapScreen() {
   // Estados para los animales
   const [animals, setAnimals] = useState<AnimalPublic[]>([]);
   const [isLoading, setIsLoading] = useState(true);
+  // Fix Android: tracksViewChanges=false antes del primer layout deja marcadores en blanco
+  const [markersReady, setMarkersReady] = useState(false);
 
   const [mapRegion, setMapRegion] = useState(UAA_REGION);
 
@@ -111,6 +113,15 @@ export default function MapScreen() {
 
     fetchAnimals();
   }, []);
+
+  // Una vez cargados los animales, damos tiempo al mapa para
+  // dibujar los marcadores antes de congelar el tracking (fix Android)
+  useEffect(() => {
+    if (!isLoading && animals.length > 0) {
+      const t = setTimeout(() => setMarkersReady(true), 500);
+      return () => clearTimeout(t);
+    }
+  }, [isLoading, animals]);
 
   // Efecto para animar los filtros
   useEffect(() => {
@@ -196,33 +207,28 @@ export default function MapScreen() {
           if (!animal.coordenadas) return null;
 
           const statusColor = animal.estado === 'Verificado' ? '#4CAF50' : animal.estado === 'Desaparecido' ? '#F44336' : '#FF9800';
-          const isAnonymous = animal.tipo === 'avistamiento';
           
           return (
             <Marker
-              key={`marker-${animal.id}`}
+              key={`animal-${animal.id ?? animal.originalIndex}`}
               coordinate={{
                 latitude: Number(animal.coordenadas.latitud),
                 longitude: Number(animal.coordenadas.longitud),
               }}
-              tracksViewChanges={false}
+              tracksViewChanges={!markersReady}
             >
-              <View style={[
-                styles.customMarker,
-                { borderColor: statusColor },
-                isAnonymous && { borderStyle: 'dashed', backgroundColor: '#f5f5f5' }
-              ]}>
+              <View style={[styles.customMarker, { borderColor: statusColor }]}>
                 {animal.foto_url ? (
                   <Image source={{ uri: animal.foto_url }} style={styles.markerImage} />
                 ) : (
-                  <Text style={styles.markerText}>{isAnonymous ? '?' : (animal.nombre?.charAt(0) || '?')}</Text>
+                  <Text style={styles.markerText}>{animal.nombre?.charAt(0)?.toUpperCase() || '?'}</Text>
                 )}
               </View>
               <Callout tooltip>
                 <View style={styles.calloutContainer}>
                   {animal.foto_url && <Image source={{ uri: animal.foto_url }} style={styles.calloutImage} />}
                   <Text style={styles.calloutTitle}>{animal.nombre}</Text>
-                  <Text style={styles.calloutText}>{isAnonymous ? 'Avistamiento no identificado' : animal.colonia}</Text>
+                  <Text style={styles.calloutText}>{animal.colonia}</Text>
                   <Text style={[styles.calloutStatus, { color: statusColor }]}>{animal.estado}</Text>
                 </View>
               </Callout>
