@@ -201,7 +201,7 @@ export default function MapScreen() {
         tracksViewChanges={false}
       >
         <View style={styles.clusterContainer}>
-          <Text style={styles.clusterText}>+{points} Grupo</Text>
+          <Text style={styles.clusterText}>{points}</Text>
         </View>
       </Marker>
     );
@@ -222,7 +222,7 @@ export default function MapScreen() {
         {filteredAnimals.map((animal) => {
           if (!animal.coordenadas) return null;
 
-          const statusColor = animal.estado === 'Verificado' ? '#4CAF50' : animal.estado === 'Desaparecido' ? '#F44336' : '#FF9800';
+          const statusColor = animal.estado === 'Registrado' ? '#4CAF50' : animal.estado === 'Desaparecido' ? '#F44336' : '#FF9800';
           
           return (
             <Marker
@@ -312,7 +312,7 @@ export default function MapScreen() {
             justifyContent: (Platform.OS === 'web' && !isSmallScreen) ? 'center' : 'flex-start' 
           }}
         >
-          {['Todos', 'Verificados', 'No Registrados', 'Desaparecidos'].map((filter) => (
+          {['Todos', 'Registrados', 'No Registrados', 'Desaparecidos'].map((filter) => (
             <TouchableOpacity
               key={filter}
               style={[
@@ -349,7 +349,7 @@ export default function MapScreen() {
       ]}>
         <View style={[styles.legendItem, Platform.OS === 'web' && { marginVertical: isSmallScreen ? 4 : 8 } as any]}>
           <View style={[styles.legendDot, { backgroundColor: '#4CAF50' }, Platform.OS === 'web' && { width: isSmallScreen ? 12 : 16, height: isSmallScreen ? 12 : 16, borderRadius: isSmallScreen ? 6 : 8, marginRight: 12 } as any]} />
-          <Text style={[styles.legendText, { color: colors.textMain }, Platform.OS === 'web' && { fontSize: isSmallScreen ? 13 : 16, fontWeight: '600' } as any]}>Verificado</Text>
+          <Text style={[styles.legendText, { color: colors.textMain }, Platform.OS === 'web' && { fontSize: isSmallScreen ? 13 : 16, fontWeight: '600' } as any]}>Registrado</Text>
         </View>
         <View style={[styles.legendItem, Platform.OS === 'web' && { marginVertical: isSmallScreen ? 4 : 8 } as any]}>
           <View style={[styles.legendDot, { backgroundColor: '#FF9800' }, Platform.OS === 'web' && { width: isSmallScreen ? 12 : 16, height: isSmallScreen ? 12 : 16, borderRadius: isSmallScreen ? 6 : 8, marginRight: 12 } as any]} />
