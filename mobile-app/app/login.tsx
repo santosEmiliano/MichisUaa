@@ -1,8 +1,9 @@
-import { StyleSheet, View, Text, TextInput, TouchableOpacity, KeyboardAvoidingView, Platform, SafeAreaView, Image, useWindowDimensions } from 'react-native';
+import { StyleSheet, View, Text, TextInput, TouchableOpacity, KeyboardAvoidingView, Platform, SafeAreaView, Image, useWindowDimensions, Modal, Linking } from 'react-native';
 import Colors from '@/constants/Colors';
 import { useColorScheme } from '@/components/useColorScheme';
 import { useState } from 'react';
 import { router } from 'expo-router';
+import { Ionicons } from '@expo/vector-icons';
 
 // Servicios
 import { handleLogin } from '@/services/authApi';
@@ -30,6 +31,7 @@ export default function LoginScreen() {
 
   const [isRegistering, setIsRegistering] = useState(false);
   const [animating, setAnimating] = useState(false);
+  const [isHelpModalVisible, setHelpModalVisible] = useState(false);
 
   const toggleForm = () => {
     if (Platform.OS === 'web') {
@@ -207,23 +209,32 @@ export default function LoginScreen() {
                     </Text>
                   </TouchableOpacity>
 
-                  <TouchableOpacity 
-                    style={[
-                      styles.loginButton, 
-                      { backgroundColor: colors.accentOrange },
-                      Platform.OS === 'web' && {
-                        backgroundImage: 'linear-gradient(to right, #e8893c, #d8aa71)',
-                        boxShadow: '0 4px 14px 0 rgba(232, 137, 60, 0.39)',
-                      } as any,
-                      loading && { opacity: 0.7 }
-                    ]} 
-                    onPress={onLoginPress}
-                    disabled={loading}
-                  >
-                    <Text style={styles.loginButtonText}>
-                      {loading ? "Cargando..." : "Iniciar Sesión"}
-                    </Text>
-                  </TouchableOpacity>
+                  <View style={styles.loginActionRow}>
+                    <TouchableOpacity 
+                      style={[
+                        styles.loginButton, 
+                        { backgroundColor: colors.accentOrange, flex: 1 },
+                        Platform.OS === 'web' && {
+                          backgroundImage: 'linear-gradient(to right, #e8893c, #d8aa71)',
+                          boxShadow: '0 4px 14px 0 rgba(232, 137, 60, 0.39)',
+                        } as any,
+                        loading && { opacity: 0.7 }
+                      ]} 
+                      onPress={onLoginPress}
+                      disabled={loading}
+                    >
+                      <Text style={styles.loginButtonText}>
+                        {loading ? "Cargando..." : "Iniciar Sesión"}
+                      </Text>
+                    </TouchableOpacity>
+
+                    <TouchableOpacity 
+                      style={[styles.helpButton, { borderColor: colors.borderColor, backgroundColor: colorScheme === 'dark' ? colors.fondoGris : colors.fondoGrisOscuro }]}
+                      onPress={() => setHelpModalVisible(true)}
+                    >
+                      <Ionicons name="warning" size={24} color={colors.accentOrange} />
+                    </TouchableOpacity>
+                  </View>
                 </>
               )}
             </View>
@@ -242,6 +253,37 @@ export default function LoginScreen() {
 
         </View>
       </KeyboardAvoidingView>
+
+      <Modal
+        visible={isHelpModalVisible}
+        transparent={true}
+        animationType="fade"
+        onRequestClose={() => setHelpModalVisible(false)}
+      >
+        <View style={styles.modalOverlay}>
+          <View style={[styles.modalContent, { backgroundColor: colors.bgPanel, borderColor: colors.borderColor }]}>
+            <View style={styles.modalHeader}>
+              <Ionicons name="alert-circle" size={36} color={colors.accentOrange} style={styles.modalIcon} />
+              <Text style={[styles.modalTitle, { color: colors.textMain }]}>¿Necesitas ayuda urgente?</Text>
+            </View>
+            <Text style={[styles.modalText, { color: colors.textSecondary }]}>
+              Si te encuentras en una situación de emergencia o presentas algún problema, por favor comunícate directamente a nuestra cuenta de Instagram:
+            </Text>
+            <TouchableOpacity onPress={() => Linking.openURL('https://www.instagram.com/michis_uaa')}>
+              <Text style={[styles.instagramHandle, { color: colors.accentOrange }]}>
+                @michis_uaa
+              </Text>
+            </TouchableOpacity>
+            <TouchableOpacity 
+              style={[styles.modalCloseButton, { backgroundColor: colorScheme === 'dark' ? colors.fondoGris : colors.fondoGrisOscuro, borderColor: colors.borderColor }]}
+              onPress={() => setHelpModalVisible(false)}
+            >
+              <Text style={[styles.modalCloseText, { color: colors.textMain }]}>Cerrar</Text>
+            </TouchableOpacity>
+          </View>
+        </View>
+      </Modal>
+
     </SafeAreaView>
   );
 }
@@ -317,8 +359,71 @@ const styles = StyleSheet.create({
     fontSize: 17,
     fontWeight: 'bold',
   },
+  loginActionRow: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 12,
+  },
+  helpButton: {
+    height: 52,
+    width: 52,
+    borderRadius: 8,
+    borderWidth: 1,
+    justifyContent: 'center',
+    alignItems: 'center',
+  },
   footer: {
     flexDirection: 'row',
     alignItems: 'center',
+  },
+  modalOverlay: {
+    flex: 1,
+    backgroundColor: 'rgba(0, 0, 0, 0.7)',
+    justifyContent: 'center',
+    alignItems: 'center',
+    padding: 20,
+  },
+  modalContent: {
+    width: '100%',
+    maxWidth: 400,
+    borderRadius: 16,
+    borderWidth: 1,
+    padding: 24,
+    alignItems: 'center',
+  },
+  modalHeader: {
+    alignItems: 'center',
+    marginBottom: 16,
+  },
+  modalIcon: {
+    marginBottom: 12,
+  },
+  modalTitle: {
+    fontSize: 20,
+    fontWeight: 'bold',
+    textAlign: 'center',
+  },
+  modalText: {
+    fontSize: 16,
+    textAlign: 'center',
+    marginBottom: 16,
+    lineHeight: 24,
+  },
+  instagramHandle: {
+    fontSize: 18,
+    fontWeight: 'bold',
+    marginBottom: 24,
+  },
+  modalCloseButton: {
+    paddingVertical: 12,
+    paddingHorizontal: 24,
+    borderRadius: 8,
+    borderWidth: 1,
+    minWidth: 120,
+    alignItems: 'center',
+  },
+  modalCloseText: {
+    fontSize: 16,
+    fontWeight: '600',
   },
 });
