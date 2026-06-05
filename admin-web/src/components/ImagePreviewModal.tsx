@@ -13,6 +13,8 @@ interface ImagePreviewModalProps {
 export const ImagePreviewModal = ({ isOpen, imageUrl, onClose }: ImagePreviewModalProps) => {
   const [isClosing, setIsClosing] = useState(false);
   const onCloseRef = useRef(onClose);
+  // Rastrear si el mousedown empezó en el overlay (fuera del contenido)
+  const mouseDownOnOverlay = useRef(false);
 
   useEffect(() => {
     onCloseRef.current = onClose;
@@ -53,7 +55,17 @@ export const ImagePreviewModal = ({ isOpen, imageUrl, onClose }: ImagePreviewMod
       className={`fixed inset-0 flex items-center justify-center p-4 sm:p-8 md:p-12 bg-black/80 backdrop-blur-sm cursor-pointer ${isClosing ? "animate-overlay-out" : "animate-overlay-in"
         }`}
       style={{ zIndex: 9999 }}
-      onClick={handleClose}
+      onMouseDown={(e) => {
+        if (e.target === e.currentTarget) {
+          mouseDownOnOverlay.current = true;
+        }
+      }}
+      onClick={(e) => {
+        if (e.target === e.currentTarget && mouseDownOnOverlay.current) {
+          handleClose();
+        }
+        mouseDownOnOverlay.current = false;
+      }}
       role="presentation"
     >
       {/* Botón flotante para cerrar */}
@@ -72,7 +84,9 @@ export const ImagePreviewModal = ({ isOpen, imageUrl, onClose }: ImagePreviewMod
       <div
         className={`relative flex items-center justify-center max-w-full max-h-full ${isClosing ? "animate-modal-out" : "animate-modal-in"
           }`}
-        onClick={(e) => e.stopPropagation()}
+        onMouseDown={() => {
+          mouseDownOnOverlay.current = false;
+        }}
       >
         {imageUrl && (
           <img
@@ -86,3 +100,4 @@ export const ImagePreviewModal = ({ isOpen, imageUrl, onClose }: ImagePreviewMod
     document.body
   );
 };
+

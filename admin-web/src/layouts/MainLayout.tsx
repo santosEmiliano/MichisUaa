@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useState, useRef } from "react";
 import { Outlet } from "react-router-dom";
 import Sidebar from "../components/Sidebar";
 import Header from "../components/Header";
@@ -6,6 +6,8 @@ import Header from "../components/Header";
 const MainLayout = () => {
   const [isSidebarOpen, setIsSidebarOpen] = useState(false);
   const toggleSidebar = () => setIsSidebarOpen((prev) => !prev);
+  // Rastrear si el mousedown empezó en el overlay (fuera del sidebar)
+  const mouseDownOnOverlay = useRef(false);
 
   return (
     <div className="h-screen flex overflow-hidden bg-main text-main">
@@ -21,7 +23,15 @@ const MainLayout = () => {
       {isSidebarOpen && (
         <div
           className="fixed inset-0 z-30 lg:hidden bg-overlay"
-          onClick={toggleSidebar}
+          onMouseDown={() => {
+            mouseDownOnOverlay.current = true;
+          }}
+          onClick={() => {
+            if (mouseDownOnOverlay.current) {
+              toggleSidebar();
+            }
+            mouseDownOnOverlay.current = false;
+          }}
         />
       )}
     </div>
@@ -29,3 +39,4 @@ const MainLayout = () => {
 };
 
 export default MainLayout;
+

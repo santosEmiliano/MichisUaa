@@ -1,5 +1,6 @@
 import React, { useState, useEffect, useRef } from 'react';
-import { View } from 'react-native';
+import { View, Animated } from 'react-native';
+// @ts-ignore
 import { Map, Overlay } from 'pigeon-maps';
 
 export const MapView = React.forwardRef((props: any, ref: any) => {
@@ -8,31 +9,38 @@ export const MapView = React.forwardRef((props: any, ref: any) => {
     : props.initialRegion 
     ? [props.initialRegion.latitude, props.initialRegion.longitude] 
     : [21.9135, -102.3164];
+
+  const latDeltaToZoom = (latDelta: number): number => {
+    return Math.round(Math.log2(0.15 / latDelta)) + 11;
+  };
+
+  const initialZoom = props.initialRegion?.latitudeDelta
+    ? latDeltaToZoom(props.initialRegion.latitudeDelta)
+    : props.region?.latitudeDelta
+    ? latDeltaToZoom(props.region.latitudeDelta)
+    : 14;
     
   const [internalCenter, setInternalCenter] = useState<[number, number]>(initialCenter as [number, number]);
-  const [internalZoom, setInternalZoom] = useState<number>(16);
+  const [internalZoom, setInternalZoom] = useState<number>(initialZoom);
   const timeoutRef = useRef<any>(null);
 
-  // Sincronizar cuando la 'region' externa cambia (ej. componente controlado en minimapas)
   useEffect(() => {
     if (props.region) {
       setInternalCenter([props.region.latitude, props.region.longitude]);
     }
   }, [props.region?.latitude, props.region?.longitude]);
 
-  // Simulamos la API nativa de react-native-maps para que el botón de recentrar funcione en web
   React.useImperativeHandle(ref, () => ({
     animateToRegion: (region: any, duration?: number) => {
       const newCenter: [number, number] = [region.latitude, region.longitude];
       setInternalCenter(newCenter);
-      setInternalZoom(16); // Volvemos al zoom default al recentrar
+      setInternalZoom(region.latitudeDelta ? latDeltaToZoom(region.latitudeDelta) : initialZoom);
       if (props.onRegionChangeComplete) {
         props.onRegionChangeComplete(region);
       }
     }
   }));
 
-  // Notificamos a la app móvil cuando el usuario mueve el mapa web manualmente
   const handleBoundsChanged = ({ center, zoom }: any) => {
     setInternalCenter(center);
     setInternalZoom(zoom);
@@ -48,7 +56,7 @@ export const MapView = React.forwardRef((props: any, ref: any) => {
       clearTimeout(timeoutRef.current);
       timeoutRef.current = setTimeout(() => {
         props.onRegionChangeComplete(regionObj);
-      }, 250); // Pequeño retraso para simular el "Complete" cuando deja de arrastrar
+      }, 250);
     }
   };
 
@@ -58,12 +66,26 @@ export const MapView = React.forwardRef((props: any, ref: any) => {
     <View style={[{flex: 1, backgroundColor: '#f0f0f0'}, props.style]}>
       <Map 
         center={internalCenter} 
-        zoom={internalZoom} 
+        zoom={internalZoom}
+        minZoom={14}
         onBoundsChanged={handleBoundsChanged}
         mouseEvents={allowInteraction}
         touchEvents={allowInteraction}
+        onClick={() => {
+          if (typeof window !== 'undefined') {
+            window.dispatchEvent(new CustomEvent('close-callouts', { detail: null }));
+          }
+        }}
       >
-        {props.children}
+        {React.Children.map(props.children, (child: any) => {
+          if (React.isValidElement(child) && (child as any).props.coordinate) {
+            return React.cloneElement(child, {
+              // @ts-ignore
+              anchor: [(child as any).props.coordinate.latitude, (child as any).props.coordinate.longitude]
+            });
+          }
+          return child;
+        })}
       </Map>
     </View>
   );
@@ -79,17 +101,63 @@ export const Callout = (props: any) => {
 
 export const Marker = (props: any) => {
   const [showCallout, setShowCallout] = useState(false);
-  const { coordinate, onPress, children, ...pigeonProps } = props;
+  const [renderCallout, setRenderCallout] = useState(false);
+  const animValue = useRef(new Animated.Value(0)).current;
+  
+  const { coordinate, onPress, children, left, top } = props;
   
   if (!coordinate) return null;
   
   const toggleCallout = (e: any) => {
     if (e.stopPropagation) e.stopPropagation();
-    setShowCallout(!showCallout);
+    const willShow = !showCallout;
+    
+    if (willShow && typeof window !== 'undefined') {
+      window.dispatchEvent(new CustomEvent('close-callouts', { detail: coordinate }));
+    }
+    
+    setShowCallout(willShow);
+    
+    if (willShow) {
+      setRenderCallout(true);
+      Animated.spring(animValue, {
+        toValue: 1,
+        friction: 6,
+        tension: 80,
+        useNativeDriver: true,
+      }).start();
+    } else {
+      Animated.timing(animValue, {
+        toValue: 0,
+        duration: 150,
+        useNativeDriver: true,
+      }).start(() => {
+        setRenderCallout(false);
+      });
+    }
+    
     if (onPress) onPress(e);
   };
 
-  // Separar los hijos que son Callouts de los que son la vista normal del marcador
+  useEffect(() => {
+    const handleClose = (e: any) => {
+      if (e.detail !== coordinate && showCallout) {
+        setShowCallout(false);
+        Animated.timing(animValue, {
+          toValue: 0,
+          duration: 150,
+          useNativeDriver: true,
+        }).start(() => {
+          setRenderCallout(false);
+        });
+      }
+    };
+    if (typeof window !== 'undefined') {
+      window.addEventListener('close-callouts', handleClose);
+      return () => window.removeEventListener('close-callouts', handleClose);
+    }
+  }, [coordinate, showCallout, animValue]);
+
   const childrenArray = React.Children.toArray(children);
   const callouts = childrenArray.filter((c: any) => c.type === Callout);
   const nonCallouts = childrenArray.filter((c: any) => c.type !== Callout);
@@ -97,23 +165,35 @@ export const Marker = (props: any) => {
   return (
     <Overlay 
       anchor={[coordinate.latitude, coordinate.longitude]} 
-      offset={[17, 34]} 
-      {...pigeonProps}
+      offset={[22, 53]}
+      left={left}
+      top={top}
     >
       <View 
-        // @ts-ignore - Propiedad de react-native-web
-        onClick={toggleCallout} 
+        // @ts-ignore
+        onClick={toggleCallout}
         style={{ cursor: 'pointer', alignItems: 'center', position: 'relative' }}
       >
-        {showCallout && callouts}
+        {renderCallout && (
+          <Animated.View style={{ 
+            opacity: animValue, 
+            transform: [
+              { scale: animValue.interpolate({ inputRange: [0, 1], outputRange: [0.8, 1] }) },
+              { translateY: animValue.interpolate({ inputRange: [0, 1], outputRange: [10, 0] }) }
+            ],
+            position: 'absolute', 
+            bottom: 50, 
+            zIndex: 1000 
+          }}>
+            {callouts.map((c: any) => c.props.children)}
+          </Animated.View>
+        )}
         {nonCallouts}
       </View>
     </Overlay>
   );
 };
 
-// Evitamos la librería de clustering porque tiene dependencias nativas internas.
-// En su lugar, usamos el MapView normal como un "fallback" transparente.
 export const MapClustering = React.forwardRef((props: any, ref: any) => {
   return <MapView ref={ref} {...props}>{props.children}</MapView>;
 });
