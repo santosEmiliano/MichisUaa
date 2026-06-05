@@ -1,12 +1,6 @@
-  import { Platform, Alert } from 'react-native';
-  
-  // Función para mostrar alertas compatibles con Web y Móvil
-  const showAlert = (title: string, message: string) => {
-    if (Platform.OS === "web") {
-      alert(`${title}\n${message}`);
-    } else {
-      Alert.alert(title, message);
-    }
-  };
+// Este archivo ha sido deprecado a favor del nuevo alertService global.
+// Por favor, usa import { alertService } from '@/services/alertService';
 
-  export { showAlert };
+export const showAlert = (title: string, message: string) => {
+  console.warn("showAlert está deprecado, usa alertService en su lugar.");
+};

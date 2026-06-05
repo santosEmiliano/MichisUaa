@@ -3,6 +3,7 @@ import { StyleSheet, View, Text, TouchableOpacity, ScrollView, SafeAreaView, Ima
 import { Ionicons } from '@expo/vector-icons';
 import Colors from '@/constants/Colors';
 import { router, useFocusEffect } from 'expo-router';
+import { alertService } from '@/services/alertService';
 import * as ImagePicker from 'expo-image-picker';
 import * as Location from 'expo-location';
 import type { Region } from 'react-native-maps';
@@ -78,6 +79,7 @@ export default function SightingScreen() {
         let { status } = await Location.requestForegroundPermissionsAsync();
         if (status !== 'granted') {
           setLocationName('Permiso de GPS denegado');
+          alertService.warning("GPS requerido", "MichisUAA necesita tu ubicación para registrar el avistamiento. Por favor, habilita el acceso al GPS en la configuración de tu dispositivo.");
           return;
         }
 
@@ -90,6 +92,7 @@ export default function SightingScreen() {
           await performReverseGeocode(location.coords.latitude, location.coords.longitude);
         } catch (error) {
           setLocationName('Error al obtener ubicación');
+          alertService.error("Error de ubicación", "No pudimos obtener tu ubicación actual. Asegúrate de tener el GPS encendido e inténtalo de nuevo.");
         }
 
         try {
@@ -97,13 +100,37 @@ export default function SightingScreen() {
           setAnimals(data);
         } catch (error) {
           console.error("Error fetching animals", error);
-          Alert.alert("Error", "No pudimos cargar la lista de gatos. Verifica tu conexión.");
+          alertService.error("Error", "No pudimos cargar la lista de gatos. Verifica tu conexión.");
         } finally {
           setLoadingAnimals(false);
         }
       })();
     }, [])
   );
+
+  const handleImageResult = (result: ImagePicker.ImagePickerResult) => {
+    if (!result.canceled && result.assets && result.assets.length > 0) {
+      const asset = result.assets[0];
+      
+      // Validar formato en móvil
+      if (Platform.OS !== 'web') {
+        const uriParts = asset.uri.split('.');
+        const fileType = uriParts[uriParts.length - 1].toLowerCase();
+        if (!['jpg', 'jpeg', 'png', 'webp'].includes(fileType)) {
+          alertService.warning('Formato no válido', 'Solo se permiten imágenes en formato JPG, PNG o WEBP.');
+          return;
+        }
+      }
+      
+      // Validar tamaño si está disponible (límite de 5MB)
+      if (asset.fileSize && asset.fileSize > 5 * 1024 * 1024) {
+        alertService.warning('Imagen demasiado pesada', 'La imagen seleccionada supera el límite de 5MB. Por favor, elige una más ligera o baja la resolución de tu cámara.');
+        return;
+      }
+      
+      setImageUri(asset.uri);
+    }
+  };
 
   const pickImage = async () => {
     let result = await ImagePicker.launchImageLibraryAsync({
@@ -113,16 +140,14 @@ export default function SightingScreen() {
       quality: 0.8,
     });
 
-    if (!result.canceled) {
-      setImageUri(result.assets[0].uri);
-    }
+    handleImageResult(result);
   };
 
   const handleCameraPress = async () => {
     const permissionResult = await ImagePicker.requestCameraPermissionsAsync();
     
     if (permissionResult.granted === false) {
-      Alert.alert('Permiso denegado', 'Se requiere acceso a la cámara para tomar una foto.');
+      alertService.warning('Permiso denegado', 'Se requiere acceso a la cámara para tomar una foto.');
       return;
     }
 
@@ -133,9 +158,7 @@ export default function SightingScreen() {
       quality: 0.8,
     });
 
-    if (!result.canceled) {
-      setImageUri(result.assets[0].uri);
-    }
+    handleImageResult(result);
   };
 
   const openMapModal = () => {
@@ -147,7 +170,7 @@ export default function SightingScreen() {
       });
       setMapModalVisible(true);
     } else {
-      Alert.alert('Espera', 'Aún estamos obteniendo tu ubicación inicial.');
+      alertService.info('Espera', 'Aún estamos obteniendo tu ubicación inicial.');
     }
   };
 
@@ -169,11 +192,11 @@ export default function SightingScreen() {
 
   const handleSubmit = async () => {
     if (!imageUri) {
-      Alert.alert('Falta la foto', 'Es obligatorio subir una foto del gato.');
+      alertService.warning('Falta la foto', 'Es obligatorio subir una foto del gato.');
       return;
     }
     if (!locationCoords) {
-      Alert.alert('Falta la ubicación', 'Estamos obteniendo tu ubicación, por favor espera un momento.');
+      alertService.info('Falta la ubicación', 'Estamos obteniendo tu ubicación, por favor espera un momento.');
       return;
     }
 
@@ -187,14 +210,14 @@ export default function SightingScreen() {
         fotoUri: imageUri,
       });
 
-      Alert.alert('¡Gracias!', 'El avistamiento ha sido reportado con éxito.');
+      alertService.success('¡Avistamiento enviado!', 'Tu reporte se mandó correctamente. Un administrador lo verificará pronto. ¡Muchas gracias por tu ayuda!');
       
       setImageUri(null);
       setDescription('');
       setSelectedAnimalId(null);
       
     } catch (error) {
-      Alert.alert('Error', 'Hubo un problema al enviar el reporte. Por favor, intenta de nuevo.');
+      alertService.error('Error', 'Hubo un problema al enviar el reporte. Por favor, intenta de nuevo.');
     } finally {
       setIsSubmitting(false);
     }
