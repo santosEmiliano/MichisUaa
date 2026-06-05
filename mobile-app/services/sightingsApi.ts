@@ -96,7 +96,10 @@ export const createSighting = async (data: SightingData) => {
     }
 
     return await response.json();
-  } catch (error) {
+  } catch (error: any) {
+    if (error.message === 'Network request failed' || error.message === 'Failed to fetch') {
+      showAlert("Error de Servidor", "No pudimos comunicarnos con el servidor de MichisUAA. Por favor, verifica tu conexión a internet o intenta más tarde.");
+    }
     console.error('Error creating sighting:', error);
     throw error;
   }

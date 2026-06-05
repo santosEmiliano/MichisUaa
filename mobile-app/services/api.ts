@@ -15,27 +15,34 @@ export const apiFetch = async (
 ): Promise<Response> => {
   const session = await getSession();
 
-  const response = await fetch(`${BASE_URL}${endpoint}`, {
-    ...options,
-    headers: {
-      "Content-Type": "application/json",
-      ...(session?.token ? { Authorization: `Bearer ${session.token}` } : {}),
-      ...options.headers,
-    },
-  });
+  try {
+    const response = await fetch(`${BASE_URL}${endpoint}`, {
+      ...options,
+      headers: {
+        "Content-Type": "application/json",
+        ...(session?.token ? { Authorization: `Bearer ${session.token}` } : {}),
+        ...options.headers,
+      },
+    });
 
-  if (response.status === 401) {
-    if (!isNavigatingToLogin) {
-      isNavigatingToLogin = true;
-      await clearSession();
-      showAlert("Sesión expirada", "Tu sesión ha expirado por seguridad. Por favor, inicia sesión de nuevo.");
-      router.replace("/login");
+    if (response.status === 401) {
+      if (!isNavigatingToLogin) {
+        isNavigatingToLogin = true;
+        await clearSession();
+        showAlert("Sesión expirada", "Tu sesión ha expirado por seguridad. Por favor, inicia sesión de nuevo.");
+        router.replace("/login");
 
-      setTimeout(() => {
-        isNavigatingToLogin = false;
-      }, 2000);
+        setTimeout(() => {
+          isNavigatingToLogin = false;
+        }, 2000);
+      }
     }
-  }
 
-  return response;
+    return response;
+  } catch (error: any) {
+    if (error.message === 'Network request failed' || error.message === 'Failed to fetch') {
+      showAlert("Error de Servidor", "No pudimos comunicarnos con el servidor de MichisUAA. Por favor, verifica tu conexión a internet o intenta más tarde.");
+    }
+    throw error;
+  }
 };
