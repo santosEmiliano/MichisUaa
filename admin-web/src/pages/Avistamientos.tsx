@@ -278,7 +278,7 @@ const Avistamientos = () => {
         
         if (isVerificado) {
           return (
-            <div className="flex justify-start w-full">
+            <div className="flex justify-start w-full gap-2">
               <button 
                 onClick={() => handleOpenModal(row)}
                 className="px-4 py-1.5 rounded-full border border-sidebar-separador text-sm text-secondary hover-bg-item transition-colors"
