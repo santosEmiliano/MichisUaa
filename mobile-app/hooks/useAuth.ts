@@ -4,7 +4,7 @@ import { getSession, clearSession } from '@/services/sessionStorage';
 import * as Notifications from 'expo-notifications';
 import { Platform } from 'react-native';
 import { apiFetch } from '@/services/api';
-import { showAlert } from '@/utils/alerts';
+import { alertService } from '@/services/alertService';
 import Constants, { ExecutionEnvironment } from 'expo-constants';
 
 interface Session {
@@ -112,7 +112,7 @@ export function useAuth(): UseAuthReturn {
       router.replace('/login');
     } catch (error) {
       console.error('Error al cerrar sesión:', error);
-      showAlert('Error', 'Hubo un problema al cerrar sesión.');
+      alertService.error('Error', 'Hubo un problema al cerrar sesión.');
     }
   }, []);
 

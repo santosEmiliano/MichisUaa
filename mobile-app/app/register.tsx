@@ -12,7 +12,7 @@ import { saveSession } from '@/services/sessionStorage';
 import { registrarPushToken } from '@/hooks/useAuth';
 
 // Utils
-import { showAlert } from '@/utils/alerts';
+import { alertService } from '@/services/alertService';
 
 type FieldState = 'idle' | 'valid' | 'invalid';
 
@@ -58,26 +58,11 @@ export default function RegisterScreen() {
   };
 
   const onRegisterPress = () => {
-    if (nombreState !== 'valid') {
-      showAlert("Atención", "Por favor ingresa tu nombre correctamente.");
-      return;
-    }
-    if (correoState !== 'valid') {
-      showAlert("Atención", "Por favor ingresa tu correo correctamente.");
-      return;
-    }
-    if (passwordState !== 'valid') {
-      showAlert("Atención", "Por favor ingresa tu contraseña correctamente.");
-      return;
-    }
-    if (confirmPasswordState !== 'valid') {
-      showAlert("Atención", "Por favor confirma tu contraseña.");
-      return;
-    }
-    if (password !== confirmPassword) {
-      showAlert("Atención", "Las contraseñas no coinciden.");
-      return;
-    }
+    if (nombreState !== 'valid') { alertService.warning("Atención", "Por favor ingresa tu nombre correctamente."); return; }
+    if (correoState !== 'valid') { alertService.warning("Atención", "Por favor ingresa tu correo correctamente."); return; }
+    if (passwordState !== 'valid') { alertService.warning("Atención", "Por favor ingresa tu contraseña correctamente."); return; }
+    if (confirmPasswordState !== 'valid') { alertService.warning("Atención", "Por favor confirma tu contraseña."); return; }
+    if (password !== confirmPassword) { alertService.warning("Atención", "Las contraseñas no coinciden."); return; }
     // Si todo está bien, muestra el modal de T&C
     setShowTerms(true);
   };
@@ -90,10 +75,10 @@ export default function RegisterScreen() {
       const result = await handleRegister(nombre.trim(), correo.trim(), password);
       await saveSession(result.token, result.userId, result.nombre, correo.trim());
       registrarPushToken().catch(err => console.error("Error al registrar push token:", err));
-      showAlert("¡Cuenta Creada!", "Te has registrado exitosamente. ¡Bienvenido a MichisUAA!");
+      alertService.success("¡Cuenta Creada!", "Te has registrado exitosamente. ¡Bienvenido a MichisUAA!");
       router.replace('/(tabs)');
     } catch (error: any) {
-      showAlert('Error al registrarse', error.message);
+      alertService.error('Error al registrarse', error.message);
     } finally {
       setLoading(false);
     }

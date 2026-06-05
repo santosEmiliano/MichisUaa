@@ -1,7 +1,7 @@
 import { Platform } from "react-native";
 import { router } from "expo-router";
 import { getSession, clearSession } from "./sessionStorage";
-import { showAlert } from "@/utils/alerts";
+import { alertService } from "@/services/alertService";
 
 const BACKEND_IP = process.env.EXPO_PUBLIC_BACKEND_IP;
 
@@ -29,7 +29,7 @@ export const apiFetch = async (
       if (!isNavigatingToLogin) {
         isNavigatingToLogin = true;
         await clearSession();
-        showAlert("Sesión expirada", "Tu sesión ha expirado por seguridad. Por favor, inicia sesión de nuevo.");
+        alertService.error("Sesión expirada", "Tu sesión ha expirado por seguridad. Por favor, inicia sesión de nuevo.");
         router.replace("/login");
 
         setTimeout(() => {
@@ -41,7 +41,7 @@ export const apiFetch = async (
     return response;
   } catch (error: any) {
     if (error.message === 'Network request failed' || error.message === 'Failed to fetch') {
-      showAlert("Error de Servidor", "No pudimos comunicarnos con el servidor de MichisUAA. Por favor, verifica tu conexión a internet o intenta más tarde.");
+      alertService.error("Error de Servidor", "No pudimos comunicarnos con el servidor de MichisUAA. Por favor, verifica tu conexión a internet o intenta más tarde.");
     }
     throw error;
   }

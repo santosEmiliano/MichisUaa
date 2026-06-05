@@ -6,6 +6,7 @@ import { MapClustering as MapView, Marker, Callout } from '@/components/Map';
 import FontAwesome from '@expo/vector-icons/FontAwesome';
 import { getPublicAnimals, AnimalPublic } from '@/services/mapApi';
 import Colors from '@/constants/Colors';
+import { alertService } from '@/services/alertService';
 import { useColorScheme } from '@/components/useColorScheme';
 
 // Coordenadas de la UAA
@@ -80,7 +81,7 @@ export default function MapScreen() {
         let { status } = await Location.requestForegroundPermissionsAsync();
         if (status !== 'granted') {
           console.warn('Permiso de ubicación denegado.');
-          Alert.alert("GPS requerido", "El mapa necesita tu ubicación. Por favor, habilita el acceso en la configuración.");
+          alertService.warning("GPS requerido", "El mapa necesita tu ubicación. Por favor, habilita el acceso en la configuración.");
           return;
         }
 
@@ -88,7 +89,7 @@ export default function MapScreen() {
         setLocation(currentLocation);
       } catch (error) {
         console.warn("No se pudo obtener la ubicación:", error);
-        Alert.alert("Error de ubicación", "No pudimos obtener tu ubicación actual.");
+        alertService.error("Error de ubicación", "No pudimos obtener tu ubicación actual.");
       }
     })();
   }, []);
@@ -127,7 +128,7 @@ export default function MapScreen() {
         const data = await getPublicAnimals();
         setAnimals(data);
       } catch (error) {
-        Alert.alert('Error', 'No se pudieron cargar los avistamientos de los michis.');
+        alertService.error('Error', 'No se pudieron cargar los avistamientos de los michis.');
       } finally {
         setIsLoading(false);
       }

@@ -10,7 +10,7 @@ import { saveSession, getSession } from '@/services/sessionStorage';
 import { registrarPushToken } from '@/hooks/useAuth';
 
 // Utils
-import { showAlert } from '@/utils/alerts';
+import { alertService } from '@/services/alertService';
 import WebBackground from '@/components/WebBackground';
 import WebRegisterForm from '@/components/WebRegisterForm';
 
@@ -48,19 +48,19 @@ export default function LoginScreen() {
   const onLoginPress = async () => {
     // Validación de correo vacío
     if (!email.trim()) {
-      showAlert("Atención", "Por favor ingresa tu correo electrónico.");
+      alertService.warning("Atención", "Por favor ingresa tu correo electrónico.");
       return;
     }
 
     // Validación de formato de correo (regex para @ y dominio)
     const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
     if (!emailRegex.test(email.trim())) {
-      showAlert("Atención", "Por favor ingresa un correo electrónico válido (ej. usuario@edu.uaa.mx).");
+      alertService.warning("Atención", "Por favor ingresa un correo electrónico válido (ej. usuario@edu.uaa.mx).");
       return;
     }
 
     if (!password) {
-      showAlert("Atención", "Por favor ingresa tu contraseña.");
+      alertService.warning("Atención", "Por favor ingresa tu contraseña.");
       return;
     }
 
@@ -74,13 +74,13 @@ export default function LoginScreen() {
       // Registrar token push después de un inicio de sesión exitoso
       registrarPushToken().catch(err => console.error("Error al registrar push token:", err));
 
-      showAlert("¡Bienvenido!", "Has iniciado sesión exitosamente.");
+      alertService.success("¡Bienvenido!", "Has iniciado sesión exitosamente.");
       
       // Redirigir al primer tab, reemplazando el historial de navegación
       // para que el usuario no pueda volver al login con el botón "Atrás"
       router.replace('/(tabs)');
     } catch (error: any) {
-      showAlert("Error", error.message);
+      alertService.error('Error al iniciar sesión', error.message);
     } finally {
       setLoading(false);
     }

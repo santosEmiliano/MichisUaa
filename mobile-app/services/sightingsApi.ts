@@ -1,7 +1,7 @@
 import { BASE_URL } from './api';
 import { getSession, clearSession } from './sessionStorage';
 import { router } from 'expo-router';
-import { showAlert } from '@/utils/alerts';
+import { alertService } from '@/services/alertService';
 import { Platform } from 'react-native';
 
 let isNavigatingToLogin = false;
@@ -79,7 +79,7 @@ export const createSighting = async (data: SightingData) => {
       if (!isNavigatingToLogin) {
         isNavigatingToLogin = true;
         await clearSession();
-        showAlert("Sesión expirada", "Tu sesión ha expirado por seguridad. Por favor, inicia sesión de nuevo.");
+        alertService.error("Sesión expirada", "Tu sesión ha expirado por seguridad. Por favor, inicia sesión de nuevo.");
         router.replace("/login");
 
         setTimeout(() => {
@@ -98,7 +98,7 @@ export const createSighting = async (data: SightingData) => {
     return await response.json();
   } catch (error: any) {
     if (error.message === 'Network request failed' || error.message === 'Failed to fetch') {
-      showAlert("Error de Servidor", "No pudimos comunicarnos con el servidor de MichisUAA. Por favor, verifica tu conexión a internet o intenta más tarde.");
+      alertService.error("Error de Servidor", "No pudimos comunicarnos con el servidor de MichisUAA. Por favor, verifica tu conexión a internet o intenta más tarde.");
     }
     console.error('Error creating sighting:', error);
     throw error;
