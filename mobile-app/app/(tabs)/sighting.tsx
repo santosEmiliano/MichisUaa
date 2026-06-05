@@ -69,6 +69,7 @@ export default function SightingScreen() {
           setAnimals(data);
         } catch (error) {
           console.error("Error fetching animals", error);
+          Alert.alert("Error", "No pudimos cargar la lista de gatos. Verifica tu conexión.");
         } finally {
           setLoadingAnimals(false);
         }
