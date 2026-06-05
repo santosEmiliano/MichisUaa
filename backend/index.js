@@ -3,6 +3,7 @@ const express = require('express');
 const path = require('path');
 const cors = require('cors'); 
 const rateLimit = require('express-rate-limit');
+const helmet = require('helmet');
 const app = express();
 const port = process.env.PORT || 3000;
 
@@ -20,6 +21,7 @@ const limiter = rateLimit({
 });
 
 // Middlewares globales
+app.use(helmet({ crossOriginResourcePolicy: false })); // Cabeceras HTTP de seguridad
 app.use(cors()); //De momento asi sin na
 app.use(express.json());
 app.set('trust proxy', 1);
