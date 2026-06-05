@@ -10,6 +10,7 @@ import 'react-native-reanimated';
 import { useColorScheme } from '@/components/useColorScheme';
 import Colors from '@/constants/Colors';
 import * as Notifications from 'expo-notifications';
+import AlertsContainer from '@/components/AlertsContainer';
 
 Notifications.setNotificationHandler({
   handleNotification: async () => ({
@@ -59,6 +60,7 @@ function RootLayoutNav() {
   return (
     <ThemeProvider value={colorScheme === 'dark' ? DarkTheme : DefaultTheme}>
       <StatusBar style={colorScheme === 'dark' ? 'light' : 'dark'} translucent backgroundColor="transparent" />
+      <AlertsContainer />
       <Stack
         screenOptions={{
           contentStyle: { backgroundColor: colors.bgDark },
