@@ -195,7 +195,7 @@ export const AvistamientoModal = ({ isOpen, onClose, onSuccess, avistamiento }: 
       setIsProcessing(true);
       await avistamientosApi.deleteAvistamiento(displayAvistamiento.id);
       alertService.success("El avistamiento ha sido eliminado", "Avistamiento eliminado");
-      if (onSuccess) onSuccess;
+      if (onSuccess) onSuccess();
       onClose();
     } catch (error) {
       console.log(error);

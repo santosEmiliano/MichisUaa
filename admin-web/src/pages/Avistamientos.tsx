@@ -154,6 +154,7 @@ const Avistamientos = () => {
       setLoading(true);
       await avistamientosApi.deleteAvistamiento(id);
       alertService.success("El avistamiento ha sido eliminado", "Avistamiento eliminado");
+      await fetchDatos();
     } catch (error) {
       console.log(error);
       alertService.error(
