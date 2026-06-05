@@ -2,6 +2,7 @@ require('dotenv').config();
 const express = require('express');
 const path = require('path');
 const cors = require('cors'); 
+const rateLimit = require('express-rate-limit');
 const app = express();
 const port = process.env.PORT || 3000;
 
@@ -13,10 +14,18 @@ const sightingRoutes = require('./routes/sightings.routes');
 const stadisticsRoutes = require('./routes/stadistics.routes');
 const notificationsRoutes = require('./routes/notifications.routes');
 
+const limiter = rateLimit({
+  windowMs: 15 * 60 * 1000, // 15 minutos
+  max: 100 // límite de 100 peticiones
+});
+
 // Middlewares globales
 app.use(cors()); //De momento asi sin na
 app.use(express.json());
 app.set('trust proxy', 1);
+
+// Limitador de tasa
+app.use('/api/', limiter);
 
 // Archivos estáticos - imágenes subidas localmente
 app.use("/api/images", express.static(path.join(__dirname, "images"))); 
