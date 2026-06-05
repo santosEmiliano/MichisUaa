@@ -74,6 +74,8 @@ export default function LoginScreen() {
       // Registrar token push después de un inicio de sesión exitoso
       registrarPushToken().catch(err => console.error("Error al registrar push token:", err));
 
+      showAlert("¡Bienvenido!", "Has iniciado sesión exitosamente.");
+      
       // Redirigir al primer tab, reemplazando el historial de navegación
       // para que el usuario no pueda volver al login con el botón "Atrás"
       router.replace('/(tabs)');

@@ -78,6 +78,7 @@ export default function SightingScreen() {
         let { status } = await Location.requestForegroundPermissionsAsync();
         if (status !== 'granted') {
           setLocationName('Permiso de GPS denegado');
+          Alert.alert("GPS requerido", "MichisUAA necesita tu ubicación para registrar el avistamiento. Por favor, habilita el acceso al GPS en la configuración de tu dispositivo.");
           return;
         }
 
@@ -90,6 +91,7 @@ export default function SightingScreen() {
           await performReverseGeocode(location.coords.latitude, location.coords.longitude);
         } catch (error) {
           setLocationName('Error al obtener ubicación');
+          Alert.alert("Error de ubicación", "No pudimos obtener tu ubicación actual. Asegúrate de tener el GPS encendido e inténtalo de nuevo.");
         }
 
         try {
@@ -105,6 +107,30 @@ export default function SightingScreen() {
     }, [])
   );
 
+  const handleImageResult = (result: ImagePicker.ImagePickerResult) => {
+    if (!result.canceled && result.assets && result.assets.length > 0) {
+      const asset = result.assets[0];
+      
+      // Validar formato en móvil
+      if (Platform.OS !== 'web') {
+        const uriParts = asset.uri.split('.');
+        const fileType = uriParts[uriParts.length - 1].toLowerCase();
+        if (!['jpg', 'jpeg', 'png', 'webp'].includes(fileType)) {
+          Alert.alert('Formato no válido', 'Solo se permiten imágenes en formato JPG, PNG o WEBP.');
+          return;
+        }
+      }
+      
+      // Validar tamaño si está disponible (límite de 5MB)
+      if (asset.fileSize && asset.fileSize > 5 * 1024 * 1024) {
+        Alert.alert('Imagen demasiado pesada', 'La imagen seleccionada supera el límite de 5MB. Por favor, elige una más ligera o baja la resolución de tu cámara.');
+        return;
+      }
+      
+      setImageUri(asset.uri);
+    }
+  };
+
   const pickImage = async () => {
     let result = await ImagePicker.launchImageLibraryAsync({
       mediaTypes: ['images'],
@@ -113,9 +139,7 @@ export default function SightingScreen() {
       quality: 0.8,
     });
 
-    if (!result.canceled) {
-      setImageUri(result.assets[0].uri);
-    }
+    handleImageResult(result);
   };
 
   const handleCameraPress = async () => {
@@ -133,9 +157,7 @@ export default function SightingScreen() {
       quality: 0.8,
     });
 
-    if (!result.canceled) {
-      setImageUri(result.assets[0].uri);
-    }
+    handleImageResult(result);
   };
 
   const openMapModal = () => {
@@ -187,7 +209,7 @@ export default function SightingScreen() {
         fotoUri: imageUri,
       });
 
-      Alert.alert('¡Gracias!', 'El avistamiento ha sido reportado con éxito.');
+      Alert.alert('¡Avistamiento enviado!', 'Tu reporte se mandó correctamente. Un administrador lo verificará pronto. ¡Muchas gracias por tu ayuda!');
       
       setImageUri(null);
       setDescription('');

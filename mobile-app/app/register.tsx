@@ -90,6 +90,7 @@ export default function RegisterScreen() {
       const result = await handleRegister(nombre.trim(), correo.trim(), password);
       await saveSession(result.token, result.userId, result.nombre, correo.trim());
       registrarPushToken().catch(err => console.error("Error al registrar push token:", err));
+      showAlert("¡Cuenta Creada!", "Te has registrado exitosamente. ¡Bienvenido a MichisUAA!");
       router.replace('/(tabs)');
     } catch (error: any) {
       showAlert('Error al registrarse', error.message);
