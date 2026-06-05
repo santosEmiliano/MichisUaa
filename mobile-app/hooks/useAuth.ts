@@ -72,7 +72,6 @@ export const registrarPushToken = async () => {
     console.log('\n====================================');
     console.log('PUSH TOKEN:', token.data);
     console.log('====================================\n');
-    showAlert('Push token:', token.data);
     // Mandas el token al backend para guardarlo
     await apiFetch('/user/push-token', {
       method: 'PUT',
@@ -116,6 +115,7 @@ export function useAuth(): UseAuthReturn {
       router.replace('/login');
     } catch (error) {
       console.error('Error al cerrar sesión:', error);
+      showAlert('Error', 'Hubo un problema al cerrar sesión.');
     }
   }, []);
 

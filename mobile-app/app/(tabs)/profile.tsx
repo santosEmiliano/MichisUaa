@@ -102,6 +102,7 @@ export default function ProfileScreen() {
       router.replace('/login');
     } catch (error) {
       console.error("Error al cerrar sesión:", error);
+      showAlert("Error", "No se pudo cerrar la sesión. Inténtalo de nuevo.");
     }
   };
 

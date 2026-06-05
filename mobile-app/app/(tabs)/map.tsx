@@ -80,6 +80,7 @@ export default function MapScreen() {
         let { status } = await Location.requestForegroundPermissionsAsync();
         if (status !== 'granted') {
           console.warn('Permiso de ubicación denegado.');
+          Alert.alert("GPS requerido", "El mapa necesita tu ubicación. Por favor, habilita el acceso en la configuración.");
           return;
         }
 
@@ -87,6 +88,7 @@ export default function MapScreen() {
         setLocation(currentLocation);
       } catch (error) {
         console.warn("No se pudo obtener la ubicación:", error);
+        Alert.alert("Error de ubicación", "No pudimos obtener tu ubicación actual.");
       }
     })();
   }, []);
