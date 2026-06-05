@@ -11,6 +11,7 @@ import { useColorScheme } from '@/components/useColorScheme';
 import Colors from '@/constants/Colors';
 import * as Notifications from 'expo-notifications';
 import AlertsContainer from '@/components/AlertsContainer';
+import { AppThemeProvider } from '@/components/ThemeContext';
 
 Notifications.setNotificationHandler({
   handleNotification: async () => ({
@@ -50,7 +51,11 @@ export default function RootLayout() {
     return null;
   }
 
-  return <RootLayoutNav />;
+  return (
+    <AppThemeProvider>
+      <RootLayoutNav />
+    </AppThemeProvider>
+  );
 }
 
 function RootLayoutNav() {

@@ -3,7 +3,7 @@ import { StyleSheet, View, Text, TouchableOpacity, Modal, TouchableWithoutFeedba
 import { Ionicons } from '@expo/vector-icons';
 
 import Colors from '@/constants/Colors';
-import { useColorScheme, setColorScheme } from '@/components/useColorScheme';
+import { useColorScheme, useSetTheme } from '@/components/useColorScheme';
 import CatAvatar from './CatAvatar';
 
 interface ProfileHeaderProps {
@@ -18,9 +18,11 @@ export default function ProfileHeader({ userName, userEmail, initials, onLogout 
   const colorScheme = useColorScheme() ?? 'light';
   const colors = Colors[colorScheme];
 
+  const setTheme = useSetTheme();
+
   const toggleTheme = () => {
     const nextScheme = colorScheme === 'light' ? 'dark' : 'light';
-    setColorScheme(nextScheme);
+    setTheme(nextScheme);
   };
 
   return (
