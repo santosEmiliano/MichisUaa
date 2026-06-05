@@ -127,8 +127,9 @@ const Avistamientos = () => {
       alertService.success("El avistamiento ha sido rechazado correctamente.", "Avistamiento Rechazado");
     } catch (error) {
       console.error(error);
+      const msg = error instanceof Error ? error.message : "";
       alertService.error(
-        "Ocurrió un problema al intentar rechazar el avistamiento. Por favor, intenta de nuevo.",
+        msg || "Ocurrió un problema al intentar rechazar el avistamiento. Por favor, intenta de nuevo.",
         "Error al Rechazar"
       );
     } finally {

@@ -23,6 +23,13 @@ export function useColorScheme() {
   const nativeScheme = useNativeColorScheme() ?? 'light';
   const [scheme, setScheme] = useState<'light' | 'dark'>(webTheme ?? nativeScheme);
 
+  // Sincronizar con el tema del sistema si el usuario no ha elegido uno manualmente
+  useEffect(() => {
+    if (!webTheme) {
+      setScheme(nativeScheme);
+    }
+  }, [nativeScheme]);
+
   useEffect(() => {
     const handler = (newScheme: 'light' | 'dark') => setScheme(newScheme);
     listeners.add(handler);

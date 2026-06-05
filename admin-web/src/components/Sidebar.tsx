@@ -73,6 +73,7 @@ const Sidebar: React.FC<SidebarProps> = ({ isOpen, toggleSidebar }) => {
     }
     // Pequeño delay para que se vea la animación
     await new Promise((r) => setTimeout(r, 600));
+    alertService.success("Has cerrado sesión exitosamente.", "¡Hasta pronto!");
     logoutHelper();
   };
 

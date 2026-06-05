@@ -104,8 +104,9 @@ export const AvistamientoModal = ({ isOpen, onClose, onSuccess, avistamiento }: 
       onClose();
     } catch (error) {
       console.error(error);
+      const msg = error instanceof Error ? error.message : "";
       alertService.error(
-        "Ocurrió un problema al verificar el avistamiento. Por favor, intenta de nuevo.",
+        msg || "Ocurrió un problema al verificar el avistamiento. Por favor, intenta de nuevo.",
         "Error al Verificar"
       );
     } finally {
@@ -128,8 +129,9 @@ export const AvistamientoModal = ({ isOpen, onClose, onSuccess, avistamiento }: 
       onClose();
     } catch (error) {
       console.error(error);
+      const msg = error instanceof Error ? error.message : "";
       alertService.error(
-        "Ocurrió un problema al rechazar el avistamiento. Por favor, intenta de nuevo.",
+        msg || "Ocurrió un problema al rechazar el avistamiento. Por favor, intenta de nuevo.",
         "Error al Rechazar"
       );
     } finally {
@@ -151,8 +153,9 @@ export const AvistamientoModal = ({ isOpen, onClose, onSuccess, avistamiento }: 
       onClose();
     } catch (error) {
       console.error(error);
+      const msg = error instanceof Error ? error.message : "";
       alertService.error(
-        "Ocurrió un problema al guardar los cambios. Por favor, intenta de nuevo.",
+        msg || "Ocurrió un problema al guardar los cambios. Por favor, intenta de nuevo.",
         "Error al Guardar"
       );
     } finally {
@@ -175,8 +178,9 @@ export const AvistamientoModal = ({ isOpen, onClose, onSuccess, avistamiento }: 
       onClose();
     } catch (error) {
       console.error(error);
+      const msg = error instanceof Error ? error.message : "";
       alertService.error(
-        "Ocurrió un problema al revocar la verificación. Por favor, intenta de nuevo.",
+        msg || "Ocurrió un problema al revocar la verificación. Por favor, intenta de nuevo.",
         "Error al Revocar"
       );
     } finally {

@@ -1,13 +1,13 @@
 const tokenfunctions = require("./token.controller");
 const userModel = require("../model/user.model");
 
-const bcrypt = require("bcryptjs"); 
+const bcrypt = require("bcryptjs");
 
 const createUser = async (req, res) => {
   try {
     const { nombre, email, password } = req.body;
     let admin = req.body.admin ?? false;
-  
+
     if (!nombre || !email || !password) {
       return res.status(400).json({ mensaje: "datos incompletos" });
     }
@@ -16,11 +16,11 @@ const createUser = async (req, res) => {
     if (coincidencia) {
       return res
         .status(400)
-        .json({ message: "El correo ya esta vinculado a una cuenta" });
+        .json({ mensaje: "El correo ya está vinculado a una cuenta" });
     }
-    
-    const saltos = await bcrypt.genSalt(10); 
-    const hash = await bcrypt.hash(password, saltos); 
+
+    const saltos = await bcrypt.genSalt(10);
+    const hash = await bcrypt.hash(password, saltos);
 
     const userId = await userModel.addUser(nombre, email, hash, admin);
 
@@ -46,22 +46,29 @@ const login = async (req, res) => {
     const user = await userModel.searchMail(email);
 
     if (!user) {
-      return res.status(400).json({ mensaje: "Credenciales incorrectas" });
+      return res.status(400).json({ mensaje: "El correo ingresado no se encuentra registrado." });
     }
 
     const passValida = await bcrypt.compare(password, user.password);
 
-    if (!passValida){
-      return res.status(400).json({mensaje: `Constraseña incorrecta.`});
+    if (!passValida) {
+      return res.status(400).json({ mensaje: "Contraseña incorrecta." });
     }
 
     const token = tokenfunctions.generateToken(user.idUsuario, user.admin);
     const datos = await userModel.searchId(user.idUsuario);
 
-    return res.status(200).json({ mensaje: "Login realizado correctamente", token, datos });
+    return res
+      .status(200)
+      .json({ mensaje: "Login realizado correctamente", token, datos });
   } catch (error) {
     console.error("Error en login:", error);
-    return res.status(500).json({ mensaje: "Error al realizar login", error: error.message || String(error) });
+    return res
+      .status(500)
+      .json({
+        mensaje: "Error al realizar login",
+        error: error.message || String(error),
+      });
   }
 };
 
@@ -79,7 +86,7 @@ const obtainUsers = async (req, res) => {
     console.error("error al obtener datos de usuarios: ", error);
     res.status(500).json({ mensaje: "Error al obtener datos de usuarios" });
   }
-}
+};
 
 const updateUser = async (req, res) => {
   try {
@@ -87,10 +94,22 @@ const updateUser = async (req, res) => {
 
     const oldUser = await userModel.searchId(Number(id));
     if (!oldUser) {
-      return res.status(404).json({ mensaje: "El id no coincide con ningun usuario registrado, porfavor comprobar usuario" });
+      return res
+        .status(404)
+        .json({
+          mensaje:
+            "El id no coincide con ningun usuario registrado, porfavor comprobar usuario",
+        });
     }
 
     const data = { ...req.body };
+
+    if (data.email && data.email !== oldUser.email) {
+      const coincidencia = await userModel.occupied(data.email);
+      if (coincidencia) {
+        return res.status(400).json({ mensaje: "El correo ya está vinculado a otra cuenta" });
+      }
+    }
 
     if (data.password) {
       const saltos = await bcrypt.genSalt(10);
@@ -101,14 +120,17 @@ const updateUser = async (req, res) => {
 
     return res.status(200).json({
       mensaje: "Usuario actualizado correctamente",
-      modificado: updatedUser
+      modificado: updatedUser,
     });
-
   } catch (error) {
     console.error("error al modificar los datos de usuario: ", error);
-    res.status(500).json({ mensaje: "Error al realizar la modificacion de los datos del usuario" });
+    res
+      .status(500)
+      .json({
+        mensaje: "Error al realizar la modificacion de los datos del usuario",
+      });
   }
-}
+};
 
 const removeUser = async (req, res) => {
   try {
@@ -116,17 +138,24 @@ const removeUser = async (req, res) => {
 
     const oldUser = await userModel.searchId(Number(id));
     if (!oldUser) {
-      return res.status(404).json({ mensaje: "El id no coincide con ningun usuario registrado, porfavor comprobar usuario" });
+      return res
+        .status(404)
+        .json({
+          mensaje:
+            "El id no coincide con ningun usuario registrado, porfavor comprobar usuario",
+        });
     }
 
     await userModel.deleteUser(Number(id));
 
     return res.status(200).json({ mensaje: "Usuario eliminado correctamente" });
-  } catch(error) {
+  } catch (error) {
     console.error("error al eliminar los datos del usuario: ", error);
-    res.status(500).json({ mensaje: "Error al realizar la eliminacion del usuario"});
+    res
+      .status(500)
+      .json({ mensaje: "Error al realizar la eliminacion del usuario" });
   }
-}
+};
 
 const getUserMedals = async (req, res) => {
   try {
@@ -135,7 +164,9 @@ const getUserMedals = async (req, res) => {
     return res.status(200).json(medallas);
   } catch (error) {
     console.error("Error al obtener medallas del usuario:", error);
-    return res.status(500).json({ mensaje: "Error al obtener medallas del usuario" });
+    return res
+      .status(500)
+      .json({ mensaje: "Error al obtener medallas del usuario" });
   }
 };
 
@@ -151,7 +182,9 @@ const updatePushToken = async (req, res) => {
     const updated = await userModel.modifyUser(idUsuario, { pushToken: token });
 
     if (!updated) {
-      return res.status(500).json({ mensaje: "Error al actualizar el token push" });
+      return res
+        .status(500)
+        .json({ mensaje: "Error al actualizar el token push" });
     }
 
     return res.status(200).json({ mensaje: "Token push registrado con éxito" });
@@ -162,12 +195,12 @@ const updatePushToken = async (req, res) => {
 };
 
 module.exports = {
-    createUser,
-    login,
-    logout,
-    obtainUsers,
-    updateUser,
-    removeUser,
-    getUserMedals,
-    updatePushToken
-}
+  createUser,
+  login,
+  logout,
+  obtainUsers,
+  updateUser,
+  removeUser,
+  getUserMedals,
+  updatePushToken,
+};

@@ -219,7 +219,14 @@ const GatosPage = () => {
         headers: { Authorization: `Bearer ${token}` },
       });
 
-      if (!res.ok) throw new Error("Error al eliminar el gato");
+      if (!res.ok) {
+        let msg = "Error al eliminar el gato";
+        try {
+          const errData = await res.json();
+          if (errData.mensaje) msg = errData.mensaje;
+        } catch {}
+        throw new Error(msg);
+      }
 
       setCats((prev) => prev.filter((c) => c.id !== cat.id));
       alertService.success(
@@ -228,8 +235,9 @@ const GatosPage = () => {
       );
     } catch (error) {
       console.error("Error eliminando gato:", error);
+      const msg = error instanceof Error ? error.message : "Ocurrió un problema al intentar eliminar el gato. Por favor, intenta de nuevo más tarde.";
       alertService.error(
-        "Ocurrió un problema al intentar eliminar el gato. Por favor, intenta de nuevo más tarde.",
+        msg,
         "Error al Eliminar",
       );
     }

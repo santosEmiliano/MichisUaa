@@ -3,6 +3,7 @@ import { StyleSheet, View, ActivityIndicator, TouchableOpacity, Text, Alert, Pla
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { Ionicons } from '@expo/vector-icons';
 import { router, useFocusEffect } from 'expo-router';
+import { showAlert } from '@/utils/alerts';
 
 import Colors from '@/constants/Colors';
 import { useColorScheme } from '@/components/useColorScheme';
@@ -76,6 +77,7 @@ export default function ProfileScreen() {
           }
         } catch (error) {
           console.error("Error al cargar datos del perfil:", error);
+          showAlert("Error", "No pudimos cargar tu perfil completo. Verifica tu conexión e intenta más tarde.");
         } finally {
           setLoading(false);
         }
@@ -96,6 +98,7 @@ export default function ProfileScreen() {
   const performLogout = async () => {
     try {
       await clearSession();
+      showAlert("Sesión cerrada", "Has cerrado sesión exitosamente.");
       router.replace('/login');
     } catch (error) {
       console.error("Error al cerrar sesión:", error);
