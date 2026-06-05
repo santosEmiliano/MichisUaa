@@ -143,6 +143,29 @@ const Avistamientos = () => {
     }));
   };
 
+  const handleBorrarVerificacion = async (id: number) => {
+    const confirm = await alertService.questionAsync(
+      "¿Seguro que desea usted eliminar el siguiente avistamiento? (Es una accion permanente!)",
+      "Eliminar avistamiento"
+    );
+    if (!confirm) return;
+
+    try {
+      setLoading(true);
+      await avistamientosApi.deleteAvistamiento(id);
+      alertService.success("El avistamiento ha sido eliminado", "Avistamiento eliminado");
+      await fetchDatos();
+    } catch (error) {
+      console.log(error);
+      alertService.error(
+        "Ocurrio un problema al momento de eliminar el avistamiento. Porfavor intentarlo mas tarde",
+        "Error al eliminar"
+      )
+    } finally {
+      setLoading(false);
+    }
+  }
+
   const filteredAvistamientos = useMemo(() => {
     return avistamientos.filter(item => {
       // Filtro de Estado
@@ -255,12 +278,18 @@ const Avistamientos = () => {
         
         if (isVerificado) {
           return (
-            <div className="flex justify-start w-full">
+            <div className="flex justify-start w-full gap-2">
               <button 
                 onClick={() => handleOpenModal(row)}
                 className="px-4 py-1.5 rounded-full border border-sidebar-separador text-sm text-secondary hover-bg-item transition-colors"
               >
                 Ver detalles
+              </button>
+              <button
+                onClick={() => handleBorrarVerificacion(row.id)}
+                className="px-4 py-1.5 rounded-full border border-sidebar-separador text-sm text-secondary hover-bg-item transition-colors disabled:opacity-50"
+              >
+                <Icons.Trash2 className="w-5 h-5" />
               </button>
             </div>
           );
@@ -281,6 +310,12 @@ const Avistamientos = () => {
             >
               Rechazar
             </button>
+            <button
+                onClick={() => handleBorrarVerificacion(row.id)}
+                className="px-4 py-1.5 rounded-full border border-sidebar-separador text-sm text-secondary hover-bg-item transition-colors disabled:opacity-50"
+              >
+                <Icons.Trash2 className="w-5 h-5" />
+              </button>
           </div>
         );
       },
