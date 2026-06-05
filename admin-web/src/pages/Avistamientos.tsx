@@ -143,6 +143,28 @@ const Avistamientos = () => {
     }));
   };
 
+  const handleBorrarVerificacion = async (id: number) => {
+    const confirm = await alertService.questionAsync(
+      "¿Seguro que desea usted eliminar el siguiente avistamiento? (Es una accion permanente!)",
+      "Eliminar avistamiento"
+    );
+    if (!confirm) return;
+
+    try {
+      setLoading(true);
+      await avistamientosApi.deleteAvistamiento(id);
+      alertService.success("El avistamiento ha sido eliminado", "Avistamiento eliminado");
+    } catch (error) {
+      console.log(error);
+      alertService.error(
+        "Ocurrio un problema al momento de eliminar el avistamiento. Porfavor intentarlo mas tarde",
+        "Error al eliminar"
+      )
+    } finally {
+      setLoading(false);
+    }
+  }
+
   const filteredAvistamientos = useMemo(() => {
     return avistamientos.filter(item => {
       // Filtro de Estado
@@ -262,6 +284,12 @@ const Avistamientos = () => {
               >
                 Ver detalles
               </button>
+              <button
+                onClick={() => handleBorrarVerificacion(row.id)}
+                className="w-full sm:w-auto justify-center px-6 py-3 sm:py-2.5 rounded-xl border border-sidebar-separador text-main font-bold hover:text-main hover:bg-gris transition-all duration-200 flex items-center gap-2 disabled:opacity-50"
+              >
+                <Icons.Trash2 className="w-5 h-5" />
+              </button>
             </div>
           );
         }
@@ -281,6 +309,12 @@ const Avistamientos = () => {
             >
               Rechazar
             </button>
+            <button
+                onClick={() => handleBorrarVerificacion(row.id)}
+                className="w-full sm:w-auto justify-center px-6 py-3 sm:py-2.5 rounded-xl border border-sidebar-separador text-main font-bold hover:text-main hover:bg-gris transition-all duration-200 flex items-center gap-2 disabled:opacity-50"
+              >
+                <Icons.Trash2 className="w-5 h-5" />
+              </button>
           </div>
         );
       },
