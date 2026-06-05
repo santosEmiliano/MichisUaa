@@ -69,9 +69,6 @@ export const registrarPushToken = async () => {
       console.warn('No se encontró el projectId de EAS.');
     }
     const token = await Notifications.getExpoPushTokenAsync({ projectId });
-    console.log('\n====================================');
-    console.log('PUSH TOKEN:', token.data);
-    console.log('====================================\n');
     // Mandas el token al backend para guardarlo
     await apiFetch('/user/push-token', {
       method: 'PUT',
