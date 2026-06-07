@@ -31,7 +31,9 @@ export const AppThemeProvider = ({ children }: { children: React.ReactNode }) =>
 
         if (stored === 'light' || stored === 'dark') {
           setThemeState(stored as Theme);
-          Appearance.setColorScheme(stored as Theme);
+          if (Platform.OS !== 'web' && typeof Appearance.setColorScheme === 'function') {
+            Appearance.setColorScheme(stored as Theme);
+          }
         } else {
           setThemeState(nativeScheme as Theme);
         }
@@ -46,7 +48,9 @@ export const AppThemeProvider = ({ children }: { children: React.ReactNode }) =>
 
   const setTheme = useCallback(async (newTheme: Theme) => {
     setThemeState(newTheme);
-    Appearance.setColorScheme(newTheme);
+    if (Platform.OS !== 'web' && typeof Appearance.setColorScheme === 'function') {
+      Appearance.setColorScheme(newTheme);
+    }
     try {
       if (Platform.OS === 'web') {
         localStorage.setItem('app_theme', newTheme);
