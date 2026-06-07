@@ -11,6 +11,7 @@ import { MapView, Marker } from '@/components/Map';
 import { getPublicAnimals, PublicAnimal } from '@/services/animalsApi';
 import { createSighting } from '@/services/sightingsApi';
 import { useColorScheme } from '@/components/useColorScheme';
+import EmptyCatState from '@/components/EmptyCatState';
 
 export default function SightingScreen() {
   const colorScheme = useColorScheme() ?? 'light';
@@ -381,6 +382,8 @@ export default function SightingScreen() {
             Rastreando michis cercanos...
           </Text>
         </View>
+      ) : filteredAnimals.length === 0 ? (
+        <EmptyCatState message="Buscamos por todas partes, pero no encontramos a ese michi." icon="magnify" />
       ) : isDesktop ? (
         <View>
           <View style={styles.animalDesktopGrid}>

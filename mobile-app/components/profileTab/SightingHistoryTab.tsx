@@ -3,6 +3,7 @@ import { StyleSheet, View, Text, ScrollView, TouchableOpacity, Image, Modal, Pre
 
 import Colors from '@/constants/Colors';
 import { useColorScheme } from '@/components/useColorScheme';
+import EmptyCatState from '@/components/EmptyCatState';
 
 interface Sighting {
   idAvistamiento: number;
@@ -220,11 +221,7 @@ export default function SightingHistoryTab({ sightings }: SightingHistoryTabProp
         contentContainerStyle={styles.cardList}
       >
         {filtered.length === 0 ? (
-          <View style={styles.emptyContainer}>
-            <Text style={[styles.emptyText, { color: colors.textSecondary }]}>
-              No se encontraron avistamientos...
-            </Text>
-          </View>
+          <EmptyCatState />
         ) : (
           <View style={{ flexDirection: 'row', flexWrap: 'wrap', marginHorizontal: -6 }}>
             {filtered.map((sighting, index) => {
