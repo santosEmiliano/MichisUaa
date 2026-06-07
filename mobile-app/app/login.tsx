@@ -19,10 +19,6 @@ export default function LoginScreen() {
   const colors = Colors[colorScheme];
   const { height, width } = useWindowDimensions();
 
-  // Escala dinámica para web:
-  // Prevenimos que scale sea 0 en SSR cuando height/width son 0
-  const scale = Platform.OS === 'web' && height > 0 ? Math.min(1, height / 850, width / 450) : 1;
-
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
   const [loading, setLoading] = useState(false);
@@ -93,10 +89,7 @@ export default function LoginScreen() {
         style={[styles.container, Platform.OS === 'web' && { zIndex: 10 } as any]} 
         behavior={Platform.OS === 'ios' ? 'padding' : 'height'}
       >
-        <View style={[
-          styles.content,
-          Platform.OS === 'web' && { transform: [{ scale }] }
-        ]}>
+        <View style={styles.content}>
           {/* Header */}
           <View style={[styles.header, Platform.OS === 'web' && { transition: 'opacity 0.2s ease', opacity: animating ? 0 : 1 } as any]}>
             {(!isRegistering || Platform.OS !== 'web') && (
