@@ -1,4 +1,4 @@
-import { StyleSheet, View, Text, TextInput, TouchableOpacity, KeyboardAvoidingView, Platform, SafeAreaView, Image, useWindowDimensions } from 'react-native';
+import { StyleSheet, View, Text, TextInput, TouchableOpacity, KeyboardAvoidingView, Platform, SafeAreaView, Image, useWindowDimensions, ActivityIndicator } from 'react-native';
 import Colors from '@/constants/Colors';
 import { useColorScheme } from '@/components/useColorScheme';
 import { useState } from 'react';
@@ -215,9 +215,12 @@ export default function LoginScreen() {
                     onPress={onLoginPress}
                     disabled={loading}
                   >
-                    <Text style={styles.loginButtonText}>
-                      {loading ? "Cargando..." : "Iniciar Sesión"}
-                    </Text>
+                    <View style={{ flexDirection: 'row', alignItems: 'center', justifyContent: 'center' }}>
+                      {loading && <ActivityIndicator color="#ffffff" style={{ marginRight: 8 }} />}
+                      <Text style={styles.loginButtonText}>
+                        {loading ? "Cargando..." : "Iniciar Sesión"}
+                      </Text>
+                    </View>
                   </TouchableOpacity>
                 </>
               )}
