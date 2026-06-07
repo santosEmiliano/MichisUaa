@@ -1,5 +1,5 @@
 import React, { useState } from 'react';
-import { StyleSheet, View, Text, TouchableOpacity, Modal, TouchableWithoutFeedback } from 'react-native';
+import { StyleSheet, View, Text, TouchableOpacity, Modal, TouchableWithoutFeedback, Platform, ActivityIndicator } from 'react-native';
 import { Ionicons } from '@expo/vector-icons';
 
 import Colors from '@/constants/Colors';
@@ -11,9 +11,11 @@ interface ProfileHeaderProps {
   userEmail: string;
   initials: string;
   onLogout?: () => void;
+  onRefresh?: () => void;
+  isRefreshing?: boolean;
 }
 
-export default function ProfileHeader({ userName, userEmail, initials, onLogout }: ProfileHeaderProps) {
+export default function ProfileHeader({ userName, userEmail, initials, onLogout, onRefresh, isRefreshing }: ProfileHeaderProps) {
   const [menuVisible, setMenuVisible] = useState(false);
   const colorScheme = useColorScheme() ?? 'light';
   const colors = Colors[colorScheme];
@@ -44,20 +46,43 @@ export default function ProfileHeader({ userName, userEmail, initials, onLogout 
         </View>
       </View>
 
-      {/* Botón derecho: Ícono de Configuración */}
-      <TouchableOpacity
-        style={[
-          styles.themeButton,
-          { backgroundColor: colorScheme === 'dark' ? colors.fondoGris : colors.fondoGrisOscuro }
-        ]}
-        onPress={() => setMenuVisible(true)}
-      >
-        <Ionicons
-          name="settings-outline"
-          size={22}
-          color={colors.textSecondary}
-        />
-      </TouchableOpacity>
+      {/* Botones derechos */}
+      <View style={{ flexDirection: 'row', gap: 8 }}>
+        {Platform.OS === 'web' && onRefresh && (
+          <TouchableOpacity
+            style={[
+              styles.themeButton,
+              { backgroundColor: colorScheme === 'dark' ? colors.fondoGris : colors.fondoGrisOscuro }
+            ]}
+            onPress={onRefresh}
+            disabled={isRefreshing}
+          >
+            {isRefreshing ? (
+              <ActivityIndicator size="small" color={colors.textSecondary} />
+            ) : (
+              <Ionicons
+                name="refresh"
+                size={22}
+                color={colors.textSecondary}
+              />
+            )}
+          </TouchableOpacity>
+        )}
+
+        <TouchableOpacity
+          style={[
+            styles.themeButton,
+            { backgroundColor: colorScheme === 'dark' ? colors.fondoGris : colors.fondoGrisOscuro }
+          ]}
+          onPress={() => setMenuVisible(true)}
+        >
+          <Ionicons
+            name="settings-outline"
+            size={22}
+            color={colors.textSecondary}
+          />
+        </TouchableOpacity>
+      </View>
 
       {/* Menú Flotante de Configuración */}
       <Modal visible={menuVisible} transparent animationType="fade">

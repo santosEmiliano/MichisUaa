@@ -59,12 +59,14 @@ export default function ProfileScreen() {
   const [topRankings, setTopRankings] = useState<any[]>([]);
   const [userMedals, setUserMedals] = useState<{ tipo: string; nivel: number }[]>([]);
 
-  useFocusEffect(
-    useCallback(() => {
-      async function loadProfileData() {
-        setLoading(true);
-        try {
-          const session = await getSession();
+  const [refreshing, setRefreshing] = useState(false);
+
+  const loadProfileData = useCallback(async (isRefresh = false) => {
+    if (!isRefresh) setLoading(true);
+    else setRefreshing(true);
+
+    try {
+      const session = await getSession();
           if (session) {
             if (session.userName) setUserName(session.userName);
             if (session.userEmail) setUserEmail(session.userEmail);
@@ -105,15 +107,19 @@ export default function ProfileScreen() {
           if (Array.isArray(rankingsData)) {
             setTopRankings(rankingsData);
           }
-        } catch (error) {
-          console.error("Error al cargar datos del perfil:", error);
-          alertService.error("Error", "No pudimos cargar tu perfil completo. Verifica tu conexión e intenta más tarde.");
-        } finally {
-          setLoading(false);
-        }
+      } catch (error) {
+        console.error("Error al cargar datos del perfil:", error);
+        alertService.error("Error", "No pudimos cargar tu perfil completo. Verifica tu conexión e intenta más tarde.");
+      } finally {
+        if (!isRefresh) setLoading(false);
+        else setRefreshing(false);
       }
+  }, []);
+
+  useFocusEffect(
+    useCallback(() => {
       loadProfileData();
-    }, [])
+    }, [loadProfileData])
   );
 
   const getInitials = (name: string) => {
@@ -152,7 +158,7 @@ export default function ProfileScreen() {
   const renderTabContent = () => {
     switch (activeTab) {
       case 'Historial':
-        return <SightingHistoryTab sightings={sightings} />;
+        return <SightingHistoryTab sightings={sightings} onRefresh={() => loadProfileData(true)} refreshing={refreshing} />;
       case 'Ranking':
         return (
           <RankingTab 
@@ -160,10 +166,12 @@ export default function ProfileScreen() {
             currentUserName={userName} 
             currentUserRanking={rankingPosition}
             totalUsersCount={totalUsersCount}
+            onRefresh={() => loadProfileData(true)} 
+            refreshing={refreshing}
           />
         );
       case 'Logros':
-        return <LogrosTab userMedals={userMedals} sightingsCount={sightingsCount} sightings={sightings} />;
+        return <LogrosTab userMedals={userMedals} sightingsCount={sightingsCount} sightings={sightings} onRefresh={() => loadProfileData(true)} refreshing={refreshing} />;
       default:
         return null;
     }
@@ -187,6 +195,8 @@ export default function ProfileScreen() {
               userEmail={userEmail}
               initials={getInitials(userName)}
               onLogout={handleLogout}
+              onRefresh={() => loadProfileData(true)}
+              isRefreshing={refreshing}
             />
             <TabSelector
               tabs={['Logros', 'Historial', 'Ranking']}
