@@ -79,7 +79,7 @@ export default function SightingScreen() {
 
   useFocusEffect(
     useCallback(() => {
-      (async () => {
+      const fetchLocation = async () => {
         let { status } = await Location.requestForegroundPermissionsAsync();
         if (status !== 'granted') {
           setLocationName('Permiso de GPS denegado');
@@ -98,7 +98,9 @@ export default function SightingScreen() {
           setLocationName('Error al obtener ubicación');
           alertService.error("Error de ubicación", "No pudimos obtener tu ubicación actual. Asegúrate de tener el GPS encendido e inténtalo de nuevo.");
         }
+      };
 
+      const fetchAnimalsData = async () => {
         try {
           const data = await getPublicAnimals();
           setAnimals(data);
@@ -108,14 +110,17 @@ export default function SightingScreen() {
         } finally {
           setLoadingAnimals(false);
         }
-      })();
+      };
+
+      fetchLocation();
+      fetchAnimalsData();
     }, [])
   );
 
   const handleImageResult = (result: ImagePicker.ImagePickerResult) => {
     if (!result.canceled && result.assets && result.assets.length > 0) {
       const asset = result.assets[0];
-      
+
       // Validar formato en móvil
       if (Platform.OS !== 'web') {
         const uriParts = asset.uri.split('.');
@@ -125,13 +130,13 @@ export default function SightingScreen() {
           return;
         }
       }
-      
+
       // Validar tamaño si está disponible (límite de 5MB)
       if (asset.fileSize && asset.fileSize > 5 * 1024 * 1024) {
         alertService.warning('Imagen demasiado pesada', 'La imagen seleccionada supera el límite de 5MB. Por favor, elige una más ligera o baja la resolución de tu cámara.');
         return;
       }
-      
+
       setImageUri(asset.uri);
     }
   };
@@ -149,7 +154,7 @@ export default function SightingScreen() {
 
   const handleCameraPress = async () => {
     const permissionResult = await ImagePicker.requestCameraPermissionsAsync();
-    
+
     if (permissionResult.granted === false) {
       alertService.warning('Permiso denegado', 'Se requiere acceso a la cámara para tomar una foto.');
       return;
@@ -215,11 +220,11 @@ export default function SightingScreen() {
       });
 
       alertService.success('¡Avistamiento enviado!', 'Tu reporte se mandó correctamente. Un administrador lo verificará pronto. ¡Muchas gracias por tu ayuda!');
-      
+
       setImageUri(null);
       setDescription('');
       setSelectedAnimalId(null);
-      
+
     } catch (error) {
       alertService.error('Error', 'Hubo un problema al enviar el reporte. Por favor, intenta de nuevo.');
     } finally {
@@ -230,7 +235,7 @@ export default function SightingScreen() {
   const containerWidth = Math.min(width, 1200) - 40;
   const cols = Math.max(2, Math.floor(containerWidth / 97));
   const itemsPerPage = cols * 3;
-  
+
   const filteredAnimals = animals.filter(a => a.nombre.toLowerCase().includes(searchQuery.toLowerCase()));
   const totalPages = Math.max(1, Math.ceil(filteredAnimals.length / itemsPerPage));
   const displayedAnimals = isDesktop ? filteredAnimals.slice(catPage * itemsPerPage, (catPage + 1) * itemsPerPage) : filteredAnimals;
@@ -357,7 +362,7 @@ export default function SightingScreen() {
   const animalSection = (
     <View style={styles.section}>
       <Text style={styles.sectionTitle}>¿Qué gato es?</Text>
-      
+
       <View style={styles.searchContainer}>
         <Ionicons name="search" size={20} color={colors.textSecondary} style={styles.searchIcon} />
         <TextInput
@@ -395,10 +400,10 @@ export default function SightingScreen() {
               <Ionicons name="chevron-back" size={24} color={colors.textMain} />
             </TouchableOpacity>
           )}
-          <ScrollView 
+          <ScrollView
             ref={scrollRef}
-            horizontal 
-            showsHorizontalScrollIndicator={false} 
+            horizontal
+            showsHorizontalScrollIndicator={false}
             contentContainerStyle={styles.animalList}
             onScroll={handleScroll}
             scrollEventThrottle={16}
@@ -435,18 +440,29 @@ export default function SightingScreen() {
     </View>
   );
 
+  const isSubmitDisabled = isSubmitting || !locationCoords;
+
   const submitBtn = (
-    <TouchableOpacity 
-      style={[styles.submitButton, isSubmitting && styles.submitButtonDisabled]} 
-      onPress={handleSubmit}
-      disabled={isSubmitting}
-    >
-      {isSubmitting ? (
-        <ActivityIndicator color={colors.textWhite} />
-      ) : (
-        <Text style={styles.submitButtonText}>Enviar avistamiento</Text>
+    <View style={{ marginBottom: 20 }}>
+      <TouchableOpacity
+        style={[styles.submitButton, isSubmitDisabled && styles.submitButtonDisabled, { marginBottom: !locationCoords ? 8 : 0 }]}
+        onPress={handleSubmit}
+        disabled={isSubmitDisabled}
+      >
+        {isSubmitting ? (
+          <ActivityIndicator color={colors.textWhite} />
+        ) : (
+          <Text style={styles.submitButtonText}>Enviar avistamiento</Text>
+        )}
+      </TouchableOpacity>
+      {!locationCoords && (
+        <Text style={{ textAlign: 'center', color: colors.metricaRojo, fontSize: 13, fontWeight: '500' }}>
+          {locationName === 'Permiso de GPS denegado'
+            ? 'Necesitas conceder permisos de GPS para poder enviar tu reporte'
+            : 'Esperando a obtener tu ubicación para habilitar el botón...'}
+        </Text>
       )}
-    </TouchableOpacity>
+    </View>
   );
 
   return (
@@ -505,7 +521,7 @@ export default function SightingScreen() {
         <View style={styles.modalOverlay}>
           <View style={styles.modalContent}>
             <Text style={styles.modalTitle}>Ajustar ubicación</Text>
-            
+
             <View style={styles.modalMapContainer}>
               {tempRegion && (
                 <MapView
@@ -927,7 +943,7 @@ const createStyles = (colors: any) => StyleSheet.create({
   },
   modalContent: {
     width: '100%',
-    height: '75%', 
+    height: '75%',
     maxWidth: 600,
     maxHeight: 700,
     alignSelf: 'center',
