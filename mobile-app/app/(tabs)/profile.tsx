@@ -1,7 +1,7 @@
 import React, { useCallback, useState } from 'react';
-import { StyleSheet, View, ActivityIndicator, TouchableOpacity, Text, Alert, Platform } from 'react-native';
+import { StyleSheet, View, ActivityIndicator, TouchableOpacity, Text, Alert, Platform, Animated, Easing } from 'react-native';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
-import { Ionicons } from '@expo/vector-icons';
+import { Ionicons, MaterialCommunityIcons } from '@expo/vector-icons';
 import { router, useFocusEffect } from 'expo-router';
 import { alertService } from '@/services/alertService';
 
@@ -12,6 +12,36 @@ import { getSightingsByUser, getUserRanking, getUserMedals } from '@/services/pr
 import { getTopRankings } from '@/services/rankings';
 import { ProfileHeader, SightingHistoryTab, RankingTab, LogrosTab } from '@/components/profileTab';
 import TabSelector from '@/components/TabSelector';
+
+const CatLoader = ({ color }: { color: string }) => {
+  const bounceAnim = React.useRef(new Animated.Value(0)).current;
+
+  React.useEffect(() => {
+    Animated.loop(
+      Animated.sequence([
+        Animated.timing(bounceAnim, {
+          toValue: -15,
+          duration: 300,
+          useNativeDriver: true,
+          easing: Easing.out(Easing.quad)
+        }),
+        Animated.timing(bounceAnim, {
+          toValue: 0,
+          duration: 400,
+          useNativeDriver: true,
+          easing: Easing.bounce
+        }),
+        Animated.delay(1000)
+      ])
+    ).start();
+  }, [bounceAnim]);
+
+  return (
+    <Animated.View style={{ transform: [{ translateY: bounceAnim }], marginBottom: 16 }}>
+      <MaterialCommunityIcons name="cat" size={54} color={color} />
+    </Animated.View>
+  );
+};
 
 export default function ProfileScreen() {
   const colorScheme = useColorScheme() ?? 'light';
@@ -142,8 +172,11 @@ export default function ProfileScreen() {
   return (
     <View style={[styles.screen, { backgroundColor: colors.bgDark }]}>
       {loading ? (
-        <View style={[styles.loadingContainer, { paddingTop: insets.top }]}>
-          <ActivityIndicator size="small" color={colors.accentOrange} />
+        <View style={[styles.loadingContainer, { paddingBottom: insets.bottom + 50 }]}>
+          <CatLoader color={colors.accentOrange} />
+          <Text style={{ color: colors.textSecondary, fontSize: 16, fontWeight: '500' }}>
+            Preguntándole a los gatos sobre ti...
+          </Text>
         </View>
       ) : (
         <>
@@ -176,6 +209,7 @@ const styles = StyleSheet.create({
     flex: 1,
   },
   loadingContainer: {
+    flex: 1,
     padding: 30,
     alignItems: 'center',
     justifyContent: 'center',
