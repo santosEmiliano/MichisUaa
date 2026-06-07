@@ -32,7 +32,8 @@ export const PasswordConfirmModal = ({ isOpen, onClose, email, onSuccess, title,
       onSuccess();
       handleClose();
     } catch (error) {
-      alertService.error("La contraseña ingresada es incorrecta. No se puede continuar.", "Autenticación Fallida");
+      const msg = error instanceof Error ? error.message : "La contraseña ingresada es incorrecta. No se puede continuar.";
+      alertService.error(msg, "Autenticación Fallida");
     } finally {
       setLoading(false);
     }

@@ -1,8 +1,9 @@
 import React, { useCallback, useState } from 'react';
-import { StyleSheet, View, ActivityIndicator, TouchableOpacity, Text, Alert, Platform } from 'react-native';
+import { StyleSheet, View, ActivityIndicator, TouchableOpacity, Text, Alert, Platform, Animated, Easing } from 'react-native';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
-import { Ionicons } from '@expo/vector-icons';
+import { Ionicons, MaterialCommunityIcons } from '@expo/vector-icons';
 import { router, useFocusEffect } from 'expo-router';
+import { alertService } from '@/services/alertService';
 
 import Colors from '@/constants/Colors';
 import { useColorScheme } from '@/components/useColorScheme';
@@ -11,6 +12,36 @@ import { getSightingsByUser, getUserRanking, getUserMedals } from '@/services/pr
 import { getTopRankings } from '@/services/rankings';
 import { ProfileHeader, SightingHistoryTab, RankingTab, LogrosTab } from '@/components/profileTab';
 import TabSelector from '@/components/TabSelector';
+
+const CatLoader = ({ color }: { color: string }) => {
+  const bounceAnim = React.useRef(new Animated.Value(0)).current;
+
+  React.useEffect(() => {
+    Animated.loop(
+      Animated.sequence([
+        Animated.timing(bounceAnim, {
+          toValue: -15,
+          duration: 300,
+          useNativeDriver: true,
+          easing: Easing.out(Easing.quad)
+        }),
+        Animated.timing(bounceAnim, {
+          toValue: 0,
+          duration: 400,
+          useNativeDriver: true,
+          easing: Easing.bounce
+        }),
+        Animated.delay(1000)
+      ])
+    ).start();
+  }, [bounceAnim]);
+
+  return (
+    <Animated.View style={{ transform: [{ translateY: bounceAnim }], marginBottom: 16 }}>
+      <MaterialCommunityIcons name="cat" size={54} color={color} />
+    </Animated.View>
+  );
+};
 
 export default function ProfileScreen() {
   const colorScheme = useColorScheme() ?? 'light';
@@ -28,12 +59,14 @@ export default function ProfileScreen() {
   const [topRankings, setTopRankings] = useState<any[]>([]);
   const [userMedals, setUserMedals] = useState<{ tipo: string; nivel: number }[]>([]);
 
-  useFocusEffect(
-    useCallback(() => {
-      async function loadProfileData() {
-        setLoading(true);
-        try {
-          const session = await getSession();
+  const [refreshing, setRefreshing] = useState(false);
+
+  const loadProfileData = useCallback(async (isRefresh = false) => {
+    if (!isRefresh) setLoading(true);
+    else setRefreshing(true);
+
+    try {
+      const session = await getSession();
           if (session) {
             if (session.userName) setUserName(session.userName);
             if (session.userEmail) setUserEmail(session.userEmail);
@@ -74,14 +107,19 @@ export default function ProfileScreen() {
           if (Array.isArray(rankingsData)) {
             setTopRankings(rankingsData);
           }
-        } catch (error) {
-          console.error("Error al cargar datos del perfil:", error);
-        } finally {
-          setLoading(false);
-        }
+      } catch (error) {
+        console.error("Error al cargar datos del perfil:", error);
+        alertService.error("Error", "No pudimos cargar tu perfil completo. Verifica tu conexión e intenta más tarde.");
+      } finally {
+        if (!isRefresh) setLoading(false);
+        else setRefreshing(false);
       }
+  }, []);
+
+  useFocusEffect(
+    useCallback(() => {
       loadProfileData();
-    }, [])
+    }, [loadProfileData])
   );
 
   const getInitials = (name: string) => {
@@ -96,30 +134,23 @@ export default function ProfileScreen() {
   const performLogout = async () => {
     try {
       await clearSession();
+      alertService.success("Sesión cerrada", "Has cerrado sesión exitosamente.");
       router.replace('/login');
     } catch (error) {
       console.error("Error al cerrar sesión:", error);
+      alertService.error("Error", "No se pudo cerrar la sesión. Inténtalo de nuevo.");
     }
   };
 
-  const handleLogout = () => {
-    if (Platform.OS === 'web') {
-      if (window.confirm("¿Estás seguro de que deseas cerrar sesión?")) {
-        performLogout();
-      }
-    } else {
-      Alert.alert(
-        "Cerrar sesión",
-        "¿Estás seguro de que deseas cerrar sesión?",
-        [
-          { text: "Cancelar", style: "cancel" },
-          {
-            text: "Cerrar sesión",
-            style: "destructive",
-            onPress: performLogout,
-          },
-        ]
-      );
+  const handleLogout = async () => {
+    const confirm = await alertService.questionAsync(
+      "Cerrar sesión",
+      "¿Estás seguro de que deseas cerrar sesión?",
+      "Cerrar sesión",
+      "Cancelar"
+    );
+    if (confirm) {
+      performLogout();
     }
   };
 
@@ -127,7 +158,7 @@ export default function ProfileScreen() {
   const renderTabContent = () => {
     switch (activeTab) {
       case 'Historial':
-        return <SightingHistoryTab sightings={sightings} />;
+        return <SightingHistoryTab sightings={sightings} onRefresh={() => loadProfileData(true)} refreshing={refreshing} />;
       case 'Ranking':
         return (
           <RankingTab 
@@ -135,10 +166,12 @@ export default function ProfileScreen() {
             currentUserName={userName} 
             currentUserRanking={rankingPosition}
             totalUsersCount={totalUsersCount}
+            onRefresh={() => loadProfileData(true)} 
+            refreshing={refreshing}
           />
         );
       case 'Logros':
-        return <LogrosTab userMedals={userMedals} sightingsCount={sightingsCount} sightings={sightings} />;
+        return <LogrosTab userMedals={userMedals} sightingsCount={sightingsCount} sightings={sightings} onRefresh={() => loadProfileData(true)} refreshing={refreshing} />;
       default:
         return null;
     }
@@ -147,8 +180,11 @@ export default function ProfileScreen() {
   return (
     <View style={[styles.screen, { backgroundColor: colors.bgDark }]}>
       {loading ? (
-        <View style={[styles.loadingContainer, { paddingTop: insets.top }]}>
-          <ActivityIndicator size="small" color={colors.accentOrange} />
+        <View style={[styles.loadingContainer, { paddingBottom: insets.bottom + 50 }]}>
+          <CatLoader color={colors.accentOrange} />
+          <Text style={{ color: colors.textSecondary, fontSize: 16, fontWeight: '500' }}>
+            Preguntándole a los gatos sobre ti...
+          </Text>
         </View>
       ) : (
         <>
@@ -159,6 +195,8 @@ export default function ProfileScreen() {
               userEmail={userEmail}
               initials={getInitials(userName)}
               onLogout={handleLogout}
+              onRefresh={() => loadProfileData(true)}
+              isRefreshing={refreshing}
             />
             <TabSelector
               tabs={['Logros', 'Historial', 'Ranking']}
@@ -181,6 +219,7 @@ const styles = StyleSheet.create({
     flex: 1,
   },
   loadingContainer: {
+    flex: 1,
     padding: 30,
     alignItems: 'center',
     justifyContent: 'center',

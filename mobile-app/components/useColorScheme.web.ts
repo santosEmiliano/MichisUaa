@@ -1,35 +1,11 @@
-import { useEffect, useState } from 'react';
-import { useColorScheme as useNativeColorScheme } from 'react-native';
-
-let webTheme: 'light' | 'dark' | null = null;
-const listeners = new Set<(scheme: 'light' | 'dark') => void>();
-
-try {
-  const stored = localStorage.getItem('app_theme');
-  if (stored === 'light' || stored === 'dark') {
-    webTheme = stored;
-  }
-} catch (e) {}
-
-export function setColorScheme(scheme: 'light' | 'dark') {
-  webTheme = scheme;
-  try {
-    localStorage.setItem('app_theme', scheme);
-  } catch (e) {}
-  listeners.forEach(listener => listener(scheme));
-}
+import { useThemeContext } from '@/components/ThemeContext';
 
 export function useColorScheme() {
-  const nativeScheme = useNativeColorScheme() ?? 'light';
-  const [scheme, setScheme] = useState<'light' | 'dark'>(webTheme ?? nativeScheme);
+  const { theme } = useThemeContext();
+  return theme;
+}
 
-  useEffect(() => {
-    const handler = (newScheme: 'light' | 'dark') => setScheme(newScheme);
-    listeners.add(handler);
-    return () => {
-      listeners.delete(handler);
-    };
-  }, []);
-
-  return scheme;
+export function useSetTheme() {
+  const { setTheme } = useThemeContext();
+  return setTheme;
 }

@@ -30,6 +30,7 @@ export const GatoModal = ({
     { idColonia: number; nombre: string }[]
   >([]);
   const [loading, setLoading] = useState(false);
+  const [fieldErrors, setFieldErrors] = useState<Record<string, string>>({});
 
   useEffect(() => {
     if (isOpen) {
@@ -110,6 +111,8 @@ export const GatoModal = ({
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
+    setFieldErrors({});
+
     if (!nombre || !coloniaId) {
       alertService.warning(
         "El nombre y la colonia son obligatorios.",
@@ -156,12 +159,16 @@ export const GatoModal = ({
         body: formData,
       });
 
-      if (!res.ok)
-        throw new Error(
-          catToEdit
+      if (!res.ok) {
+        let msg = catToEdit
             ? "Error al actualizar el gato"
-            : "Error al registrar el gato",
-        );
+            : "Error al registrar el gato";
+        try {
+          const errData = await res.json();
+          if (errData.mensaje) msg = errData.mensaje;
+        } catch {}
+        throw new Error(msg);
+      }
 
       alertService.success(
         catToEdit
@@ -174,10 +181,20 @@ export const GatoModal = ({
       onClose();
     } catch (error) {
       console.error("Error guardando gato:", error);
-      alertService.error(
-        "Ocurrió un problema al guardar la información del gato. Por favor, intenta de nuevo.",
-        "Error al Guardar",
-      );
+      const msg = error instanceof Error ? error.message : "";
+      
+      if (msg.toLowerCase().includes("fecha de nacimiento")) {
+        setFieldErrors({ fechaNac: msg });
+      } else if (msg.toLowerCase().includes("obligatorios")) {
+        alertService.warning(msg, "Información Incompleta");
+      } else if (msg.toLowerCase().includes("imagen") || msg.toLowerCase().includes("5mb") || msg.toLowerCase().includes("límite")) {
+        alertService.warning(msg, "Archivo no Válido");
+      } else {
+        alertService.error(
+          msg || "Ocurrió un problema al guardar la información del gato. Por favor, intenta de nuevo.",
+          "Error al Guardar",
+        );
+      }
     } finally {
       setLoading(false);
     }
@@ -368,17 +385,24 @@ export const GatoModal = ({
           </div>
         </div>
 
-        <div className="flex items-center justify-between pt-2">
-          <label className="block text-main font-bold">
-            Fecha de Nacimiento (Aprox)
-          </label>
-          <input
-            type="date"
-            max={new Date().toISOString().split("T")[0]}
-            value={fechaNac}
-            onChange={(e) => setFechaNac(e.target.value)}
-            className="w-56 bg-gris border border-sidebar-separador rounded-xl px-4 py-3 text-secondary focus:outline-none focus:border-acento-naranja focus:bg-[rgba(232,137,60,0.05)] hover:border-acento-naranja transition-all duration-200"
-          />
+        <div className="flex flex-col pt-2">
+          <div className="flex items-center justify-between">
+            <label className="block text-main font-bold">
+              Fecha de Nacimiento (Aprox)
+            </label>
+            <input
+              type="date"
+              max={new Date().toISOString().split("T")[0]}
+              value={fechaNac}
+              onChange={(e) => setFechaNac(e.target.value)}
+              className={`w-56 bg-gris border rounded-xl px-4 py-3 text-secondary focus:outline-none focus:bg-[rgba(232,137,60,0.05)] hover:border-acento-naranja transition-all duration-200 ${
+                fieldErrors.fechaNac ? "border-red-500 focus:border-red-500" : "border-sidebar-separador focus:border-acento-naranja"
+              }`}
+            />
+          </div>
+          {fieldErrors.fechaNac && (
+            <p className="text-xs text-red-400 mt-1 text-right">{fieldErrors.fechaNac}</p>
+          )}
         </div>
       </form>
     </ModalCrud>

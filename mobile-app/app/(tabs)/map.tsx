@@ -6,6 +6,7 @@ import { MapClustering as MapView, Marker, Callout } from '@/components/Map';
 import FontAwesome from '@expo/vector-icons/FontAwesome';
 import { getPublicAnimals, AnimalPublic } from '@/services/mapApi';
 import Colors from '@/constants/Colors';
+import { alertService } from '@/services/alertService';
 import { useColorScheme } from '@/components/useColorScheme';
 
 // Coordenadas de la UAA
@@ -80,6 +81,7 @@ export default function MapScreen() {
         let { status } = await Location.requestForegroundPermissionsAsync();
         if (status !== 'granted') {
           console.warn('Permiso de ubicación denegado.');
+          alertService.warning("GPS requerido", "El mapa necesita tu ubicación. Por favor, habilita el acceso en la configuración.");
           return;
         }
 
@@ -87,6 +89,7 @@ export default function MapScreen() {
         setLocation(currentLocation);
       } catch (error) {
         console.warn("No se pudo obtener la ubicación:", error);
+        alertService.error("Error de ubicación", "No pudimos obtener tu ubicación actual.");
       }
     })();
   }, []);
@@ -125,7 +128,7 @@ export default function MapScreen() {
         const data = await getPublicAnimals();
         setAnimals(data);
       } catch (error) {
-        Alert.alert('Error', 'No se pudieron cargar los avistamientos de los michis.');
+        alertService.error('Error', 'No se pudieron cargar los avistamientos de los michis.');
       } finally {
         setIsLoading(false);
       }
@@ -320,18 +323,19 @@ export default function MapScreen() {
             opacity: opacityAnim,
             transform: [{ translateY: slideAnim }]
           },
-          Platform.OS === 'web' && { top: 100 } as any
+          Platform.OS === 'web' && { top: 100, alignItems: 'center' } as any
         ]}
         pointerEvents={showFilters ? "auto" : "none"}
       >
         <ScrollView 
           horizontal 
+          style={Platform.OS === 'web' ? { maxWidth: '100%' } : undefined}
           showsHorizontalScrollIndicator={false} 
           contentContainerStyle={{ 
             gap: 10, 
             paddingHorizontal: 20, 
             flexGrow: 1, 
-            justifyContent: (Platform.OS === 'web' && !isSmallScreen) ? 'center' : 'flex-start' 
+            justifyContent: 'flex-start' 
           }}
         >
           {['Todos', 'Registrados', 'No Registrados', 'Desaparecidos'].map((filter) => (

@@ -11,6 +11,7 @@ import Estadisticas from "./pages/Estadisticas";
 import { AlertsContainer } from "./components/Alerts/AlertsContainer";
 
 import { checkSession } from "./utils/auth";
+import { alertService } from "./services/alertService";
 
 function App() {
   const [isAuthenticated, setIsAuthenticated] = useState(() => checkSession());
@@ -24,6 +25,10 @@ function App() {
         localStorage.removeItem("token");
         localStorage.removeItem("userId");
         setIsAuthenticated(false);
+        alertService.warning(
+          "Tu sesión ha expirado o no tienes los permisos necesarios. Por favor, inicia sesión de nuevo.",
+          "Sesión Expirada"
+        );
       }
       return response;
     };

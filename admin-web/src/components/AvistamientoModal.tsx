@@ -104,8 +104,9 @@ export const AvistamientoModal = ({ isOpen, onClose, onSuccess, avistamiento }: 
       onClose();
     } catch (error) {
       console.error(error);
+      const msg = error instanceof Error ? error.message : "";
       alertService.error(
-        "Ocurrió un problema al verificar el avistamiento. Por favor, intenta de nuevo.",
+        msg || "Ocurrió un problema al verificar el avistamiento. Por favor, intenta de nuevo.",
         "Error al Verificar"
       );
     } finally {
@@ -128,8 +129,9 @@ export const AvistamientoModal = ({ isOpen, onClose, onSuccess, avistamiento }: 
       onClose();
     } catch (error) {
       console.error(error);
+      const msg = error instanceof Error ? error.message : "";
       alertService.error(
-        "Ocurrió un problema al rechazar el avistamiento. Por favor, intenta de nuevo.",
+        msg || "Ocurrió un problema al rechazar el avistamiento. Por favor, intenta de nuevo.",
         "Error al Rechazar"
       );
     } finally {
@@ -151,8 +153,9 @@ export const AvistamientoModal = ({ isOpen, onClose, onSuccess, avistamiento }: 
       onClose();
     } catch (error) {
       console.error(error);
+      const msg = error instanceof Error ? error.message : "";
       alertService.error(
-        "Ocurrió un problema al guardar los cambios. Por favor, intenta de nuevo.",
+        msg || "Ocurrió un problema al guardar los cambios. Por favor, intenta de nuevo.",
         "Error al Guardar"
       );
     } finally {
@@ -175,14 +178,39 @@ export const AvistamientoModal = ({ isOpen, onClose, onSuccess, avistamiento }: 
       onClose();
     } catch (error) {
       console.error(error);
+      const msg = error instanceof Error ? error.message : "";
       alertService.error(
-        "Ocurrió un problema al revocar la verificación. Por favor, intenta de nuevo.",
+        msg || "Ocurrió un problema al revocar la verificación. Por favor, intenta de nuevo.",
         "Error al Revocar"
       );
     } finally {
       setIsProcessing(false);
     }
   };
+
+  const handleBorrarVerificacion = async () => {
+    const confirm = await alertService.questionAsync(
+      "¿Seguro que desea usted eliminar el siguiente avistamiento? (Es una accion permanente!)",
+      "Eliminar avistamiento"
+    );
+    if (!confirm) return;
+
+    try {
+      setIsProcessing(true);
+      await avistamientosApi.deleteAvistamiento(displayAvistamiento.id);
+      alertService.success("El avistamiento ha sido eliminado", "Avistamiento eliminado");
+      if (onSuccess) onSuccess();
+      onClose();
+    } catch (error) {
+      console.log(error);
+      alertService.error(
+        "Ocurrio un problema al momento de eliminar el avistamiento. Porfavor intentarlo mas tarde",
+        "Error al eliminar"
+      )
+    } finally {
+      setIsProcessing(false);
+    }
+  }
 
   return (
     <div
@@ -420,6 +448,13 @@ export const AvistamientoModal = ({ isOpen, onClose, onSuccess, avistamiento }: 
               </button>
             </>
           )}
+          <button
+            onClick={handleBorrarVerificacion}
+            disabled={isProcessing}
+            className="w-full sm:w-auto justify-center px-6 py-3 sm:py-2.5 rounded-xl border border-sidebar-separador text-main font-bold hover:text-main hover:bg-gris transition-all duration-200 flex items-center gap-2 disabled:opacity-50"
+          >
+            <Icons.Trash2 className="w-5 h-5" />
+          </button>
         </div>
       </div>
     </div>

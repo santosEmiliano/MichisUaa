@@ -1,5 +1,5 @@
 import React, { useState, useRef } from 'react';
-import { StyleSheet, View, Text, ScrollView, TouchableOpacity, useWindowDimensions } from 'react-native';
+import { StyleSheet, View, Text, ScrollView, TouchableOpacity, useWindowDimensions, RefreshControl } from 'react-native';
 import Colors from '@/constants/Colors';
 import { useColorScheme } from '@/components/useColorScheme';
 import { MEDALLAS, MedallaConfig } from '@/constants/medals';
@@ -8,6 +8,8 @@ interface LogrosTabProps {
   userMedals?: { tipo: string; nivel: number }[];
   sightingsCount?: number;
   sightings?: any[];
+  onRefresh?: () => void;
+  refreshing?: boolean;
 }
 
 // Helper to get theme-appropriate colors for dark mode high-contrast and light mode
@@ -169,7 +171,9 @@ function getCategoryState(medalla: MedallaConfig, userLevel: number, progressVal
 export default function LogrosTab({ 
   userMedals = [],
   sightingsCount = 0,
-  sightings = []
+  sightings = [],
+  onRefresh,
+  refreshing = false
 }: LogrosTabProps) {
   const colorScheme = useColorScheme() ?? 'light';
   const colors = Colors[colorScheme];
@@ -224,6 +228,9 @@ export default function LogrosTab({
       style={styles.container} 
       showsVerticalScrollIndicator={false}
       contentContainerStyle={styles.content}
+      refreshControl={
+        onRefresh ? <RefreshControl refreshing={refreshing} onRefresh={onRefresh} colors={[colors.accentOrange]} tintColor={colors.accentOrange} /> : undefined
+      }
     >
       {/* Sección: CATEGORÍAS */}
       <View style={styles.sectionHeader}>

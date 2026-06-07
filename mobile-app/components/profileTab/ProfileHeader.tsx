@@ -1,9 +1,9 @@
 import React, { useState } from 'react';
-import { StyleSheet, View, Text, TouchableOpacity, Modal, TouchableWithoutFeedback } from 'react-native';
+import { StyleSheet, View, Text, TouchableOpacity, Modal, TouchableWithoutFeedback, Platform, ActivityIndicator } from 'react-native';
 import { Ionicons } from '@expo/vector-icons';
 
 import Colors from '@/constants/Colors';
-import { useColorScheme, setColorScheme } from '@/components/useColorScheme';
+import { useColorScheme, useSetTheme } from '@/components/useColorScheme';
 import CatAvatar from './CatAvatar';
 
 interface ProfileHeaderProps {
@@ -11,16 +11,20 @@ interface ProfileHeaderProps {
   userEmail: string;
   initials: string;
   onLogout?: () => void;
+  onRefresh?: () => void;
+  isRefreshing?: boolean;
 }
 
-export default function ProfileHeader({ userName, userEmail, initials, onLogout }: ProfileHeaderProps) {
+export default function ProfileHeader({ userName, userEmail, initials, onLogout, onRefresh, isRefreshing }: ProfileHeaderProps) {
   const [menuVisible, setMenuVisible] = useState(false);
   const colorScheme = useColorScheme() ?? 'light';
   const colors = Colors[colorScheme];
 
+  const setTheme = useSetTheme();
+
   const toggleTheme = () => {
     const nextScheme = colorScheme === 'light' ? 'dark' : 'light';
-    setColorScheme(nextScheme);
+    setTheme(nextScheme);
   };
 
   return (
@@ -30,32 +34,55 @@ export default function ProfileHeader({ userName, userEmail, initials, onLogout 
         <CatAvatar initials={initials} />
 
         <View style={styles.infoColumn}>
-          <Text style={[styles.userName, { color: colors.textMain }]}>
+          <Text style={[styles.userName, { color: colors.textMain }]} numberOfLines={1} ellipsizeMode="tail">
             {userName}
           </Text>
           <View style={styles.roleRow}>
             <View style={[styles.roleDot, { backgroundColor: colors.metricaVerde }]} />
-            <Text style={[styles.roleText, { color: colors.textSecondary }]}>
+            <Text style={[styles.roleText, { color: colors.textSecondary }]} numberOfLines={1} ellipsizeMode="tail">
               {userEmail}
             </Text>
           </View>
         </View>
       </View>
 
-      {/* Botón derecho: Ícono de Configuración */}
-      <TouchableOpacity
-        style={[
-          styles.themeButton,
-          { backgroundColor: colorScheme === 'dark' ? colors.fondoGris : colors.fondoGrisOscuro }
-        ]}
-        onPress={() => setMenuVisible(true)}
-      >
-        <Ionicons
-          name="settings-outline"
-          size={22}
-          color={colors.textSecondary}
-        />
-      </TouchableOpacity>
+      {/* Botones derechos */}
+      <View style={{ flexDirection: 'row', gap: 8 }}>
+        {Platform.OS === 'web' && onRefresh && (
+          <TouchableOpacity
+            style={[
+              styles.themeButton,
+              { backgroundColor: colorScheme === 'dark' ? colors.fondoGris : colors.fondoGrisOscuro }
+            ]}
+            onPress={onRefresh}
+            disabled={isRefreshing}
+          >
+            {isRefreshing ? (
+              <ActivityIndicator size="small" color={colors.textSecondary} />
+            ) : (
+              <Ionicons
+                name="refresh"
+                size={22}
+                color={colors.textSecondary}
+              />
+            )}
+          </TouchableOpacity>
+        )}
+
+        <TouchableOpacity
+          style={[
+            styles.themeButton,
+            { backgroundColor: colorScheme === 'dark' ? colors.fondoGris : colors.fondoGrisOscuro }
+          ]}
+          onPress={() => setMenuVisible(true)}
+        >
+          <Ionicons
+            name="settings-outline"
+            size={22}
+            color={colors.textSecondary}
+          />
+        </TouchableOpacity>
+      </View>
 
       {/* Menú Flotante de Configuración */}
       <Modal visible={menuVisible} transparent animationType="fade">
@@ -107,9 +134,12 @@ const styles = StyleSheet.create({
     flexDirection: 'row',
     alignItems: 'center',
     gap: 16,
+    flex: 1,
+    paddingRight: 12,
   },
   infoColumn: {
     justifyContent: 'center',
+    flex: 1,
   },
   userName: {
     fontSize: 20,

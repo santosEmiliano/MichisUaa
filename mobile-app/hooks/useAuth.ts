@@ -4,7 +4,7 @@ import { getSession, clearSession } from '@/services/sessionStorage';
 import * as Notifications from 'expo-notifications';
 import { Platform } from 'react-native';
 import { apiFetch } from '@/services/api';
-import { showAlert } from '@/utils/alerts';
+import { alertService } from '@/services/alertService';
 import Constants, { ExecutionEnvironment } from 'expo-constants';
 
 interface Session {
@@ -69,10 +69,6 @@ export const registrarPushToken = async () => {
       console.warn('No se encontró el projectId de EAS.');
     }
     const token = await Notifications.getExpoPushTokenAsync({ projectId });
-    console.log('\n====================================');
-    console.log('PUSH TOKEN:', token.data);
-    console.log('====================================\n');
-    showAlert('Push token:', token.data);
     // Mandas el token al backend para guardarlo
     await apiFetch('/user/push-token', {
       method: 'PUT',
@@ -116,6 +112,7 @@ export function useAuth(): UseAuthReturn {
       router.replace('/login');
     } catch (error) {
       console.error('Error al cerrar sesión:', error);
+      alertService.error('Error', 'Hubo un problema al cerrar sesión.');
     }
   }, []);
 

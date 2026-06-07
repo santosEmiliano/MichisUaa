@@ -1,5 +1,5 @@
 import React from 'react';
-import { StyleSheet, View, ScrollView } from 'react-native';
+import { StyleSheet, View, ScrollView, RefreshControl } from 'react-native';
 
 import Colors from '@/constants/Colors';
 import { useColorScheme } from '@/components/useColorScheme';
@@ -21,6 +21,8 @@ interface RankingTabProps {
   currentUserName?: string;
   currentUserRanking?: string | number;
   totalUsersCount?: number;
+  onRefresh?: () => void;
+  refreshing?: boolean;
 }
 
 // Paletas de colores para los avatares
@@ -59,7 +61,9 @@ export default function RankingTab({
   rankings, 
   currentUserName, 
   currentUserRanking = '--', 
-  totalUsersCount = 0 
+  totalUsersCount = 0,
+  onRefresh,
+  refreshing = false
 }: RankingTabProps) {
   const colorScheme = useColorScheme() ?? 'light';
   const colors = Colors[colorScheme];
@@ -75,6 +79,16 @@ export default function RankingTab({
       style={styles.container} 
       showsVerticalScrollIndicator={false}
       contentContainerStyle={styles.content}
+      refreshControl={
+        onRefresh ? (
+          <RefreshControl 
+            refreshing={refreshing} 
+            onRefresh={onRefresh} 
+            colors={[colors.tint]} 
+            tintColor={colors.tint} 
+          />
+        ) : undefined
+      }
     >
       {/* Podio superior (Top 3) */}
       <RankingPodium topRankings={enrichedList} />

@@ -18,13 +18,24 @@ const getUserId = (): number => {
   return Number(id);
 };
 
+const handleError = async (res: Response, defaultMessage: string) => {
+  if (!res.ok) {
+    let msg = defaultMessage;
+    try {
+      const errData = await res.json();
+      if (errData.mensaje) msg = errData.mensaje;
+    } catch {}
+    throw new Error(msg);
+  }
+};
+
 export const avistamientosApi = {
   // Obtener todos los avistamientos
   getAvistamientos: async (): Promise<BackendAvistamiento[]> => {
     const res = await fetch(`${API_URL}/avistamientos`, {
       headers: getHeaders(),
     });
-    if (!res.ok) throw new Error("Error al obtener los avistamientos");
+    await handleError(res, "Error al obtener los avistamientos");
     return res.json();
   },
 
@@ -39,7 +50,7 @@ export const avistamientosApi = {
         verificadoPor: getUserId()
       }),
     });
-    if (!res.ok) throw new Error("Error al verificar el avistamiento");
+    await handleError(res, "Error al verificar el avistamiento");
     return res.json();
   },
 
@@ -54,7 +65,7 @@ export const avistamientosApi = {
         verificadoPor: getUserId()
       }),
     });
-    if (!res.ok) throw new Error("Error al rechazar el avistamiento");
+    await handleError(res, "Error al rechazar el avistamiento");
     return res.json();
   },
 
@@ -69,7 +80,7 @@ export const avistamientosApi = {
         verificadoPor: null
       }),
     });
-    if (!res.ok) throw new Error("Error al rechazar el avistamiento");
+    await handleError(res, "Error al revocar el rechazo del avistamiento");
     return res.json();
   },
 
@@ -80,7 +91,7 @@ export const avistamientosApi = {
       headers: getHeaders(),
       body: JSON.stringify({ animalId }),
     });
-    if (!res.ok) throw new Error("Error al modificar el avistamiento");
+    await handleError(res, "Error al modificar el avistamiento");
     return res.json();
   },
 
@@ -94,7 +105,7 @@ export const avistamientosApi = {
         verificadoPor: null,
       }),
     });
-    if (!res.ok) throw new Error("Error al revocar la verificación");
+    await handleError(res, "Error al revocar la verificación");
     return res.json();
   },
 
@@ -104,7 +115,7 @@ export const avistamientosApi = {
       method: "DELETE",
       headers: getHeaders(),
     });
-    if (!res.ok) throw new Error("Error al eliminar el avistamiento");
+    await handleError(res, "Error al eliminar el avistamiento");
     return res.json();
   },
 };
