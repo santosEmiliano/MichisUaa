@@ -79,7 +79,7 @@ export default function SightingScreen() {
 
   useFocusEffect(
     useCallback(() => {
-      (async () => {
+      const fetchLocation = async () => {
         let { status } = await Location.requestForegroundPermissionsAsync();
         if (status !== 'granted') {
           setLocationName('Permiso de GPS denegado');
@@ -98,7 +98,9 @@ export default function SightingScreen() {
           setLocationName('Error al obtener ubicación');
           alertService.error("Error de ubicación", "No pudimos obtener tu ubicación actual. Asegúrate de tener el GPS encendido e inténtalo de nuevo.");
         }
+      };
 
+      const fetchAnimalsData = async () => {
         try {
           const data = await getPublicAnimals();
           setAnimals(data);
@@ -108,7 +110,10 @@ export default function SightingScreen() {
         } finally {
           setLoadingAnimals(false);
         }
-      })();
+      };
+
+      fetchLocation();
+      fetchAnimalsData();
     }, [])
   );
 
