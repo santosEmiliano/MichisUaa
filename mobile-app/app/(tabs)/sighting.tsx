@@ -277,7 +277,7 @@ export default function SightingScreen() {
               <Text style={styles.cameraButtonText}>Cámara</Text>
             </TouchableOpacity>
             <TouchableOpacity style={styles.galleryButton} activeOpacity={0.6} onPress={pickImage}>
-              <Ionicons name="images-outline" size={20} color={colors.textWhite} />
+              <Ionicons name="images-outline" size={20} color={colors.textMain} />
               <Text style={styles.galleryButtonText}>Galería</Text>
             </TouchableOpacity>
           </>
@@ -379,11 +379,11 @@ export default function SightingScreen() {
           {totalPages > 1 && (
             <View style={styles.paginationRow}>
               <TouchableOpacity onPress={handlePrevPage} disabled={catPage === 0} style={styles.paginationBtn}>
-                <Ionicons name="chevron-back" size={24} color={catPage === 0 ? colors.textSecondary : colors.textWhite} />
+                <Ionicons name="chevron-back" size={24} color={catPage === 0 ? colors.textSecondary : colors.textMain} />
               </TouchableOpacity>
               <Text style={styles.pageText}>Página {catPage + 1} de {totalPages}</Text>
               <TouchableOpacity onPress={handleNextPage} disabled={catPage >= totalPages - 1} style={styles.paginationBtn}>
-                <Ionicons name="chevron-forward" size={24} color={catPage >= totalPages - 1 ? colors.textSecondary : colors.textWhite} />
+                <Ionicons name="chevron-forward" size={24} color={catPage >= totalPages - 1 ? colors.textSecondary : colors.textMain} />
               </TouchableOpacity>
             </View>
           )}
@@ -392,7 +392,7 @@ export default function SightingScreen() {
         <View style={styles.mobileScrollWrapper}>
           {isDesktopWeb && (
             <TouchableOpacity style={styles.mobileScrollArrow} onPress={scrollLeft}>
-              <Ionicons name="chevron-back" size={24} color={colors.textWhite} />
+              <Ionicons name="chevron-back" size={24} color={colors.textMain} />
             </TouchableOpacity>
           )}
           <ScrollView 
@@ -407,7 +407,7 @@ export default function SightingScreen() {
           </ScrollView>
           {isDesktopWeb && (
             <TouchableOpacity style={styles.mobileScrollArrow} onPress={scrollRight}>
-              <Ionicons name="chevron-forward" size={24} color={colors.textWhite} />
+              <Ionicons name="chevron-forward" size={24} color={colors.textMain} />
             </TouchableOpacity>
           )}
         </View>
@@ -456,7 +456,7 @@ export default function SightingScreen() {
           <View style={styles.header}>
             <TouchableOpacity onPress={() => router.back()} style={styles.backButton}>
               <View style={styles.backIconContainer}>
-                <Ionicons name="chevron-back" size={20} color={colors.textWhite} />
+                <Ionicons name="chevron-back" size={20} color={colors.textMain} />
               </View>
             </TouchableOpacity>
             <Text style={styles.headerTitle}>Reportar avistamiento</Text>
@@ -601,7 +601,7 @@ const createStyles = (colors: any) => StyleSheet.create({
     marginTop: 10,
   },
   pageText: {
-    color: colors.textWhite,
+    color: colors.textMain,
     fontSize: 16,
     fontWeight: 'bold',
   },
@@ -628,7 +628,7 @@ const createStyles = (colors: any) => StyleSheet.create({
   headerTitle: {
     fontSize: 20,
     fontWeight: 'bold',
-    color: colors.textWhite,
+    color: colors.textMain,
   },
   warningBanner: {
     backgroundColor: '#E74C3C',
@@ -725,7 +725,7 @@ const createStyles = (colors: any) => StyleSheet.create({
     gap: 8,
   },
   galleryButtonText: {
-    color: colors.textWhite,
+    color: colors.textMain,
     fontWeight: 'bold',
     fontSize: 16,
   },
@@ -794,7 +794,7 @@ const createStyles = (colors: any) => StyleSheet.create({
     marginRight: 10,
   },
   locationText: {
-    color: colors.textWhite,
+    color: colors.textMain,
     fontSize: 14,
     fontWeight: '600',
     flexShrink: 1,
@@ -806,7 +806,7 @@ const createStyles = (colors: any) => StyleSheet.create({
   },
   textArea: {
     backgroundColor: colors.bgPanel,
-    color: colors.textWhite,
+    color: colors.textMain,
     borderRadius: 16,
     padding: 16,
     borderWidth: 1,
@@ -829,7 +829,7 @@ const createStyles = (colors: any) => StyleSheet.create({
   },
   searchInput: {
     flex: 1,
-    color: colors.textWhite,
+    color: colors.textMain,
     fontSize: 16,
     paddingVertical: 12,
   },
@@ -886,7 +886,7 @@ const createStyles = (colors: any) => StyleSheet.create({
     textAlign: 'center',
   },
   animalNameSelected: {
-    color: colors.textWhite,
+    color: colors.textMain,
     fontWeight: 'bold',
   },
   hintBox: {
@@ -943,7 +943,7 @@ const createStyles = (colors: any) => StyleSheet.create({
     elevation: 10,
   },
   modalTitle: {
-    color: colors.textWhite,
+    color: colors.textMain,
     fontSize: 18,
     fontWeight: 'bold',
     textAlign: 'center',
@@ -988,7 +988,7 @@ const createStyles = (colors: any) => StyleSheet.create({
     justifyContent: 'center',
   },
   modalCancelText: {
-    color: colors.textWhite,
+    color: colors.textMain,
     fontWeight: 'bold',
     fontSize: 16,
   },
