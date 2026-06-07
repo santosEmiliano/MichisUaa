@@ -11,6 +11,7 @@ import { MapView, Marker } from '@/components/Map';
 import { getPublicAnimals, PublicAnimal } from '@/services/animalsApi';
 import { createSighting } from '@/services/sightingsApi';
 import { useColorScheme } from '@/components/useColorScheme';
+import EmptyCatState from '@/components/EmptyCatState';
 
 export default function SightingScreen() {
   const colorScheme = useColorScheme() ?? 'light';
@@ -205,7 +206,7 @@ export default function SightingScreen() {
       return;
     }
     if (!locationCoords) {
-      alertService.info('Falta la ubicación', 'Estamos obteniendo tu ubicación, por favor espera un momento.');
+      alertService.info('Falta la ubicación', 'Estamos rastreando tu posición felina, por favor espera un par de segundos.');
       return;
     }
 
@@ -375,7 +376,14 @@ export default function SightingScreen() {
       </View>
 
       {loadingAnimals ? (
-        <ActivityIndicator size="small" color={colors.accentOrange} />
+        <View style={{ paddingVertical: 30, alignItems: 'center', justifyContent: 'center' }}>
+          <ActivityIndicator size="small" color={colors.accentOrange} />
+          <Text style={{ marginTop: 12, color: colors.textSecondary, fontSize: 14, fontWeight: '500' }}>
+            Rastreando michis cercanos...
+          </Text>
+        </View>
+      ) : filteredAnimals.length === 0 ? (
+        <EmptyCatState message="Buscamos por todas partes, pero no encontramos a ese michi." icon="magnify" />
       ) : isDesktop ? (
         <View>
           <View style={styles.animalDesktopGrid}>
@@ -450,7 +458,10 @@ export default function SightingScreen() {
         disabled={isSubmitDisabled}
       >
         {isSubmitting ? (
-          <ActivityIndicator color={colors.textWhite} />
+          <View style={{ flexDirection: 'row', alignItems: 'center', justifyContent: 'center' }}>
+            <ActivityIndicator color={colors.textWhite} style={{ marginRight: 10 }} />
+            <Text style={styles.submitButtonText}>Mandando michi-señal...</Text>
+          </View>
         ) : (
           <Text style={styles.submitButtonText}>Enviar avistamiento</Text>
         )}

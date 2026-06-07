@@ -1,8 +1,9 @@
 import React, { useState, useEffect, useRef } from 'react';
-import { StyleSheet, View, Text, ScrollView, TouchableOpacity, Image, Modal, Pressable, useWindowDimensions, Animated } from 'react-native';
+import { StyleSheet, View, Text, ScrollView, TouchableOpacity, Image, Modal, Pressable, useWindowDimensions, Animated, RefreshControl } from 'react-native';
 
 import Colors from '@/constants/Colors';
 import { useColorScheme } from '@/components/useColorScheme';
+import EmptyCatState from '@/components/EmptyCatState';
 
 interface Sighting {
   idAvistamiento: number;
@@ -22,6 +23,8 @@ interface Sighting {
 
 interface SightingHistoryTabProps {
   sightings: Sighting[];
+  onRefresh?: () => void;
+  refreshing?: boolean;
 }
 
 const FILTERS = ['Todos', 'Verificados', 'Pendientes', 'Rechazados'];
@@ -142,7 +145,7 @@ const AnimatedSightingCard = ({ sighting, index, itemsPerRow, setSelectedPhoto, 
   );
 };
 
-export default function SightingHistoryTab({ sightings }: SightingHistoryTabProps) {
+export default function SightingHistoryTab({ sightings, onRefresh, refreshing = false }: SightingHistoryTabProps) {
   const colorScheme = useColorScheme() ?? 'light';
   const colors = Colors[colorScheme];
   const { width } = useWindowDimensions();
@@ -218,13 +221,12 @@ export default function SightingHistoryTab({ sightings }: SightingHistoryTabProp
         style={styles.listScroll}
         showsVerticalScrollIndicator={false}
         contentContainerStyle={styles.cardList}
+        refreshControl={
+          onRefresh ? <RefreshControl refreshing={refreshing} onRefresh={onRefresh} colors={[colors.accentOrange]} tintColor={colors.accentOrange} /> : undefined
+        }
       >
         {filtered.length === 0 ? (
-          <View style={styles.emptyContainer}>
-            <Text style={[styles.emptyText, { color: colors.textSecondary }]}>
-              No se encontraron avistamientos...
-            </Text>
-          </View>
+          <EmptyCatState />
         ) : (
           <View style={{ flexDirection: 'row', flexWrap: 'wrap', marginHorizontal: -6 }}>
             {filtered.map((sighting, index) => {
