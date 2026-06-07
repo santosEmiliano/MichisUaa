@@ -34,12 +34,12 @@ export default function ProfileHeader({ userName, userEmail, initials, onLogout,
         <CatAvatar initials={initials} />
 
         <View style={styles.infoColumn}>
-          <Text style={[styles.userName, { color: colors.textMain }]}>
+          <Text style={[styles.userName, { color: colors.textMain }]} numberOfLines={1} ellipsizeMode="tail">
             {userName}
           </Text>
           <View style={styles.roleRow}>
             <View style={[styles.roleDot, { backgroundColor: colors.metricaVerde }]} />
-            <Text style={[styles.roleText, { color: colors.textSecondary }]}>
+            <Text style={[styles.roleText, { color: colors.textSecondary }]} numberOfLines={1} ellipsizeMode="tail">
               {userEmail}
             </Text>
           </View>
@@ -134,9 +134,12 @@ const styles = StyleSheet.create({
     flexDirection: 'row',
     alignItems: 'center',
     gap: 16,
+    flex: 1,
+    paddingRight: 12,
   },
   infoColumn: {
     justifyContent: 'center',
+    flex: 1,
   },
   userName: {
     fontSize: 20,
