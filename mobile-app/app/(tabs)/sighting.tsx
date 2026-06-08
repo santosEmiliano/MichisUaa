@@ -10,8 +10,13 @@ import type { Region } from 'react-native-maps';
 import { MapView, Marker } from '@/components/Map';
 import { getPublicAnimals, PublicAnimal } from '@/services/animalsApi';
 import { createSighting } from '@/services/sightingsApi';
+import { useColorScheme } from '@/components/useColorScheme';
+import EmptyCatState from '@/components/EmptyCatState';
 
 export default function SightingScreen() {
+  const colorScheme = useColorScheme() ?? 'light';
+  const colors = Colors[colorScheme];
+  const styles = React.useMemo(() => createStyles(colors), [colors]);
   const { width } = useWindowDimensions();
   const isDesktop = width >= 768;
   const [catPage, setCatPage] = useState(0);
@@ -75,7 +80,7 @@ export default function SightingScreen() {
 
   useFocusEffect(
     useCallback(() => {
-      (async () => {
+      const fetchLocation = async () => {
         let { status } = await Location.requestForegroundPermissionsAsync();
         if (status !== 'granted') {
           setLocationName('Permiso de GPS denegado');
@@ -94,7 +99,9 @@ export default function SightingScreen() {
           setLocationName('Error al obtener ubicación');
           alertService.error("Error de ubicación", "No pudimos obtener tu ubicación actual. Asegúrate de tener el GPS encendido e inténtalo de nuevo.");
         }
+      };
 
+      const fetchAnimalsData = async () => {
         try {
           const data = await getPublicAnimals();
           setAnimals(data);
@@ -104,14 +111,17 @@ export default function SightingScreen() {
         } finally {
           setLoadingAnimals(false);
         }
-      })();
+      };
+
+      fetchLocation();
+      fetchAnimalsData();
     }, [])
   );
 
   const handleImageResult = (result: ImagePicker.ImagePickerResult) => {
     if (!result.canceled && result.assets && result.assets.length > 0) {
       const asset = result.assets[0];
-      
+
       // Validar formato en móvil
       if (Platform.OS !== 'web') {
         const uriParts = asset.uri.split('.');
@@ -121,13 +131,13 @@ export default function SightingScreen() {
           return;
         }
       }
-      
+
       // Validar tamaño si está disponible (límite de 5MB)
       if (asset.fileSize && asset.fileSize > 5 * 1024 * 1024) {
         alertService.warning('Imagen demasiado pesada', 'La imagen seleccionada supera el límite de 5MB. Por favor, elige una más ligera o baja la resolución de tu cámara.');
         return;
       }
-      
+
       setImageUri(asset.uri);
     }
   };
@@ -145,7 +155,7 @@ export default function SightingScreen() {
 
   const handleCameraPress = async () => {
     const permissionResult = await ImagePicker.requestCameraPermissionsAsync();
-    
+
     if (permissionResult.granted === false) {
       alertService.warning('Permiso denegado', 'Se requiere acceso a la cámara para tomar una foto.');
       return;
@@ -196,7 +206,7 @@ export default function SightingScreen() {
       return;
     }
     if (!locationCoords) {
-      alertService.info('Falta la ubicación', 'Estamos obteniendo tu ubicación, por favor espera un momento.');
+      alertService.info('Falta la ubicación', 'Estamos rastreando tu posición felina, por favor espera un par de segundos.');
       return;
     }
 
@@ -211,11 +221,11 @@ export default function SightingScreen() {
       });
 
       alertService.success('¡Avistamiento enviado!', 'Tu reporte se mandó correctamente. Un administrador lo verificará pronto. ¡Muchas gracias por tu ayuda!');
-      
+
       setImageUri(null);
       setDescription('');
       setSelectedAnimalId(null);
-      
+
     } catch (error) {
       alertService.error('Error', 'Hubo un problema al enviar el reporte. Por favor, intenta de nuevo.');
     } finally {
@@ -226,7 +236,7 @@ export default function SightingScreen() {
   const containerWidth = Math.min(width, 1200) - 40;
   const cols = Math.max(2, Math.floor(containerWidth / 97));
   const itemsPerPage = cols * 3;
-  
+
   const filteredAnimals = animals.filter(a => a.nombre.toLowerCase().includes(searchQuery.toLowerCase()));
   const totalPages = Math.max(1, Math.ceil(filteredAnimals.length / itemsPerPage));
   const displayedAnimals = isDesktop ? filteredAnimals.slice(catPage * itemsPerPage, (catPage + 1) * itemsPerPage) : filteredAnimals;
@@ -263,17 +273,17 @@ export default function SightingScreen() {
       <View style={styles.photoButtonsRow}>
         {isDesktopWeb ? (
           <TouchableOpacity style={styles.cameraButton} activeOpacity={0.8} onPress={pickImage}>
-            <Ionicons name="image-outline" size={20} color={Colors.dark.textWhite} />
+            <Ionicons name="image-outline" size={20} color={colors.textWhite} />
             <Text style={styles.cameraButtonText}>Adjuntar foto</Text>
           </TouchableOpacity>
         ) : (
           <>
             <TouchableOpacity style={styles.cameraButton} activeOpacity={0.8} onPress={handleCameraPress}>
-              <Ionicons name="camera-outline" size={20} color={Colors.dark.textWhite} />
+              <Ionicons name="camera-outline" size={20} color={colors.textWhite} />
               <Text style={styles.cameraButtonText}>Cámara</Text>
             </TouchableOpacity>
             <TouchableOpacity style={styles.galleryButton} activeOpacity={0.6} onPress={pickImage}>
-              <Ionicons name="images-outline" size={20} color={Colors.dark.textWhite} />
+              <Ionicons name="images-outline" size={20} color={colors.textMain} />
               <Text style={styles.galleryButtonText}>Galería</Text>
             </TouchableOpacity>
           </>
@@ -304,7 +314,7 @@ export default function SightingScreen() {
             >
               <Marker coordinate={locationCoords}>
                 <View style={styles.customMarker}>
-                  <Ionicons name="paw" size={18} color={Colors.dark.textWhite} />
+                  <Ionicons name="paw" size={18} color={colors.textWhite} />
                 </View>
               </Marker>
             </MapView>
@@ -353,20 +363,27 @@ export default function SightingScreen() {
   const animalSection = (
     <View style={styles.section}>
       <Text style={styles.sectionTitle}>¿Qué gato es?</Text>
-      
+
       <View style={styles.searchContainer}>
-        <Ionicons name="search" size={20} color={Colors.dark.textSecondary} style={styles.searchIcon} />
+        <Ionicons name="search" size={20} color={colors.textSecondary} style={styles.searchIcon} />
         <TextInput
           style={styles.searchInput}
           placeholder="Buscar gato..."
-          placeholderTextColor={Colors.dark.textSecondary}
+          placeholderTextColor={colors.textSecondary}
           value={searchQuery}
           onChangeText={setSearchQuery}
         />
       </View>
 
       {loadingAnimals ? (
-        <ActivityIndicator size="small" color={Colors.dark.accentOrange} />
+        <View style={{ paddingVertical: 30, alignItems: 'center', justifyContent: 'center' }}>
+          <ActivityIndicator size="small" color={colors.accentOrange} />
+          <Text style={{ marginTop: 12, color: colors.textSecondary, fontSize: 14, fontWeight: '500' }}>
+            Rastreando michis cercanos...
+          </Text>
+        </View>
+      ) : filteredAnimals.length === 0 ? (
+        <EmptyCatState message="Buscamos por todas partes, pero no encontramos a ese michi." icon="magnify" />
       ) : isDesktop ? (
         <View>
           <View style={styles.animalDesktopGrid}>
@@ -375,11 +392,11 @@ export default function SightingScreen() {
           {totalPages > 1 && (
             <View style={styles.paginationRow}>
               <TouchableOpacity onPress={handlePrevPage} disabled={catPage === 0} style={styles.paginationBtn}>
-                <Ionicons name="chevron-back" size={24} color={catPage === 0 ? Colors.dark.textSecondary : Colors.dark.textWhite} />
+                <Ionicons name="chevron-back" size={24} color={catPage === 0 ? colors.textSecondary : colors.textMain} />
               </TouchableOpacity>
               <Text style={styles.pageText}>Página {catPage + 1} de {totalPages}</Text>
               <TouchableOpacity onPress={handleNextPage} disabled={catPage >= totalPages - 1} style={styles.paginationBtn}>
-                <Ionicons name="chevron-forward" size={24} color={catPage >= totalPages - 1 ? Colors.dark.textSecondary : Colors.dark.textWhite} />
+                <Ionicons name="chevron-forward" size={24} color={catPage >= totalPages - 1 ? colors.textSecondary : colors.textMain} />
               </TouchableOpacity>
             </View>
           )}
@@ -388,13 +405,13 @@ export default function SightingScreen() {
         <View style={styles.mobileScrollWrapper}>
           {isDesktopWeb && (
             <TouchableOpacity style={styles.mobileScrollArrow} onPress={scrollLeft}>
-              <Ionicons name="chevron-back" size={24} color={Colors.dark.textWhite} />
+              <Ionicons name="chevron-back" size={24} color={colors.textMain} />
             </TouchableOpacity>
           )}
-          <ScrollView 
+          <ScrollView
             ref={scrollRef}
-            horizontal 
-            showsHorizontalScrollIndicator={false} 
+            horizontal
+            showsHorizontalScrollIndicator={false}
             contentContainerStyle={styles.animalList}
             onScroll={handleScroll}
             scrollEventThrottle={16}
@@ -403,13 +420,13 @@ export default function SightingScreen() {
           </ScrollView>
           {isDesktopWeb && (
             <TouchableOpacity style={styles.mobileScrollArrow} onPress={scrollRight}>
-              <Ionicons name="chevron-forward" size={24} color={Colors.dark.textWhite} />
+              <Ionicons name="chevron-forward" size={24} color={colors.textMain} />
             </TouchableOpacity>
           )}
         </View>
       )}
       <View style={styles.hintBox}>
-        <Ionicons name="information-circle-outline" size={16} color={Colors.dark.accentOrange} />
+        <Ionicons name="information-circle-outline" size={16} color={colors.accentOrange} />
         <Text style={styles.hintText}>Si no logras identificar al gato, puedes dejarlo en blanco</Text>
       </View>
     </View>
@@ -421,7 +438,7 @@ export default function SightingScreen() {
       <TextInput
         style={styles.textArea}
         placeholder="¿Algún detalle extra sobre el gato o el lugar?"
-        placeholderTextColor={Colors.dark.textSecondary}
+        placeholderTextColor={colors.textSecondary}
         multiline={true}
         numberOfLines={4}
         value={description}
@@ -431,18 +448,32 @@ export default function SightingScreen() {
     </View>
   );
 
+  const isSubmitDisabled = isSubmitting || !locationCoords;
+
   const submitBtn = (
-    <TouchableOpacity 
-      style={[styles.submitButton, isSubmitting && styles.submitButtonDisabled]} 
-      onPress={handleSubmit}
-      disabled={isSubmitting}
-    >
-      {isSubmitting ? (
-        <ActivityIndicator color={Colors.dark.textWhite} />
-      ) : (
-        <Text style={styles.submitButtonText}>Enviar avistamiento</Text>
+    <View style={{ marginBottom: 20 }}>
+      <TouchableOpacity
+        style={[styles.submitButton, isSubmitDisabled && styles.submitButtonDisabled, { marginBottom: !locationCoords ? 8 : 0 }]}
+        onPress={handleSubmit}
+        disabled={isSubmitDisabled}
+      >
+        {isSubmitting ? (
+          <View style={{ flexDirection: 'row', alignItems: 'center', justifyContent: 'center' }}>
+            <ActivityIndicator color={colors.textWhite} style={{ marginRight: 10 }} />
+            <Text style={styles.submitButtonText}>Mandando michi-señal...</Text>
+          </View>
+        ) : (
+          <Text style={styles.submitButtonText}>Enviar avistamiento</Text>
+        )}
+      </TouchableOpacity>
+      {!locationCoords && (
+        <Text style={{ textAlign: 'center', color: colors.metricaRojo, fontSize: 13, fontWeight: '500' }}>
+          {locationName === 'Permiso de GPS denegado'
+            ? 'Necesitas conceder permisos de GPS para poder enviar tu reporte'
+            : 'Esperando a obtener tu ubicación para habilitar el botón...'}
+        </Text>
       )}
-    </TouchableOpacity>
+    </View>
   );
 
   return (
@@ -452,7 +483,7 @@ export default function SightingScreen() {
           <View style={styles.header}>
             <TouchableOpacity onPress={() => router.back()} style={styles.backButton}>
               <View style={styles.backIconContainer}>
-                <Ionicons name="chevron-back" size={20} color={Colors.dark.textWhite} />
+                <Ionicons name="chevron-back" size={20} color={colors.textMain} />
               </View>
             </TouchableOpacity>
             <Text style={styles.headerTitle}>Reportar avistamiento</Text>
@@ -501,7 +532,7 @@ export default function SightingScreen() {
         <View style={styles.modalOverlay}>
           <View style={styles.modalContent}>
             <Text style={styles.modalTitle}>Ajustar ubicación</Text>
-            
+
             <View style={styles.modalMapContainer}>
               {tempRegion && (
                 <MapView
@@ -519,7 +550,7 @@ export default function SightingScreen() {
                   styles.customMarkerLarge,
                   { opacity: 0.8, transform: [{ scale: 0.8 }] }
                 ]}>
-                  <Ionicons name="location-sharp" size={28} color={Colors.dark.textWhite} />
+                  <Ionicons name="location-sharp" size={28} color={colors.textWhite} />
                 </View>
               </View>
             </View>
@@ -540,10 +571,10 @@ export default function SightingScreen() {
   );
 }
 
-const styles = StyleSheet.create({
+const createStyles = (colors: any) => StyleSheet.create({
   safeArea: {
     flex: 1,
-    backgroundColor: Colors.dark.bgDark,
+    backgroundColor: colors.bgDark,
   },
   scrollContent: {
     padding: 20,
@@ -597,16 +628,16 @@ const styles = StyleSheet.create({
     marginTop: 10,
   },
   pageText: {
-    color: Colors.dark.textWhite,
+    color: colors.textMain,
     fontSize: 16,
     fontWeight: 'bold',
   },
   paginationBtn: {
-    backgroundColor: Colors.dark.fondoGrisOscuro,
+    backgroundColor: colors.fondoGrisOscuro,
     padding: 8,
     borderRadius: 12,
     borderWidth: 1,
-    borderColor: Colors.dark.borderColor,
+    borderColor: colors.borderColor,
   },
   header: {
     flexDirection: 'row',
@@ -617,14 +648,14 @@ const styles = StyleSheet.create({
     marginRight: 15,
   },
   backIconContainer: {
-    backgroundColor: Colors.dark.fondoGrisOscuro,
+    backgroundColor: colors.fondoGrisOscuro,
     borderRadius: 20,
     padding: 6,
   },
   headerTitle: {
     fontSize: 20,
     fontWeight: 'bold',
-    color: Colors.dark.textWhite,
+    color: colors.textMain,
   },
   warningBanner: {
     backgroundColor: '#E74C3C',
@@ -648,14 +679,14 @@ const styles = StyleSheet.create({
   sectionTitle: {
     fontSize: 16,
     fontWeight: 'bold',
-    color: Colors.dark.textSecondary,
+    color: colors.textSecondary,
     marginBottom: 15,
   },
   asterisk: {
-    color: Colors.dark.textSecondary,
+    color: colors.textSecondary,
   },
   photoPreviewBox: {
-    backgroundColor: Colors.dark.bgPanel,
+    backgroundColor: colors.bgPanel,
     height: 200,
     borderRadius: 16,
     justifyContent: 'center',
@@ -663,7 +694,7 @@ const styles = StyleSheet.create({
     marginBottom: 15,
     position: 'relative',
     borderWidth: 1,
-    borderColor: Colors.dark.borderColor,
+    borderColor: colors.borderColor,
     overflow: 'hidden',
   },
   previewImage: {
@@ -675,14 +706,14 @@ const styles = StyleSheet.create({
     position: 'absolute',
     top: 12,
     right: 12,
-    backgroundColor: Colors.dark.fondoGrisOscuro,
+    backgroundColor: colors.fondoGrisOscuro,
     paddingHorizontal: 10,
     paddingVertical: 5,
     borderRadius: 12,
     zIndex: 10,
   },
   badgeText: {
-    color: Colors.dark.textSecondary,
+    color: colors.textSecondary,
     fontSize: 12,
     fontWeight: '600',
   },
@@ -695,7 +726,7 @@ const styles = StyleSheet.create({
   },
   cameraButton: {
     flex: 1,
-    backgroundColor: Colors.dark.accentOrange,
+    backgroundColor: colors.accentOrange,
     flexDirection: 'row',
     alignItems: 'center',
     justifyContent: 'center',
@@ -704,7 +735,7 @@ const styles = StyleSheet.create({
     gap: 8,
   },
   cameraButtonText: {
-    color: Colors.dark.textWhite,
+    color: colors.textWhite,
     fontWeight: 'bold',
     fontSize: 16,
   },
@@ -717,11 +748,11 @@ const styles = StyleSheet.create({
     paddingVertical: 14,
     borderRadius: 12,
     borderWidth: 1,
-    borderColor: Colors.dark.borderColor,
+    borderColor: colors.borderColor,
     gap: 8,
   },
   galleryButtonText: {
-    color: Colors.dark.textWhite,
+    color: colors.textMain,
     fontWeight: 'bold',
     fontSize: 16,
   },
@@ -729,10 +760,10 @@ const styles = StyleSheet.create({
     borderRadius: 16,
     overflow: 'hidden',
     borderWidth: 1,
-    borderColor: Colors.dark.borderColor,
+    borderColor: colors.borderColor,
   },
   mapPlaceholder: {
-    backgroundColor: Colors.dark.accentGreen,
+    backgroundColor: colors.accentGreen,
     height: 120,
     justifyContent: 'center',
     alignItems: 'center',
@@ -742,11 +773,11 @@ const styles = StyleSheet.create({
     height: '100%',
   },
   customMarker: {
-    backgroundColor: Colors.dark.accentOrange,
+    backgroundColor: colors.accentOrange,
     padding: 6,
     borderRadius: 20,
     borderWidth: 2,
-    borderColor: Colors.dark.textWhite,
+    borderColor: colors.textWhite,
     shadowColor: '#000',
     shadowOffset: { width: 0, height: 2 },
     shadowOpacity: 0.3,
@@ -754,11 +785,11 @@ const styles = StyleSheet.create({
     elevation: 5,
   },
   customMarkerLarge: {
-    backgroundColor: Colors.dark.accentOrange,
+    backgroundColor: colors.accentOrange,
     padding: 10,
     borderRadius: 30,
     borderWidth: 3,
-    borderColor: Colors.dark.textWhite,
+    borderColor: colors.textWhite,
     shadowColor: '#000',
     shadowOffset: { width: 0, height: 4 },
     shadowOpacity: 0.4,
@@ -769,7 +800,7 @@ const styles = StyleSheet.create({
     fontSize: 40,
   },
   locationStrip: {
-    backgroundColor: Colors.dark.bgPanel,
+    backgroundColor: colors.bgPanel,
     flexDirection: 'row',
     alignItems: 'center',
     justifyContent: 'space-between',
@@ -786,46 +817,46 @@ const styles = StyleSheet.create({
     width: 10,
     height: 10,
     borderRadius: 5,
-    backgroundColor: Colors.dark.metricaVerde,
+    backgroundColor: colors.metricaVerde,
     marginRight: 10,
   },
   locationText: {
-    color: Colors.dark.textWhite,
+    color: colors.textMain,
     fontSize: 14,
     fontWeight: '600',
     flexShrink: 1,
   },
   changeText: {
-    color: Colors.dark.accentOrange,
+    color: colors.accentOrange,
     fontSize: 14,
     fontWeight: '600',
   },
   textArea: {
-    backgroundColor: Colors.dark.bgPanel,
-    color: Colors.dark.textWhite,
+    backgroundColor: colors.bgPanel,
+    color: colors.textMain,
     borderRadius: 16,
     padding: 16,
     borderWidth: 1,
-    borderColor: Colors.dark.borderColor,
+    borderColor: colors.borderColor,
     fontSize: 16,
     minHeight: 120,
   },
   searchContainer: {
     flexDirection: 'row',
     alignItems: 'center',
-    backgroundColor: Colors.dark.bgPanel,
+    backgroundColor: colors.bgPanel,
     borderRadius: 16,
     paddingHorizontal: 15,
     marginBottom: 15,
     borderWidth: 1,
-    borderColor: Colors.dark.borderColor,
+    borderColor: colors.borderColor,
   },
   searchIcon: {
     marginRight: 10,
   },
   searchInput: {
     flex: 1,
-    color: Colors.dark.textWhite,
+    color: colors.textMain,
     fontSize: 16,
     paddingVertical: 12,
   },
@@ -838,12 +869,12 @@ const styles = StyleSheet.create({
     alignItems: 'center',
   },
   mobileScrollArrow: {
-    backgroundColor: Colors.dark.fondoGrisOscuro,
+    backgroundColor: colors.fondoGrisOscuro,
     padding: 8,
     borderRadius: 12,
     marginHorizontal: 5,
     borderWidth: 1,
-    borderColor: Colors.dark.borderColor,
+    borderColor: colors.borderColor,
     justifyContent: 'center',
     alignItems: 'center',
   },
@@ -854,11 +885,11 @@ const styles = StyleSheet.create({
     borderRadius: 16,
     borderWidth: 2,
     borderColor: 'transparent',
-    backgroundColor: Colors.dark.bgPanel,
+    backgroundColor: colors.bgPanel,
   },
   animalCardSelected: {
-    borderColor: Colors.dark.accentOrange,
-    backgroundColor: Colors.dark.fondoGrisOscuro,
+    borderColor: colors.accentOrange,
+    backgroundColor: colors.fondoGrisOscuro,
   },
   animalPhoto: {
     width: 60,
@@ -870,19 +901,19 @@ const styles = StyleSheet.create({
     width: 60,
     height: 60,
     borderRadius: 30,
-    backgroundColor: Colors.dark.bgDark,
+    backgroundColor: colors.bgDark,
     justifyContent: 'center',
     alignItems: 'center',
     marginBottom: 8,
   },
   animalName: {
-    color: Colors.dark.textSecondary,
+    color: colors.textSecondary,
     fontSize: 12,
     fontWeight: '500',
     textAlign: 'center',
   },
   animalNameSelected: {
-    color: Colors.dark.textWhite,
+    color: colors.textMain,
     fontWeight: 'bold',
   },
   hintBox: {
@@ -892,12 +923,12 @@ const styles = StyleSheet.create({
     gap: 6,
   },
   hintText: {
-    color: Colors.dark.accentOrange,
+    color: colors.accentOrange,
     fontSize: 12,
     fontWeight: '500',
   },
   submitButton: {
-    backgroundColor: Colors.dark.metricaVerde,
+    backgroundColor: colors.metricaVerde,
     paddingVertical: 16,
     borderRadius: 16,
     alignItems: 'center',
@@ -909,7 +940,7 @@ const styles = StyleSheet.create({
     opacity: 0.7,
   },
   submitButtonText: {
-    color: Colors.dark.textWhite,
+    color: colors.textWhite,
     fontSize: 18,
     fontWeight: 'bold',
   },
@@ -923,15 +954,15 @@ const styles = StyleSheet.create({
   },
   modalContent: {
     width: '100%',
-    height: '75%', 
+    height: '75%',
     maxWidth: 600,
     maxHeight: 700,
     alignSelf: 'center',
-    backgroundColor: Colors.dark.bgPanel,
+    backgroundColor: colors.bgPanel,
     borderRadius: 24,
     overflow: 'hidden',
     borderWidth: 1,
-    borderColor: Colors.dark.borderColor,
+    borderColor: colors.borderColor,
     shadowColor: '#000',
     shadowOffset: { width: 0, height: 10 },
     shadowOpacity: 0.5,
@@ -939,19 +970,19 @@ const styles = StyleSheet.create({
     elevation: 10,
   },
   modalTitle: {
-    color: Colors.dark.textWhite,
+    color: colors.textMain,
     fontSize: 18,
     fontWeight: 'bold',
     textAlign: 'center',
     paddingVertical: 16,
     borderBottomWidth: 1,
-    borderBottomColor: Colors.dark.borderColor,
-    backgroundColor: Colors.dark.bgDark, // Contraste en el header del modal
+    borderBottomColor: colors.borderColor,
+    backgroundColor: colors.bgDark, // Contraste en el header del modal
   },
   modalMapContainer: {
     flex: 1,
     position: 'relative',
-    backgroundColor: Colors.dark.fondoGrisOscuro,
+    backgroundColor: colors.fondoGrisOscuro,
   },
   fullMap: {
     width: '100%',
@@ -971,20 +1002,20 @@ const styles = StyleSheet.create({
     padding: 16,
     gap: 15,
     borderTopWidth: 1,
-    borderTopColor: Colors.dark.borderColor,
-    backgroundColor: Colors.dark.bgDark,
+    borderTopColor: colors.borderColor,
+    backgroundColor: colors.bgDark,
   },
   modalCancelButton: {
     flex: 1,
     paddingVertical: 14,
     borderRadius: 12,
     borderWidth: 1,
-    borderColor: Colors.dark.borderColor,
+    borderColor: colors.borderColor,
     alignItems: 'center',
     justifyContent: 'center',
   },
   modalCancelText: {
-    color: Colors.dark.textWhite,
+    color: colors.textMain,
     fontWeight: 'bold',
     fontSize: 16,
   },
@@ -992,12 +1023,12 @@ const styles = StyleSheet.create({
     flex: 1,
     paddingVertical: 14,
     borderRadius: 12,
-    backgroundColor: Colors.dark.accentOrange,
+    backgroundColor: colors.accentOrange,
     alignItems: 'center',
     justifyContent: 'center',
   },
   modalConfirmText: {
-    color: Colors.dark.textWhite,
+    color: colors.textWhite,
     fontWeight: 'bold',
     fontSize: 16,
   },

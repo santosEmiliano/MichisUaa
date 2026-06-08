@@ -1,4 +1,4 @@
-import { StyleSheet, View, Text, TextInput, TouchableOpacity, KeyboardAvoidingView, Platform, SafeAreaView, Image, useWindowDimensions } from 'react-native';
+import { StyleSheet, View, Text, TextInput, TouchableOpacity, KeyboardAvoidingView, Platform, SafeAreaView, Image, useWindowDimensions, ActivityIndicator } from 'react-native';
 import Colors from '@/constants/Colors';
 import { useColorScheme } from '@/components/useColorScheme';
 import { useState } from 'react';
@@ -18,10 +18,6 @@ export default function LoginScreen() {
   const colorScheme = useColorScheme() ?? 'dark';
   const colors = Colors[colorScheme];
   const { height, width } = useWindowDimensions();
-
-  // Escala dinámica para web:
-  // Prevenimos que scale sea 0 en SSR cuando height/width son 0
-  const scale = Platform.OS === 'web' && height > 0 ? Math.min(1, height / 850, width / 450) : 1;
 
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
@@ -93,10 +89,7 @@ export default function LoginScreen() {
         style={[styles.container, Platform.OS === 'web' && { zIndex: 10 } as any]} 
         behavior={Platform.OS === 'ios' ? 'padding' : 'height'}
       >
-        <View style={[
-          styles.content,
-          Platform.OS === 'web' && { transform: [{ scale }] }
-        ]}>
+        <View style={styles.content}>
           {/* Header */}
           <View style={[styles.header, Platform.OS === 'web' && { transition: 'opacity 0.2s ease', opacity: animating ? 0 : 1 } as any]}>
             {(!isRegistering || Platform.OS !== 'web') && (
@@ -222,9 +215,12 @@ export default function LoginScreen() {
                     onPress={onLoginPress}
                     disabled={loading}
                   >
-                    <Text style={styles.loginButtonText}>
-                      {loading ? "Cargando..." : "Iniciar Sesión"}
-                    </Text>
+                    <View style={{ flexDirection: 'row', alignItems: 'center', justifyContent: 'center' }}>
+                      {loading && <ActivityIndicator color="#ffffff" style={{ marginRight: 8 }} />}
+                      <Text style={styles.loginButtonText}>
+                        {loading ? "Cargando..." : "Iniciar Sesión"}
+                      </Text>
+                    </View>
                   </TouchableOpacity>
                 </>
               )}

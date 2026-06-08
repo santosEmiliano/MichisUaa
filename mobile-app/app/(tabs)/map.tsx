@@ -323,18 +323,19 @@ export default function MapScreen() {
             opacity: opacityAnim,
             transform: [{ translateY: slideAnim }]
           },
-          Platform.OS === 'web' && { top: 100 } as any
+          Platform.OS === 'web' && { top: 100, alignItems: 'center' } as any
         ]}
         pointerEvents={showFilters ? "auto" : "none"}
       >
         <ScrollView 
           horizontal 
+          style={Platform.OS === 'web' ? { maxWidth: '100%' } : undefined}
           showsHorizontalScrollIndicator={false} 
           contentContainerStyle={{ 
             gap: 10, 
             paddingHorizontal: 20, 
             flexGrow: 1, 
-            justifyContent: (Platform.OS === 'web' && !isSmallScreen) ? 'center' : 'flex-start' 
+            justifyContent: 'flex-start' 
           }}
         >
           {['Todos', 'Registrados', 'No Registrados', 'Desaparecidos'].map((filter) => (

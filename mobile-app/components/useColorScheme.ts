@@ -1,11 +1,11 @@
-import { Appearance, useColorScheme as useNativeColorScheme } from 'react-native';
+import { useThemeContext } from '@/components/ThemeContext';
 
 export function useColorScheme() {
-  return useNativeColorScheme() ?? 'light';
+  const { theme } = useThemeContext();
+  return theme;
 }
 
-export function setColorScheme(scheme: 'light' | 'dark') {
-  if (typeof Appearance.setColorScheme === 'function') {
-    Appearance.setColorScheme(scheme);
-  }
+export function useSetTheme() {
+  const { setTheme } = useThemeContext();
+  return setTheme;
 }
