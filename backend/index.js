@@ -24,7 +24,17 @@ const limiter = rateLimit({
 
 // Middlewares globales
 app.use(helmet({ crossOriginResourcePolicy: false })); // Cabeceras HTTP de seguridad
-app.use(cors()); //De momento asi sin na
+const allowedOrigins = process.env.ALLOWED_ORIGINS ? process.env.ALLOWED_ORIGINS.split(',') : ['http://localhost:5173', 'http://localhost:3000', 'http://localhost:8081'];
+app.use(cors({
+  origin: (origin, callback) => {
+    // Permitir si no hay origen (ej. app móvil, Postman) o si está en la lista permitida
+    if (!origin || allowedOrigins.includes(origin)) {
+      callback(null, true);
+    } else {
+      callback(new Error('No permitido por CORS'));
+    }
+  }
+})); // Configuración estricta de CORS
 app.use(morgan('combined')); // Logging de peticiones
 app.use(express.json({ limit: '10kb' })); // Límite tamaño JSON
 app.use(express.urlencoded({ extended: true, limit: '10kb' })); // Límite tamaño URL-encoded

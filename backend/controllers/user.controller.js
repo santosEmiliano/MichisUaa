@@ -219,7 +219,7 @@ const refreshToken = async (req, res) => {
       const newToken = jwt.sign(
         { id: user.id, admin: user.admin },
         process.env.JWT_SECRET,
-        { expiresIn: "15m" }
+        { expiresIn: "1h" }
       );
 
       res.json({ token: newToken });
