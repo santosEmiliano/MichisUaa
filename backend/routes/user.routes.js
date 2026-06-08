@@ -2,13 +2,7 @@ const express = require("express");
 const router = express.Router();
 const token = require("../middleware/verifyToken");
 const userFunctions = require("../controllers/user.controller");
-const rateLimit = require('express-rate-limit');
-
-const authLimiter = rateLimit({
-  windowMs: 60 * 60 * 1000, // 1 hora de bloqueo
-  max: 5, // Limite de 5 peticiones (intentos) por IP
-  message: { mensaje: 'Demasiados intentos fallidos, intenta de nuevo en 1 hora.' }
-});
+const { authLimiter } = require("../middleware/rateLimiter");
 
 /**
  * @swagger
