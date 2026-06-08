@@ -235,4 +235,32 @@ router.put(
   userFunctions.updatePushToken
 );
 
+/**
+ * @swagger
+ * /api/user/refresh:
+ *   post:
+ *     summary: Renovar el Access Token usando el Refresh Token
+ *     tags: [Usuarios]
+ *     requestBody:
+ *       required: true
+ *       content:
+ *         application/json:
+ *           schema:
+ *             type: object
+ *             properties:
+ *               token:
+ *                 type: string
+ *     responses:
+ *       200:
+ *         description: Retorna un nuevo Access Token
+ *       401:
+ *         description: Refresh Token no proporcionado
+ *       403:
+ *         description: Refresh Token inválido o expirado
+ */
+router.post(
+  "/refresh",
+  userFunctions.refreshToken
+);
+
 module.exports = router;
