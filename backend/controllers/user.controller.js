@@ -1,5 +1,6 @@
 const tokenfunctions = require("./token.controller");
 const userModel = require("../model/user.model");
+const { authLimiter } = require("../middleware/rateLimiter");
 
 const bcrypt = require("bcryptjs");
 
@@ -61,6 +62,9 @@ const login = async (req, res) => {
     const { token, refreshToken } = tokenfunctions.generateTokens(user.idUsuario, user.admin);
     await userModel.modifyUser(user.idUsuario, { refreshToken });
     const datos = await userModel.searchId(user.idUsuario);
+
+    // Reiniciar el contador de intentos fallidos al tener un login exitoso
+    authLimiter.resetKey(req.ip);
 
     return res
       .status(200)
