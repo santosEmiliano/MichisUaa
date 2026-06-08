@@ -289,6 +289,9 @@ export default function SightingScreen() {
           </>
         )}
       </View>
+      <Text style={{ textAlign: 'center', marginTop: 10, fontSize: 12, color: colors.textSecondary }}>
+        Formatos permitidos: JPG, PNG, WEBP. Tamaño máximo: 5MB.
+      </Text>
     </View>
   );
 
