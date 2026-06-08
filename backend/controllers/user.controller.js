@@ -47,13 +47,15 @@ const login = async (req, res) => {
     const user = await userModel.searchMail(email);
 
     if (!user) {
-      return res.status(400).json({ mensaje: "El correo ingresado no se encuentra registrado." });
+      const intentos = req.rateLimit ? ` Te quedan ${req.rateLimit.remaining} intento(s).` : '';
+      return res.status(400).json({ mensaje: "El correo ingresado no se encuentra registrado." + intentos });
     }
 
     const passValida = await bcrypt.compare(password, user.password);
 
     if (!passValida) {
-      return res.status(400).json({ mensaje: "Contraseña incorrecta." });
+      const intentos = req.rateLimit ? ` Te quedan ${req.rateLimit.remaining} intento(s).` : '';
+      return res.status(400).json({ mensaje: "Contraseña incorrecta." + intentos });
     }
 
     const { token, refreshToken } = tokenfunctions.generateTokens(user.idUsuario, user.admin);
