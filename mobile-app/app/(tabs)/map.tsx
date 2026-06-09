@@ -176,9 +176,9 @@ export default function MapScreen() {
           locationCounts[locKey] = count + 1;
           
           if (count > 0) {
-            // A partir del segundo animal en la misma coordenada, los colocamos en un radio pequeño
-            const angle = (count * 137.5) * (Math.PI / 180); // Ángulo áureo para distribuirlos bien
-            const radius = 0.00006 * Math.sqrt(count); // Aprox 6 metros, crece si hay muchos
+            // Reducimos el radio significativamente para evitar la ilusión de que se "mueven" al hacer zoom
+            const angle = (count * 137.5) * (Math.PI / 180); 
+            const radius = 0.000015 * Math.sqrt(count); // Aprox 1.5 metros, muy sutil
             
             jitteredCoords = {
               latitud: Number(animal.coordenadas.latitud) + Math.sin(angle) * radius,
@@ -255,29 +255,27 @@ export default function MapScreen() {
                 longitude: Number(animal.coordenadas.longitud),
               }}
               tracksViewChanges={!markersReady}
-              anchor={{ x: 0.5, y: 0.5 }}
+              anchor={{ x: 0.5, y: 1 }}
               centerOffset={{ x: 0, y: -30 }}
               // @ts-ignore
               webOffset={[32, 63]}
             >
-              <View style={{ width: 64, height: 126, alignItems: 'center' }}>
-                <View style={{ width: 64, height: 64, justifyContent: 'center', alignItems: 'center' }}>
-                  <AnimatedPin style={[
-                    styles.customMarker, 
-                    { 
-                      borderColor: statusColor,
-                      backgroundColor: theme === 'dark' ? '#2A2A2A' : 'white'
-                    }
-                  ]}>
-                    {animal.foto_url ? (
-                      <Image source={{ uri: animal.foto_url }} style={styles.markerImage} />
-                    ) : (
-                      <Text style={[styles.markerText, { color: theme === 'dark' ? '#AAA' : '#666' }]}>
-                        {animal.nombre?.charAt(0)?.toUpperCase() || '?'}
-                      </Text>
-                    )}
-                  </AnimatedPin>
-                </View>
+              <View style={{ width: 64, height: 64, justifyContent: 'center', alignItems: 'center' }}>
+                <AnimatedPin style={[
+                  styles.customMarker, 
+                  { 
+                    borderColor: statusColor,
+                    backgroundColor: theme === 'dark' ? '#2A2A2A' : 'white'
+                  }
+                ]}>
+                  {animal.foto_url ? (
+                    <Image source={{ uri: animal.foto_url }} style={styles.markerImage} />
+                  ) : (
+                    <Text style={[styles.markerText, { color: theme === 'dark' ? '#AAA' : '#666' }]}>
+                      {animal.nombre?.charAt(0)?.toUpperCase() || '?'}
+                    </Text>
+                  )}
+                </AnimatedPin>
               </View>
               <Callout tooltip>
                 <View style={[
