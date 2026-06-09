@@ -255,27 +255,29 @@ export default function MapScreen() {
                 longitude: Number(animal.coordenadas.longitud),
               }}
               tracksViewChanges={!markersReady}
-              anchor={{ x: 0.5, y: 1 }}
+              anchor={{ x: 0.5, y: 0.5 }}
               centerOffset={{ x: 0, y: -30 }}
               // @ts-ignore
               webOffset={[32, 63]}
             >
-              <View style={{ width: 64, height: 64, justifyContent: 'center', alignItems: 'center' }}>
-                <AnimatedPin style={[
-                  styles.customMarker, 
-                  { 
-                    borderColor: statusColor,
-                    backgroundColor: theme === 'dark' ? '#2A2A2A' : 'white'
-                  }
-                ]}>
-                  {animal.foto_url ? (
-                    <Image source={{ uri: animal.foto_url }} style={styles.markerImage} />
-                  ) : (
-                    <Text style={[styles.markerText, { color: theme === 'dark' ? '#AAA' : '#666' }]}>
-                      {animal.nombre?.charAt(0)?.toUpperCase() || '?'}
-                    </Text>
-                  )}
-                </AnimatedPin>
+              <View style={{ width: 64, height: 126, alignItems: 'center' }}>
+                <View style={{ width: 64, height: 64, justifyContent: 'center', alignItems: 'center' }}>
+                  <AnimatedPin style={[
+                    styles.customMarker, 
+                    { 
+                      borderColor: statusColor,
+                      backgroundColor: theme === 'dark' ? '#2A2A2A' : 'white'
+                    }
+                  ]}>
+                    {animal.foto_url ? (
+                      <Image source={{ uri: animal.foto_url }} style={styles.markerImage} />
+                    ) : (
+                      <Text style={[styles.markerText, { color: theme === 'dark' ? '#AAA' : '#666' }]}>
+                        {animal.nombre?.charAt(0)?.toUpperCase() || '?'}
+                      </Text>
+                    )}
+                  </AnimatedPin>
+                </View>
               </View>
               <Callout tooltip>
                 <View style={[
