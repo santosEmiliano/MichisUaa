@@ -104,7 +104,7 @@ export const Marker = (props: any) => {
   const [renderCallout, setRenderCallout] = useState(false);
   const animValue = useRef(new Animated.Value(0)).current;
   
-  const { coordinate, onPress, children, left, top } = props;
+  const { coordinate, onPress, children, left, top, webOffset } = props;
   
   if (!coordinate) return null;
   
@@ -165,7 +165,7 @@ export const Marker = (props: any) => {
   return (
     <Overlay 
       anchor={[coordinate.latitude, coordinate.longitude]} 
-      offset={[22, 53]}
+      offset={webOffset || [22, 53]}
       left={left}
       top={top}
     >
