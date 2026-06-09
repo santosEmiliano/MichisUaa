@@ -3,6 +3,8 @@ const router = express.Router();
 const token = require("../middleware/verifyToken");
 const multer = require("../middleware/multer");
 const sightingFunctions = require("../controllers/sightings.controller");
+const { sightingValidator, verifySightingValidator, paramIdValidator } = require("../middleware/sighting.validator");
+const validate = require("../middleware/validate");
 
 const upload = multer("sightings");
 
@@ -67,7 +69,7 @@ router.get("/ranking", token.verifyToken, sightingFunctions.getTopRanking);
  *       200:
  *         description: Información del puesto (número) y la medalla actual del usuario
  */
-router.get("/ranking/:id", token.verifyToken, sightingFunctions.getUserRank);
+router.get("/ranking/:id", token.verifyToken, paramIdValidator, validate, sightingFunctions.getUserRank);
 
 /**
  * @swagger
@@ -88,7 +90,7 @@ router.get("/ranking/:id", token.verifyToken, sightingFunctions.getUserRank);
  *       200:
  *         description: Detalles completos del reporte (quién lo hizo, foto, coordenadas, fecha)
  */
-router.get("/:id", token.verifyToken, sightingFunctions.readSightingsById);
+router.get("/:id", token.verifyToken, paramIdValidator, validate, sightingFunctions.readSightingsById);
 
 /**
  * @swagger
@@ -123,6 +125,8 @@ router.post(
   "/",
   token.verifyToken,
   upload.single("foto"),
+  sightingValidator,
+  validate,
   sightingFunctions.registerSighting,
 );
 
@@ -163,6 +167,8 @@ router.put(
   "/:id",
   token.verifyToken,
   upload.single("foto"),
+  verifySightingValidator,
+  validate,
   sightingFunctions.modifySighting,
 );
 
@@ -184,6 +190,6 @@ router.put(
  *       200:
  *         description: Reporte de avistamiento eliminado del historial
  */
-router.delete("/:id", token.verifyToken, sightingFunctions.deleteSighting);
+router.delete("/:id", token.verifyToken, paramIdValidator, validate, sightingFunctions.deleteSighting);
 
 module.exports = router;

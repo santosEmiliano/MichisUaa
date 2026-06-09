@@ -2,6 +2,8 @@ const express = require("express");
 const router = express.Router();
 const token = require("../middleware/verifyToken");
 const coloniesFunctions = require("../controllers/colonies.controller");
+const { coloniaValidator, updateColoniaValidator, deleteColoniaValidator } = require("../middleware/colonia.validator");
+const validate = require("../middleware/validate");
 
 /**
  * @swagger
@@ -111,6 +113,8 @@ router.post(
   "/",
   token.verifyToken,
   token.verifyAdmin,
+  coloniaValidator,
+  validate,
   coloniesFunctions.registerColony
 );
 
@@ -149,6 +153,8 @@ router.put(
   "/:id",
   token.verifyToken,
   token.verifyAdmin,
+  updateColoniaValidator,
+  validate,
   coloniesFunctions.modifyColony
 );
 
@@ -174,6 +180,8 @@ router.delete(
   "/:id",
   token.verifyToken,
   token.verifyAdmin,
+  deleteColoniaValidator,
+  validate,
   coloniesFunctions.removeColony
 );
 
