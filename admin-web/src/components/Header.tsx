@@ -5,6 +5,33 @@ import { useTheme } from "../contexts/ThemeContext";
 import { notificationsApi } from "../services/notificationsApi";
 import type { NotificacionBackend, TipoNotificacion } from "../types/models";
 
+//Botón de refresh 
+
+const RefreshButton = () => {
+  const [spinning, setSpinning] = useState(false);
+
+  const handleClick = () => {
+    if (spinning) return;
+    setSpinning(true);
+    window.dispatchEvent(new CustomEvent("manual-refresh"));
+    setTimeout(() => setSpinning(false), 600);
+  };
+
+  return (
+    <button
+      onClick={handleClick}
+      title="Actualizar datos"
+      className="p-2 rounded-full hover-bg-item transition-colors shrink-0 text-secondary hover:text-main"
+    >
+      <Icons.Refresh
+        className={`w-5 h-5 transition-transform duration-500 ${
+          spinning ? "animate-spin" : ""
+        }`}
+      />
+    </button>
+  );
+};
+
 const routeTitles: Record<string, string> = {
   "/": "Dashboard",
   "/colonias": "Colonias",
@@ -307,10 +334,13 @@ const Header = ({ toggleSidebar }: { toggleSidebar?: () => void }) => {
             </button>
           ) : (
             <div 
-              id="header-actions" 
-              key={currentTitle + "-actions"}
-              className="flex items-center justify-center gap-3 animate-title-reverse shrink-0 w-full sm:w-auto" 
-            />
+            id="header-actions" 
+            key={currentTitle + "-actions"}
+            className="flex items-center justify-center gap-3 animate-title-reverse shrink-0 w-full sm:w-auto" 
+          >
+            {/* Botón de refresh manual: dispara evento que las páginas escuchan */}
+            <RefreshButton />
+          </div>
           )}
         </div>
       </header>
