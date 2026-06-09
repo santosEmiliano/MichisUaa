@@ -7,7 +7,7 @@ const bcrypt = require("bcryptjs");
 const createUser = async (req, res) => {
   try {
     const { nombre, email, password } = req.body;
-    let admin = req.body.admin ?? false;
+    let admin = false;
 
     if (!nombre || !email || !password) {
       return res.status(400).json({ mensaje: "datos incompletos" });
@@ -114,6 +114,10 @@ const updateUser = async (req, res) => {
         });
     }
 
+    if (oldUser.admin && Number(id) !== req.userId) {
+      return res.status(403).json({ mensaje: "No tienes permisos para modificar a otro administrador" });
+    }
+
     const data = { ...req.body };
 
     if (data.email && data.email !== oldUser.email) {
@@ -156,6 +160,13 @@ const removeUser = async (req, res) => {
           mensaje:
             "El id no coincide con ningun usuario registrado, porfavor comprobar usuario",
         });
+    }
+
+    if (Number(id) === req.userId) {
+      return res.status(403).json({ mensaje: "No puedes eliminar tu propia cuenta" });
+    }
+    if (oldUser.admin) {
+      return res.status(403).json({ mensaje: "No tienes permisos para eliminar a otro administrador" });
     }
 
     await userModel.deleteUser(Number(id));
