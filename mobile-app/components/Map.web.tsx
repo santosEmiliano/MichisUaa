@@ -165,14 +165,28 @@ export const Marker = (props: any) => {
   return (
     <Overlay 
       anchor={[coordinate.latitude, coordinate.longitude]} 
-      offset={webOffset || [22, 53]}
+      offset={[0, 0]}
       left={left}
       top={top}
     >
-      <View 
+      {/* 
+        El truco clave: offset=[0,0] significa que la esquina top-left del
+        elemento queda exactamente en la coordenada geográfica.
+        Con transform: translate(-50%, -100%) movemos el elemento para que
+        su PUNTA INFERIOR CENTRAL quede en esa coordenada.
+        Este approach es idéntico al de Google Maps y es independiente del zoom.
+      */}
+      <div
         // @ts-ignore
         onClick={toggleCallout}
-        style={{ cursor: 'pointer', alignItems: 'center', position: 'relative' }}
+        style={{ 
+          cursor: 'pointer', 
+          position: 'absolute',
+          transform: 'translate(-50%, -100%)',
+          display: 'flex',
+          flexDirection: 'column',
+          alignItems: 'center',
+        }}
       >
         {renderCallout && (
           <Animated.View style={{ 
@@ -182,14 +196,15 @@ export const Marker = (props: any) => {
               { translateY: animValue.interpolate({ inputRange: [0, 1], outputRange: [10, 0] }) }
             ],
             position: 'absolute', 
-            bottom: 50, 
-            zIndex: 1000 
+            bottom: '110%', 
+            zIndex: 1000,
+            minWidth: 160,
           }}>
             {callouts.map((c: any) => c.props.children)}
           </Animated.View>
         )}
         {nonCallouts}
-      </View>
+      </div>
     </Overlay>
   );
 };
