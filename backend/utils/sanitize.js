@@ -6,7 +6,7 @@ const stripHtml = (value) => {
     return sanitizeHtml(value, {
         allowedTags: [],
         allowedAttributes: {}
-    });
+    }).trim();
 };
 
 module.exports = { stripHtml };
