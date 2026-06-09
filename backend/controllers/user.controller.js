@@ -1,12 +1,13 @@
 const tokenfunctions = require("./token.controller");
 const userModel = require("../model/user.model");
+const { authLimiter } = require("../middleware/rateLimiter");
 
 const bcrypt = require("bcryptjs");
 
 const createUser = async (req, res) => {
   try {
     const { nombre, email, password } = req.body;
-    let admin = req.body.admin ?? false;
+    let admin = false;
 
     if (!nombre || !email || !password) {
       return res.status(400).json({ mensaje: "datos incompletos" });
@@ -24,11 +25,12 @@ const createUser = async (req, res) => {
 
     const userId = await userModel.addUser(nombre, email, hash, admin);
 
-    const token = tokenfunctions.generateToken(userId, admin);
+    const { token, refreshToken } = tokenfunctions.generateTokens(userId, admin);
+    await userModel.modifyUser(userId, { refreshToken });
 
     return res
       .status(200)
-      .json({ mensaje: "usuario creado correctamente", userId, token, nombre });
+      .json({ mensaje: "usuario creado correctamente", userId, token, refreshToken, nombre });
   } catch (error) {
     console.error("error al crear usuario", error);
     res.status(500).json({ mensaje: "Error al crear el usuario" });
@@ -46,21 +48,27 @@ const login = async (req, res) => {
     const user = await userModel.searchMail(email);
 
     if (!user) {
-      return res.status(400).json({ mensaje: "El correo ingresado no se encuentra registrado." });
+      const intentos = req.rateLimit ? ` Te quedan ${req.rateLimit.remaining} intento(s).` : '';
+      return res.status(400).json({ mensaje: "El correo ingresado no se encuentra registrado." + intentos });
     }
 
     const passValida = await bcrypt.compare(password, user.password);
 
     if (!passValida) {
-      return res.status(400).json({ mensaje: "Contraseña incorrecta." });
+      const intentos = req.rateLimit ? ` Te quedan ${req.rateLimit.remaining} intento(s).` : '';
+      return res.status(400).json({ mensaje: "Contraseña incorrecta." + intentos });
     }
 
-    const token = tokenfunctions.generateToken(user.idUsuario, user.admin);
+    const { token, refreshToken } = tokenfunctions.generateTokens(user.idUsuario, user.admin);
+    await userModel.modifyUser(user.idUsuario, { refreshToken });
     const datos = await userModel.searchId(user.idUsuario);
+
+    // Reiniciar el contador de intentos fallidos al tener un login exitoso
+    authLimiter.resetKey(req.ip);
 
     return res
       .status(200)
-      .json({ mensaje: "Login realizado correctamente", token, datos });
+      .json({ mensaje: "Login realizado correctamente", token, refreshToken, datos });
   } catch (error) {
     console.error("Error en login:", error);
     return res
@@ -74,8 +82,12 @@ const login = async (req, res) => {
 
 const logout = async (req, res) => {
   const token = req.token;
+  const userId = req.userId;
   await tokenfunctions.revoker(token);
-  res.status(200).json({ mensaje: "Token revocado correctamente" });
+  if (userId) {
+    await userModel.modifyUser(userId, { refreshToken: null });
+  }
+  res.status(200).json({ mensaje: "Token revocado correctamente y sesión cerrada" });
 };
 
 const obtainUsers = async (req, res) => {
@@ -100,6 +112,10 @@ const updateUser = async (req, res) => {
           mensaje:
             "El id no coincide con ningun usuario registrado, porfavor comprobar usuario",
         });
+    }
+
+    if (oldUser.admin && Number(id) !== req.userId) {
+      return res.status(403).json({ mensaje: "No tienes permisos para modificar a otro administrador" });
     }
 
     const data = { ...req.body };
@@ -144,6 +160,13 @@ const removeUser = async (req, res) => {
           mensaje:
             "El id no coincide con ningun usuario registrado, porfavor comprobar usuario",
         });
+    }
+
+    if (Number(id) === req.userId) {
+      return res.status(403).json({ mensaje: "No puedes eliminar tu propia cuenta" });
+    }
+    if (oldUser.admin) {
+      return res.status(403).json({ mensaje: "No tienes permisos para eliminar a otro administrador" });
     }
 
     await userModel.deleteUser(Number(id));
@@ -194,6 +217,35 @@ const updatePushToken = async (req, res) => {
   }
 };
 
+const jwt = require("jsonwebtoken");
+
+const refreshToken = async (req, res) => {
+  try {
+    const { token } = req.body;
+    if (!token) return res.status(401).json({ mensaje: "Refresh Token no proporcionado" });
+
+    const jwtSecretRefresh = process.env.JWT_REFRESH || process.env.JWT_SECRET;
+    
+    jwt.verify(token, jwtSecretRefresh, async (err, user) => {
+      if (err) return res.status(403).json({ mensaje: "Refresh Token inválido o expirado" });
+
+      const dbUser = await userModel.searchByRefreshToken(token);
+      if (!dbUser) return res.status(403).json({ mensaje: "Refresh Token no reconocido en la base de datos" });
+
+      // Generar nuevo access token
+      const newToken = jwt.sign(
+        { id: user.id, admin: user.admin },
+        process.env.JWT_SECRET,
+        { expiresIn: "1h" }
+      );
+
+      res.json({ token: newToken });
+    });
+  } catch (error) {
+    res.status(500).json({ mensaje: "Error al refrescar el token" });
+  }
+};
+
 module.exports = {
   createUser,
   login,
@@ -203,4 +255,5 @@ module.exports = {
   removeUser,
   getUserMedals,
   updatePushToken,
+  refreshToken,
 };

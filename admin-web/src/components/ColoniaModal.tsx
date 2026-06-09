@@ -139,6 +139,9 @@ export const ColoniaModal = ({
             placeholder="Ej: Campus Norte, Veterinaria..."
             className={getInputClass("name")}
           />
+          <div className={`text-xs text-right mt-1 ${form.name.length >= 100 ? 'text-red-500 font-bold' : 'text-secondary'}`}>
+            {form.name.length} / 100
+          </div>
           {fieldErrors.name && (
             <p className="text-xs text-red-400 mt-1.5">{fieldErrors.name}</p>
           )}

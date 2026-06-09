@@ -117,6 +117,18 @@ async function searchMail(email) {
   }
 }
 
+async function searchByRefreshToken(token) {
+  try {
+    const user = await prisma.usuario.findFirst({
+      where: { refreshToken: token }
+    });
+    return user || null;
+  } catch (error) {
+    console.error("Error buscando usuario por refresh token:", error);
+    return null;
+  }
+}
+
 async function modifyUser(id, data) {
   try {
     const updateData = {};
@@ -125,6 +137,7 @@ async function modifyUser(id, data) {
     if (data.password !== undefined) updateData.password = data.password;
     if (data.admin !== undefined) updateData.admin = data.admin;
     if (data.pushToken !== undefined) updateData.pushToken = data.pushToken;
+    if (data.refreshToken !== undefined) updateData.refreshToken = data.refreshToken;
     if (data.coloniasIds !== undefined && Array.isArray(data.coloniasIds)) {
       let colonias = [];
       colonias = data.coloniasIds.map((id) => {
@@ -169,5 +182,6 @@ module.exports = {
     searchMail,
     modifyUser,
     deleteUser,
-    getUserMedals
+    getUserMedals,
+    searchByRefreshToken
 }

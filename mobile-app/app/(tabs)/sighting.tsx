@@ -289,6 +289,9 @@ export default function SightingScreen() {
           </>
         )}
       </View>
+      <Text style={{ textAlign: 'center', marginTop: 10, fontSize: 12, color: colors.textSecondary }}>
+        Formatos permitidos: JPG, PNG, WEBP. Tamaño máximo: 5MB.
+      </Text>
     </View>
   );
 
@@ -441,10 +444,14 @@ export default function SightingScreen() {
         placeholderTextColor={colors.textSecondary}
         multiline={true}
         numberOfLines={4}
+        maxLength={400}
         value={description}
         onChangeText={setDescription}
         textAlignVertical="top"
       />
+      <Text style={{ textAlign: 'right', fontSize: 12, marginTop: 4, color: description.length >= 400 ? colors.metricaRojo : colors.textSecondary }}>
+        {description.length} / 400
+      </Text>
     </View>
   );
 
