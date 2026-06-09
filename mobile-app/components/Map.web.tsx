@@ -169,13 +169,6 @@ export const Marker = (props: any) => {
       left={left}
       top={top}
     >
-      {/* 
-        El truco clave: offset=[0,0] significa que la esquina top-left del
-        elemento queda exactamente en la coordenada geográfica.
-        Con transform: translate(-50%, -100%) movemos el elemento para que
-        su PUNTA INFERIOR CENTRAL quede en esa coordenada.
-        Este approach es idéntico al de Google Maps y es independiente del zoom.
-      */}
       <div
         // @ts-ignore
         onClick={toggleCallout}
