@@ -104,7 +104,7 @@ export const Marker = (props: any) => {
   const [renderCallout, setRenderCallout] = useState(false);
   const animValue = useRef(new Animated.Value(0)).current;
   
-  const { coordinate, onPress, children, left, top } = props;
+  const { coordinate, onPress, children, left, top, webOffset } = props;
   
   if (!coordinate) return null;
   
@@ -165,14 +165,21 @@ export const Marker = (props: any) => {
   return (
     <Overlay 
       anchor={[coordinate.latitude, coordinate.longitude]} 
-      offset={[22, 53]}
+      offset={[0, 0]}
       left={left}
       top={top}
     >
-      <View 
+      <div
         // @ts-ignore
         onClick={toggleCallout}
-        style={{ cursor: 'pointer', alignItems: 'center', position: 'relative' }}
+        style={{ 
+          cursor: 'pointer', 
+          position: 'absolute',
+          transform: 'translate(-50%, -100%)',
+          display: 'flex',
+          flexDirection: 'column',
+          alignItems: 'center',
+        }}
       >
         {renderCallout && (
           <Animated.View style={{ 
@@ -182,14 +189,15 @@ export const Marker = (props: any) => {
               { translateY: animValue.interpolate({ inputRange: [0, 1], outputRange: [10, 0] }) }
             ],
             position: 'absolute', 
-            bottom: 50, 
-            zIndex: 1000 
+            bottom: '110%', 
+            zIndex: 1000,
+            minWidth: 160,
           }}>
             {callouts.map((c: any) => c.props.children)}
           </Animated.View>
         )}
         {nonCallouts}
-      </View>
+      </div>
     </Overlay>
   );
 };
