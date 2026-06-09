@@ -3,6 +3,8 @@ const router = express.Router();
 const token = require("../middleware/verifyToken");
 const animalsFunctions = require("../controllers/animals.controller");
 const multer = require("../middleware/multer");
+const { animalValidator, updateAnimalValidator, deleteAnimalValidator } = require("../middleware/animal.validator");
+const validate = require("../middleware/validate");
 
 const upload = multer("animals");
 
@@ -115,6 +117,8 @@ router.post(
   token.verifyToken,
   token.verifyAdmin,
   upload.single('foto'),
+  animalValidator,
+  validate,
   animalsFunctions.createAnimal
 );
 
@@ -158,6 +162,8 @@ router.put(
   token.verifyToken,
   token.verifyAdmin,
   upload.single('foto'),
+  updateAnimalValidator,
+  validate,
   animalsFunctions.updateAnimal
 );
 
@@ -183,6 +189,8 @@ router.delete(
   "/:id",
   token.verifyToken,
   token.verifyAdmin,
+  deleteAnimalValidator,
+  validate,
   animalsFunctions.deleteAnimal
 );
 

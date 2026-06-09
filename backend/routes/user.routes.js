@@ -2,6 +2,9 @@ const express = require("express");
 const router = express.Router();
 const token = require("../middleware/verifyToken");
 const userFunctions = require("../controllers/user.controller");
+const { authLimiter } = require("../middleware/rateLimiter");
+const { loginValidator, registerValidator, updateUserValidator, deleteUserValidator, pushTokenValidator } = require("../middleware/user.validator");
+const validate = require("../middleware/validate");
 
 /**
  * @swagger
@@ -35,6 +38,9 @@ const userFunctions = require("../controllers/user.controller");
  */
 router.post(
   "/login",
+  authLimiter,
+  loginValidator,
+  validate,
   userFunctions.login
 );
 
@@ -87,6 +93,8 @@ router.get(
  */
 router.post(
   "/register",
+  registerValidator,
+  validate,
   userFunctions.createUser
 );
 
@@ -170,8 +178,10 @@ router.put(
   "/:id",
   token.verifyToken,
   token.verifyAdmin,
+  updateUserValidator,
+  validate,
   userFunctions.updateUser
-)
+);
 
 /**
  * @swagger
@@ -196,8 +206,10 @@ router.delete(
   "/:id",
   token.verifyToken,
   token.verifyAdmin,
+  deleteUserValidator,
+  validate,
   userFunctions.removeUser
-)
+);
 
 /**
  * @swagger
@@ -224,7 +236,37 @@ router.delete(
 router.put(
   "/push-token",
   token.verifyToken,
+  pushTokenValidator,
+  validate,
   userFunctions.updatePushToken
+);
+
+/**
+ * @swagger
+ * /api/user/refresh:
+ *   post:
+ *     summary: Renovar el Access Token usando el Refresh Token
+ *     tags: [Usuarios]
+ *     requestBody:
+ *       required: true
+ *       content:
+ *         application/json:
+ *           schema:
+ *             type: object
+ *             properties:
+ *               token:
+ *                 type: string
+ *     responses:
+ *       200:
+ *         description: Retorna un nuevo Access Token
+ *       401:
+ *         description: Refresh Token no proporcionado
+ *       403:
+ *         description: Refresh Token inválido o expirado
+ */
+router.post(
+  "/refresh",
+  userFunctions.refreshToken
 );
 
 module.exports = router;

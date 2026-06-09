@@ -35,12 +35,13 @@ export default function RegisterScreen() {
   const nombreState: FieldState =
     nombre.length === 0 ? 'idle' : nombre.trim().split(' ').length >= 2 ? 'valid' : 'invalid';
  
-  const correoRegex = /^[a-zA-Z0-9._%+-]+@(edu\.uaa\.mx|uaa\.mx)$/;
+  const correoRegex = /^[a-zA-Z0-9._%+-]+@edu\.uaa\.mx$/;
   const correoState: FieldState =
     correo.length === 0 ? 'idle' : correoRegex.test(correo) ? 'valid' : 'invalid';
 
+  const passwordRegex = /^(?=.*[A-Z])(?=.*\d)[^\s]{6,150}$/;
   const passwordState: FieldState =
-    password.length === 0 ? 'idle' : password.length >= 5 ? 'valid' : 'invalid';
+    password.length === 0 ? 'idle' : passwordRegex.test(password) ? 'valid' : 'invalid';
 
   const confirmPasswordState: FieldState = confirmPassword.length === 0 ? 'idle' : confirmPassword === password ? 'valid' : 'invalid';
 
@@ -161,7 +162,7 @@ export default function RegisterScreen() {
                   color={getHintColor(correoState)}
                 />
                 <Text style={[styles.hintText, { color: getHintColor(correoState) }]}>
-                  {correoState === 'valid' ? 'Correo disponible' : 'Debe ser un correo @edu.uaa.mx o @uaa.mx'}
+                  {correoState === 'valid' ? 'Correo institucional válido' : 'Debe ser un correo terminado en @edu.uaa.mx'}
                 </Text>
               </View>
             )}
@@ -175,8 +176,9 @@ export default function RegisterScreen() {
                 style={[styles.inputInner, { color: colors.textMain }]}
                 value={password}
                 onChangeText={setPassword}
-                placeholder="Mínimo 5 caracteres"
+                placeholder="Mínimo 6 caracteres, mayúsculas y números"
                 placeholderTextColor={colors.textSecondary}
+                maxLength={150}
                 secureTextEntry={!showPassword}
                 autoCapitalize="none"
                 autoCorrect={false}
@@ -193,7 +195,7 @@ export default function RegisterScreen() {
                   color={getHintColor(passwordState)}
                 />
                 <Text style={[styles.hintText, { color: getHintColor(passwordState) }]}>
-                  {passwordState === 'valid' ? 'Mínimo 5 caractéres' : 'La contraseña es muy corta'}
+                  {passwordState === 'valid' ? 'Contraseña segura' : 'Mín. 6 letras, 1 mayúscula, 1 número, sin espacios'}
                 </Text>
               </View>
             )}
@@ -209,6 +211,7 @@ export default function RegisterScreen() {
                 onChangeText={setConfirmPassword}
                 placeholder="Repite tu contraseña"
                 placeholderTextColor={colors.textSecondary}
+                maxLength={150}
                 secureTextEntry={!showConfirmPassword}
                 autoCapitalize="none"
                 autoCorrect={false}

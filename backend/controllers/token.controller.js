@@ -7,7 +7,7 @@ const { searchId } = require("../model/user.model");
 const redis = require("../utils/redisClient");
 
 //creacion de tokens
-function generateToken(userId, isAdmin) {
+function generateTokens(userId, isAdmin) {
   const token = jwt.sign(
     {
       id: userId,
@@ -17,7 +17,16 @@ function generateToken(userId, isAdmin) {
     { expiresIn: "1h" }
   );
 
-  return token;
+  const refreshToken = jwt.sign(
+    {
+      id: userId,
+      admin: isAdmin
+    },
+    process.env.JWT_REFRESH || JWT_SECRET,
+    { expiresIn: "7d" }
+  );
+
+  return { token, refreshToken };
 }
 
 const tokenData = async (req, res) => {
@@ -52,7 +61,7 @@ const revoker = async (token) => {
 };
 
 module.exports = {
-  generateToken,
+  generateTokens,
   tokenData,
   revoker,
 };

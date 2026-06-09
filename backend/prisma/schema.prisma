@@ -57,13 +57,14 @@ model Animal {
 }
 
 model Usuario {
-  idUsuario Int      @id @default(autoincrement())
-  nombre    String   @db.VarChar(90)
-  email     String   @unique @db.VarChar(80)
-  password  String   @db.VarChar(150)
-  admin     Boolean  @default(false) @db.TinyInt
-  pushToken String?  @unique @db.VarChar(255)
-  createdAt DateTime @default(now()) @map("created_at")
+  idUsuario    Int      @id @default(autoincrement())
+  nombre       String   @db.VarChar(90)
+  email        String   @unique @db.VarChar(80)
+  password     String   @db.VarChar(150)
+  admin        Boolean  @default(false) @db.TinyInt
+  pushToken    String?  @unique @db.VarChar(255)
+  refreshToken String?  @db.VarChar(500)
+  createdAt    DateTime @default(now()) @map("created_at")
 
   avistamientosRegistrados Avistamiento[] @relation("RegistradoPor")
   avistamientosVerificados Avistamiento[] @relation("VerificadoPor")
