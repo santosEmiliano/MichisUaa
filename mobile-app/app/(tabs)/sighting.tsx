@@ -444,10 +444,14 @@ export default function SightingScreen() {
         placeholderTextColor={colors.textSecondary}
         multiline={true}
         numberOfLines={4}
+        maxLength={400}
         value={description}
         onChangeText={setDescription}
         textAlignVertical="top"
       />
+      <Text style={{ textAlign: 'right', fontSize: 12, marginTop: 4, color: description.length >= 400 ? colors.metricaRojo : colors.textSecondary }}>
+        {description.length} / 400
+      </Text>
     </View>
   );
 
