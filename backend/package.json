@@ -33,8 +33,7 @@
     "react": "19.2.0",
     "react-native": "0.83.6",
     "swagger-jsdoc": "^6.3.0",
-    "swagger-ui-express": "^5.0.1",
-    "xss-clean": "^0.1.4"
+    "swagger-ui-express": "^5.0.1"
   },
   "devDependencies": {
     "@types/react": "~19.2.10",
