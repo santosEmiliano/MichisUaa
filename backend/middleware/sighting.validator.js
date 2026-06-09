@@ -1,11 +1,12 @@
 const { body, param } = require('express-validator');
+const { stripHtml } = require('../utils/sanitize');
 
 const sightingValidator = [
     body('descripcion')
         .optional()
         .trim()
         .isLength({ max: 400 }).withMessage('La descripción no puede exceder 400 caracteres')
-        .escape(),
+        .customSanitizer(stripHtml),
     body('longitud')
         .notEmpty().withMessage('La longitud es requerida')
         .isFloat({ min: -180, max: 180 }).withMessage('Longitud inválida')

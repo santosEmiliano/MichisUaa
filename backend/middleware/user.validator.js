@@ -1,11 +1,12 @@
 const { body, param } = require('express-validator');
+const { stripHtml } = require('../utils/sanitize');
 
 const registerValidator = [
     body('nombre')
         .trim()
         .notEmpty().withMessage('El nombre es requerido')
         .isLength({ max: 90 }).withMessage('El nombre no puede exceder 90 caracteres')
-        .escape(),
+        .customSanitizer(stripHtml),
     body('email')
         .trim()
         .notEmpty().withMessage('El email es requerido')
@@ -25,7 +26,7 @@ const registerValidator = [
         .optional()
         .trim()
         .isIn(['Administrador', 'Simpatizante']).withMessage('Rol inválido')
-        .escape(),
+        .customSanitizer(stripHtml),
     body('colonias')
         .optional()
         .isArray().withMessage('Las colonias deben ser un arreglo de IDs')
@@ -53,7 +54,7 @@ const updateUserValidator = [
         .optional()
         .trim()
         .isLength({ max: 90 }).withMessage('El nombre no puede exceder 90 caracteres')
-        .escape(),
+        .customSanitizer(stripHtml),
     body('email')
         .optional()
         .trim()
@@ -70,7 +71,7 @@ const updateUserValidator = [
         .optional()
         .trim()
         .isIn(['Administrador', 'Simpatizante']).withMessage('Rol inválido')
-        .escape()
+        .customSanitizer(stripHtml)
 ];
 
 const deleteUserValidator = [
@@ -82,7 +83,7 @@ const pushTokenValidator = [
         .trim()
         .notEmpty().withMessage('El push token es requerido')
         .isLength({ max: 255 }).withMessage('El token no puede exceder 255 caracteres')
-        .escape()
+        .customSanitizer(stripHtml)
 ];
 
 module.exports = {

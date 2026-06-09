@@ -1,16 +1,17 @@
 const { body, param } = require('express-validator');
+const { stripHtml } = require('../utils/sanitize');
 
 const animalValidator = [
     body('nombre')
         .trim()
         .notEmpty().withMessage('El nombre es requerido')
         .isLength({ max: 80 }).withMessage('El nombre no puede exceder 80 caracteres')
-        .escape(),
+        .customSanitizer(stripHtml),
     body('sexo')
         .optional()
         .trim()
         .isIn(['Macho', 'Hembra']).withMessage('El sexo debe ser Macho o Hembra')
-        .escape(),
+        .customSanitizer(stripHtml),
     body('esterilizado')
         .optional()
         .isBoolean().withMessage('Esterilizado debe ser booleano')
@@ -19,12 +20,12 @@ const animalValidator = [
         .optional()
         .trim()
         .isIn(['Desaparecido', 'Registrado', 'NoRegistrado']).withMessage('Estado inválido')
-        .escape(),
+        .customSanitizer(stripHtml),
     body('descripcion')
         .optional()
         .trim()
         .isLength({ max: 400 }).withMessage('La descripción no puede exceder 400 caracteres')
-        .escape(),
+        .customSanitizer(stripHtml),
     body('fecha_nac')
         .optional({ checkFalsy: true })
         .isISO8601().withMessage('Formato de fecha de nacimiento inválido'),
