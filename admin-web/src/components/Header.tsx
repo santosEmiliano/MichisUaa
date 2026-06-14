@@ -12,6 +12,7 @@ const RefreshButton = () => {
 
   const handleClick = () => {
     if (spinning) return;
+    console.log("🖱️ [ManualRefresh ADMIN] Botón presionado");
     setSpinning(true);
     window.dispatchEvent(new CustomEvent("manual-refresh"));
     setTimeout(() => setSpinning(false), 600);

@@ -21,6 +21,7 @@ export function useAutoRefresh(
   const startPolling = useCallback(() => {
     if (intervalRef.current) clearInterval(intervalRef.current);
     intervalRef.current = setInterval(() => {
+      console.log("🔄 [AutoRefresh MOBILE] Polling cada 30s ejecutado");
       fetchRef.current();
     }, intervalMs);
   }, [intervalMs]);
@@ -43,10 +44,10 @@ export function useAutoRefresh(
       // ── WEB: Visibility API ──────────────────────────────────────────────
       const handleVisibilityChange = () => {
         if (document.hidden) {
-          // El usuario fue a otra pestaña
+          console.log("⏸️ [AutoRefresh MOBILE-WEB] Pestaña oculta, pausando polling");
           stopPolling();
         } else {
-          // El usuario volvió
+          console.log("▶️ [AutoRefresh MOBILE-WEB] Pestaña visible, haciendo fetch inmediato");
           fetchRef.current();
           startPolling();
         }
@@ -62,11 +63,11 @@ export function useAutoRefresh(
       // ── iOS / Android: AppState ───────────────────────────────────
       const handleAppStateChange = (nextState: AppStateStatus) => {
         if (nextState === 'active') {
-          // La app volvió al frente
+          console.log("▶️ [AutoRefresh MOBILE-NATIVO] App en Foreground, haciendo fetch inmediato");
           fetchRef.current();
           startPolling();
         } else {
-          // La app se fue al background o está inactiva
+          console.log(`⏸️ [AutoRefresh MOBILE-NATIVO] App en Background (estado: ${nextState}), pausando polling`);
           stopPolling();
         }
       };

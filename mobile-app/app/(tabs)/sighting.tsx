@@ -100,6 +100,7 @@ export default function SightingScreen() {
   // Refresh manual
   const handleManualRefresh = useCallback(() => {
     if (isRefreshing) return;
+    console.log("🖱️ [ManualRefresh MOBILE SIGHTING] Botón presionado");
     setIsRefreshing(true);
     refreshRotation.setValue(0);
     Animated.timing(refreshRotation, {

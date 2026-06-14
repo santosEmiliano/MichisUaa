@@ -17,6 +17,7 @@ export function useAutoRefresh(
   const startPolling = useCallback(() => {
     if (intervalRef.current) clearInterval(intervalRef.current);
     intervalRef.current = setInterval(() => {
+      console.log("🔄 [AutoRefresh ADMIN] Polling cada 30s ejecutado");
       fetchRef.current();
     }, intervalMs);
   }, [intervalMs]);
@@ -35,13 +36,13 @@ export function useAutoRefresh(
     fetchRef.current();
     startPolling();
 
-    // Pausa cuando la pestaña no está visible
+    // Visibility API: pausa cuando la pestaña no está visible
     const handleVisibilityChange = () => {
       if (document.hidden) {
-        // Si el admin se fue a otra pestaña paramos el polling 
+        console.log("⏸️ [AutoRefresh ADMIN] Pestaña oculta, pausando polling");
         stopPolling();
       } else {
-        // Si el admin volvió refrescamos inmediatamente y reiniciamos el intervalo
+        console.log("▶️ [AutoRefresh ADMIN] Pestaña visible, haciendo fetch inmediato");
         fetchRef.current();
         startPolling();
       }
