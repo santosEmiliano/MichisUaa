@@ -5,10 +5,10 @@ import * as Location from 'expo-location';
 import { MapClustering as MapView, Marker, Callout } from '@/components/Map';
 import FontAwesome from '@expo/vector-icons/FontAwesome';
 import { getPublicAnimals, AnimalPublic } from '@/services/mapApi';
-import Colors from '@/constants/Colors';
 import { alertService } from '@/services/alertService';
 import { useColorScheme } from '@/components/useColorScheme';
 import { useAutoRefresh } from '@/hooks/useAutoRefresh';
+import { useIsFocused } from '@react-navigation/native';
 
 // Coordenadas de la UAA
 const UAA_REGION = {
@@ -45,6 +45,7 @@ export default function MapScreen() {
   const [showFilters, setShowFilters] = useState(true);
   const [isRefreshing, setIsRefreshing] = useState(false);
   const refreshRotation = useRef(new Animated.Value(0)).current;
+  const isFocused = useIsFocused();
 
   const theme = useColorScheme() ?? 'light';
   const colors = Colors[theme];
@@ -136,8 +137,9 @@ export default function MapScreen() {
     }
   }, []);
 
-  // Auto-polling cada 30s
-  useAutoRefresh(fetchAnimals, 30000);
+  // Auto-polling cada 30s. En nativo usa AppState, en web usa Visibility API.
+  // Solo se activa si esta pestaña está seleccionada (isFocused)
+  useAutoRefresh(fetchAnimals, 30000, isFocused);
 
   // Refresh manual 
   const handleManualRefresh = useCallback(() => {

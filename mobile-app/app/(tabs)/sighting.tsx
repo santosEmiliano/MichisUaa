@@ -13,6 +13,7 @@ import { createSighting } from '@/services/sightingsApi';
 import { useColorScheme } from '@/components/useColorScheme';
 import EmptyCatState from '@/components/EmptyCatState';
 import { useAutoRefresh } from '@/hooks/useAutoRefresh';
+import { useIsFocused } from '@react-navigation/native';
 
 export default function SightingScreen() {
   const colorScheme = useColorScheme() ?? 'light';
@@ -34,6 +35,7 @@ export default function SightingScreen() {
   const [isDesktopWeb, setIsDesktopWeb] = useState(false);
   const [isRefreshing, setIsRefreshing] = useState(false);
   const refreshRotation = useRef(new Animated.Value(0)).current;
+  const isFocused = useIsFocused();
 
   useEffect(() => {
     if (Platform.OS === 'web' && typeof window !== 'undefined') {
@@ -94,8 +96,9 @@ export default function SightingScreen() {
     }
   }, []);
 
-  // Auto-polling cada 30s
-  useAutoRefresh(fetchAnimalsData, 30000);
+  // Auto-polling cada 30s. En nativo usa AppState, en web usa Visibility API.
+  // Solo se activa si esta pestaña está seleccionada (isFocused)
+  useAutoRefresh(fetchAnimalsData, 30000, isFocused);
 
   // Refresh manual
   const handleManualRefresh = useCallback(() => {
