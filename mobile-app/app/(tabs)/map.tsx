@@ -8,6 +8,7 @@ import { getPublicAnimals, AnimalPublic } from '@/services/mapApi';
 import Colors from '@/constants/Colors';
 import { alertService } from '@/services/alertService';
 import { useColorScheme } from '@/components/useColorScheme';
+import { useAutoRefresh } from '@/hooks/useAutoRefresh';
 
 // Coordenadas de la UAA
 const UAA_REGION = {
@@ -120,25 +121,24 @@ export default function MapScreen() {
     }, [])
   );
 
-  // Efecto para cargar los animales
-  useEffect(() => {
-    const fetchAnimals = async () => {
-      try {
-        setIsLoading(true);
-        const data = await getPublicAnimals();
-        setAnimals(data);
-      } catch (error) {
-        alertService.error('Error', 'No se pudieron cargar los avistamientos de los michis.');
-      } finally {
-        setIsLoading(false);
-      }
-    };
-
-    fetchAnimals();
+  // Carga los avistamientos del mapa
+  const fetchAnimals = useCallback(async () => {
+    try {
+      setIsLoading(true);
+      const data = await getPublicAnimals();
+      setAnimals(data);
+    } catch (error) {
+      alertService.error('Error', 'No se pudieron cargar los avistamientos de los michis.');
+    } finally {
+      setIsLoading(false);
+    }
   }, []);
 
+  // Auto-polling cada 30s.
+  useAutoRefresh(fetchAnimals, 30000);
+
   // Una vez cargados los animales, damos tiempo al mapa para
-  // dibujar los marcadores antes de congelar el tracking (fix Android)
+  // los marcadores antes de congelar el tracking
   useEffect(() => {
     if (!isLoading && animals.length > 0) {
       const t = setTimeout(() => setMarkersReady(true), 500);
