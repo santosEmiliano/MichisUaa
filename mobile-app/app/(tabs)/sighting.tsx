@@ -1,5 +1,5 @@
 import React, { useState, useEffect, useCallback, useRef } from 'react';
-import { StyleSheet, View, Text, TouchableOpacity, ScrollView, SafeAreaView, Image, Alert, Modal, TextInput, ActivityIndicator, Platform, useWindowDimensions } from 'react-native';
+import { StyleSheet, View, Text, TouchableOpacity, ScrollView, SafeAreaView, Image, Alert, Modal, TextInput, ActivityIndicator, Platform, useWindowDimensions, Animated } from 'react-native';
 import { Ionicons } from '@expo/vector-icons';
 import Colors from '@/constants/Colors';
 import { router, useFocusEffect } from 'expo-router';
@@ -32,6 +32,8 @@ export default function SightingScreen() {
   const [loadingAnimals, setLoadingAnimals] = useState(true);
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [isDesktopWeb, setIsDesktopWeb] = useState(false);
+  const [isRefreshing, setIsRefreshing] = useState(false);
+  const refreshRotation = useRef(new Animated.Value(0)).current;
 
   useEffect(() => {
     if (Platform.OS === 'web' && typeof window !== 'undefined') {
@@ -94,6 +96,19 @@ export default function SightingScreen() {
 
   // Auto-polling cada 30s
   useAutoRefresh(fetchAnimalsData, 30000);
+
+  // Refresh manual
+  const handleManualRefresh = useCallback(() => {
+    if (isRefreshing) return;
+    setIsRefreshing(true);
+    refreshRotation.setValue(0);
+    Animated.timing(refreshRotation, {
+      toValue: 1,
+      duration: 600,
+      useNativeDriver: true,
+    }).start(() => setIsRefreshing(false));
+    fetchAnimalsData();
+  }, [isRefreshing, fetchAnimalsData, refreshRotation]);
 
   useFocusEffect(
     useCallback(() => {
@@ -377,6 +392,18 @@ export default function SightingScreen() {
           value={searchQuery}
           onChangeText={setSearchQuery}
         />
+        <TouchableOpacity onPress={handleManualRefresh} style={{ paddingHorizontal: 8 }}>
+          <Animated.View style={{
+            transform: [{
+              rotate: refreshRotation.interpolate({
+                inputRange: [0, 1],
+                outputRange: ['0deg', '360deg'],
+              })
+            }]
+          }}>
+            <Ionicons name="refresh" size={20} color={isRefreshing ? colors.accentOrange : colors.textSecondary} />
+          </Animated.View>
+        </TouchableOpacity>
       </View>
 
       {loadingAnimals ? (
