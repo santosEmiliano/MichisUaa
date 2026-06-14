@@ -43,6 +43,8 @@ export default function MapScreen() {
   const [searchText, setSearchText] = useState('');
   const [activeFilter, setActiveFilter] = useState('Todos');
   const [showFilters, setShowFilters] = useState(true);
+  const [isRefreshing, setIsRefreshing] = useState(false);
+  const refreshRotation = useRef(new Animated.Value(0)).current;
 
   const theme = useColorScheme() ?? 'light';
   const colors = Colors[theme];
@@ -134,8 +136,21 @@ export default function MapScreen() {
     }
   }, []);
 
-  // Auto-polling cada 30s.
+  // Auto-polling cada 30s
   useAutoRefresh(fetchAnimals, 30000);
+
+  // Refresh manual 
+  const handleManualRefresh = useCallback(() => {
+    if (isRefreshing) return;
+    setIsRefreshing(true);
+    refreshRotation.setValue(0);
+    Animated.timing(refreshRotation, {
+      toValue: 1,
+      duration: 600,
+      useNativeDriver: true,
+    }).start(() => setIsRefreshing(false));
+    fetchAnimals();
+  }, [isRefreshing, fetchAnimals, refreshRotation]);
 
   // Una vez cargados los animales, damos tiempo al mapa para
   // los marcadores antes de congelar el tracking
@@ -316,6 +331,18 @@ export default function MapScreen() {
           />
           <TouchableOpacity onPress={() => setShowFilters(!showFilters)}>
             <FontAwesome name="filter" size={20} color={showFilters ? colors.accentOrange : colors.textSecondary} style={styles.filterIconBtn} />
+          </TouchableOpacity>
+          <TouchableOpacity onPress={handleManualRefresh} style={styles.filterIconBtn}>
+            <Animated.View style={{
+              transform: [{
+                rotate: refreshRotation.interpolate({
+                  inputRange: [0, 1],
+                  outputRange: ['0deg', '360deg'],
+                })
+              }]
+            }}>
+              <FontAwesome name="refresh" size={20} color={isRefreshing ? colors.accentOrange : colors.textSecondary} />
+            </Animated.View>
           </TouchableOpacity>
         </View>
       </Animated.View>
