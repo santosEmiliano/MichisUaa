@@ -27,22 +27,14 @@ const Colonias = () => {
   const fetchColoniasYUsuarios = useCallback(async () => {
     setLoading(true);
     try {
-      const token = localStorage.getItem("token");
-      
       // Llamadas paralelas
       const [coloniasData, usersRes, animalsRes] = await Promise.all([
         coloniesService.getColonies(),
         fetch("/michisuaa/api/user", {
-          headers: {
-            "Content-Type": "application/json",
-            Authorization: `Bearer ${token}`,
-          },
+          credentials: "include",
         }),
         fetch("/michisuaa/api/animal", {
-          headers: {
-            "Content-Type": "application/json",
-            Authorization: `Bearer ${token}`,
-          },
+          credentials: "include",
         })
       ]);
 
