@@ -1,4 +1,4 @@
-import { useState, useEffect, useMemo } from "react";
+import { useState, useEffect, useMemo, useCallback } from "react";
 import { createPortal } from "react-dom";
 import Icons from "../components/Icons";
 import { DataTable, type ColumnDef } from "../components/DataTable";
@@ -7,6 +7,7 @@ import { GatoModal } from "../components/GatoModal";
 import { LoadingScreen } from "../components/LoadingScreen";
 import { alertService } from "../services/alertService";
 import { ImagePreviewModal } from "../components/ImagePreviewModal";
+import { useAutoRefresh } from "../hooks/useAutoRefresh";
 
 type EstadoCat = Cat["estado"];
 
@@ -267,8 +268,8 @@ const GatosPage = () => {
     return () => clearTimeout(timer);
   }, []);
 
-  // Fetch de animales
-  const fetchCats = async () => {
+  // Wrap en useCallback para que useAutoRefresh tenga una referencia estable
+  const fetchCats = useCallback(async () => {
     try {
       const token = localStorage.getItem("token") || "";
       const res = await fetch("/michisuaa/api/animal/", {
@@ -337,12 +338,17 @@ const GatosPage = () => {
     } finally {
       setLoading(false);
     }
-  };
-
-  useEffect(() => {
-    // eslint-disable-next-line react-hooks/set-state-in-effect
-    fetchCats();
   }, []);
+
+  // Auto-polling cada 30s + Visibility API
+  useAutoRefresh(fetchCats, 30000);
+
+  // Refresh manual 
+  useEffect(() => {
+    const handleManualRefresh = () => fetchCats();
+    window.addEventListener("manual-refresh", handleManualRefresh);
+    return () => window.removeEventListener("manual-refresh", handleManualRefresh);
+  }, [fetchCats]);
 
   const headerBadge = (
     <span className="text-sm font-semibold px-3 py-1 rounded-full border border-sidebar-separador bg-gris-oscuro text-secondary">

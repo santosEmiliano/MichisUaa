@@ -5,9 +5,10 @@ import * as Location from 'expo-location';
 import { MapClustering as MapView, Marker, Callout } from '@/components/Map';
 import FontAwesome from '@expo/vector-icons/FontAwesome';
 import { getPublicAnimals, AnimalPublic } from '@/services/mapApi';
-import Colors from '@/constants/Colors';
 import { alertService } from '@/services/alertService';
 import { useColorScheme } from '@/components/useColorScheme';
+import { useAutoRefresh } from '@/hooks/useAutoRefresh';
+import { useIsFocused } from '@react-navigation/native';
 
 // Coordenadas de la UAA
 const UAA_REGION = {
@@ -42,6 +43,9 @@ export default function MapScreen() {
   const [searchText, setSearchText] = useState('');
   const [activeFilter, setActiveFilter] = useState('Todos');
   const [showFilters, setShowFilters] = useState(true);
+  const [isRefreshing, setIsRefreshing] = useState(false);
+  const refreshRotation = useRef(new Animated.Value(0)).current;
+  const isFocused = useIsFocused();
 
   const theme = useColorScheme() ?? 'light';
   const colors = Colors[theme];
@@ -120,25 +124,38 @@ export default function MapScreen() {
     }, [])
   );
 
-  // Efecto para cargar los animales
-  useEffect(() => {
-    const fetchAnimals = async () => {
-      try {
-        setIsLoading(true);
-        const data = await getPublicAnimals();
-        setAnimals(data);
-      } catch (error) {
-        alertService.error('Error', 'No se pudieron cargar los avistamientos de los michis.');
-      } finally {
-        setIsLoading(false);
-      }
-    };
-
-    fetchAnimals();
+  // Carga los avistamientos del mapa
+  const fetchAnimals = useCallback(async () => {
+    try {
+      setIsLoading(true);
+      const data = await getPublicAnimals();
+      setAnimals(data);
+    } catch (error) {
+      alertService.error('Error', 'No se pudieron cargar los avistamientos de los michis.');
+    } finally {
+      setIsLoading(false);
+    }
   }, []);
 
+  // Auto-polling cada 30s. En nativo usa AppState, en web usa Visibility API.
+  // Solo se activa si esta pestaña está seleccionada (isFocused)
+  useAutoRefresh(fetchAnimals, 30000, isFocused);
+
+  // Refresh manual 
+  const handleManualRefresh = useCallback(() => {
+    if (isRefreshing) return;
+    setIsRefreshing(true);
+    refreshRotation.setValue(0);
+    Animated.timing(refreshRotation, {
+      toValue: 1,
+      duration: 600,
+      useNativeDriver: true,
+    }).start(() => setIsRefreshing(false));
+    fetchAnimals();
+  }, [isRefreshing, fetchAnimals, refreshRotation]);
+
   // Una vez cargados los animales, damos tiempo al mapa para
-  // dibujar los marcadores antes de congelar el tracking (fix Android)
+  // los marcadores antes de congelar el tracking
   useEffect(() => {
     if (!isLoading && animals.length > 0) {
       const t = setTimeout(() => setMarkersReady(true), 500);
@@ -316,6 +333,18 @@ export default function MapScreen() {
           />
           <TouchableOpacity onPress={() => setShowFilters(!showFilters)}>
             <FontAwesome name="filter" size={20} color={showFilters ? colors.accentOrange : colors.textSecondary} style={styles.filterIconBtn} />
+          </TouchableOpacity>
+          <TouchableOpacity onPress={handleManualRefresh} style={styles.filterIconBtn}>
+            <Animated.View style={{
+              transform: [{
+                rotate: refreshRotation.interpolate({
+                  inputRange: [0, 1],
+                  outputRange: ['0deg', '360deg'],
+                })
+              }]
+            }}>
+              <FontAwesome name="refresh" size={20} color={isRefreshing ? colors.accentOrange : colors.textSecondary} />
+            </Animated.View>
           </TouchableOpacity>
         </View>
       </Animated.View>

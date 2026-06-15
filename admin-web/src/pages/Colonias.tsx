@@ -1,4 +1,4 @@
-import { useState, useEffect, useMemo, useRef } from "react";
+import { useState, useEffect, useMemo, useRef, useCallback } from "react";
 import { createPortal } from "react-dom";
 import Icons from "../components/Icons";
 import { ColoniaCard } from "../components/ColoniaCard";
@@ -10,6 +10,7 @@ import type { Colonia } from "../types/models";
 import { Pestanas } from "../components/Pestanas";
 import { coloniesService } from "../services/coloniesApi";
 import { alertService } from "../services/alertService";
+import { useAutoRefresh } from "../hooks/useAutoRefresh";
 
 const Colonias = () => {
   const [colonias, setColonias] = useState<Colonia[]>([]);
@@ -23,7 +24,7 @@ const Colonias = () => {
   const [loading, setLoading] = useState(true);
   const colsRef = useRef(cols);
 
-  const fetchColoniasYUsuarios = async () => {
+  const fetchColoniasYUsuarios = useCallback(async () => {
     setLoading(true);
     try {
       const token = localStorage.getItem("token");
@@ -93,12 +94,17 @@ const Colonias = () => {
     } finally {
       setLoading(false);
     }
-  };
-
-  useEffect(() => {
-    // eslint-disable-next-line react-hooks/set-state-in-effect
-    fetchColoniasYUsuarios();
   }, []);
+
+  // Auto-polling cada 30s 
+  useAutoRefresh(fetchColoniasYUsuarios, 30000);
+
+  // Refresh manual 
+  useEffect(() => {
+    const handleManualRefresh = () => fetchColoniasYUsuarios();
+    window.addEventListener("manual-refresh", handleManualRefresh);
+    return () => window.removeEventListener("manual-refresh", handleManualRefresh);
+  }, [fetchColoniasYUsuarios]);
 
   useEffect(() => {
     colsRef.current = cols;

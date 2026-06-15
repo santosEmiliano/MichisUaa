@@ -9,6 +9,7 @@ import { avistamientosApi } from "../services/avistamientosApi";
 import { LoadingScreen } from "../components/LoadingScreen";
 import { alertService } from "../services/alertService";
 import { ImagePreviewModal } from "../components/ImagePreviewModal";
+import { useAutoRefresh } from "../hooks/useAutoRefresh";
 
 const filters: FilterDef[] = [
   {
@@ -95,9 +96,14 @@ const Avistamientos = () => {
     }
   }, []);
 
+  // Auto-polling cada 30s + Visibility API
+  useAutoRefresh(fetchDatos, 30000);
+
+  // Refresh manual
   useEffect(() => {
-    // eslint-disable-next-line react-hooks/set-state-in-effect
-    fetchDatos();
+    const handleManualRefresh = () => fetchDatos();
+    window.addEventListener("manual-refresh", handleManualRefresh);
+    return () => window.removeEventListener("manual-refresh", handleManualRefresh);
   }, [fetchDatos]);
 
   useEffect(() => {

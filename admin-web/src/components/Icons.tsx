@@ -29,6 +29,7 @@ import {
   Sun,
   Building2,
   Clock,
+  RefreshCw,
 } from "lucide-react";
 
 const Icons = {
@@ -64,6 +65,7 @@ const Icons = {
   Building: Building2,
   Clock: Clock,
   MapPin: MapPin,
+  Refresh: RefreshCw,
 };
 
 export default Icons;
