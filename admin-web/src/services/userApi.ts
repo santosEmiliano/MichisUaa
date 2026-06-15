@@ -4,13 +4,11 @@ import type { BackendUser, DeleteUserResponse, UpdateUserResponse } from "../typ
 const BASE_URL = "/michisuaa/api/user";
 
 // Obtiene el token del localStorage
-function getAuthHeaders(): HeadersInit {
-  const token = localStorage.getItem("token");
+const getAuthHeaders = (): HeadersInit => {
   return {
     "Content-Type": "application/json",
-    ...(token ? { Authorization: `Bearer ${token}` } : {}),
   };
-}
+};
 
 // Manejo genérico de respuestas
 async function handleResponse<T>(res: Response): Promise<T> {
@@ -50,7 +48,8 @@ export const userService = {
    getUsers: async (): Promise<User[]> => {
         const res = await fetch(`${BASE_URL}`, {
             method: "GET",
-            headers: getAuthHeaders()
+            headers: getAuthHeaders(),
+            credentials: "include"
         });
         const backendData = await handleResponse<BackendUser[]>(res);
         const users = backendData.map(data => mapUser(data));
@@ -71,6 +70,7 @@ export const userService = {
         const res = await fetch(`${BASE_URL}/${id}`, {
             method: "PUT",
             headers: getAuthHeaders(),
+        credentials: "include",
             body: JSON.stringify(usuario),
         });
         return handleResponse<UpdateUserResponse>(res);
@@ -81,6 +81,7 @@ export const userService = {
         const res = await fetch(`${BASE_URL}/${id}`, {
             method: "DELETE",
             headers: getAuthHeaders(),
+        credentials: "include",
         });
         return handleResponse<DeleteUserResponse>(res);
     },

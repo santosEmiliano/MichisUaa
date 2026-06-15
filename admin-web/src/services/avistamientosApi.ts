@@ -3,10 +3,8 @@ import type { BackendAvistamiento } from "../types/models";
 const API_URL = import.meta.env.VITE_API_URL || "/michisuaa/api";
 
 const getHeaders = () => {
-  const token = localStorage.getItem("token");
   return {
     "Content-Type": "application/json",
-    ...(token ? { Authorization: `Bearer ${token}` } : {}),
   };
 };
 
@@ -34,6 +32,7 @@ export const avistamientosApi = {
   getAvistamientos: async (): Promise<BackendAvistamiento[]> => {
     const res = await fetch(`${API_URL}/avistamientos`, {
       headers: getHeaders(),
+      credentials: "include",
     });
     await handleError(res, "Error al obtener los avistamientos");
     return res.json();
@@ -44,6 +43,7 @@ export const avistamientosApi = {
     const res = await fetch(`${API_URL}/avistamientos/${id}`, {
       method: "PUT",
       headers: getHeaders(),
+      credentials: "include",
       body: JSON.stringify({ 
         animalId: animalId,
         verificado: true,
@@ -60,6 +60,7 @@ export const avistamientosApi = {
     const res = await fetch(`${API_URL}/avistamientos/${id}`, {
       method: "PUT",
       headers: getHeaders(),
+      credentials: "include",
       body: JSON.stringify({ 
         verificado: false,
         verificadoPor: getUserId()
@@ -75,6 +76,7 @@ export const avistamientosApi = {
     const res = await fetch(`${API_URL}/avistamientos/${id}`, {
       method: "PUT",
       headers: getHeaders(),
+      credentials: "include",
       body: JSON.stringify({ 
         verificado: false,
         verificadoPor: null
@@ -89,6 +91,7 @@ export const avistamientosApi = {
     const res = await fetch(`${API_URL}/avistamientos/${id}`, {
       method: "PUT",
       headers: getHeaders(),
+      credentials: "include",
       body: JSON.stringify({ animalId }),
     });
     await handleError(res, "Error al modificar el avistamiento");
@@ -100,6 +103,7 @@ export const avistamientosApi = {
     const res = await fetch(`${API_URL}/avistamientos/${id}`, {
       method: "PUT",
       headers: getHeaders(),
+      credentials: "include",
       body: JSON.stringify({
         verificado: false,
         verificadoPor: null,
@@ -114,6 +118,7 @@ export const avistamientosApi = {
     const res = await fetch(`${API_URL}/avistamientos/${id}`, {
       method: "DELETE",
       headers: getHeaders(),
+      credentials: "include",
     });
     await handleError(res, "Error al eliminar el avistamiento");
     return res.json();

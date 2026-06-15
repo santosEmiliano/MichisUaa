@@ -3,14 +3,12 @@ import type { BackendColonia } from "../types/coloniesTypes";
 
 const BASE_URL = "/michisuaa/api/colonies";
 
-// Obtiene el token del localStorage
-function getAuthHeaders(): HeadersInit {
-  const token = localStorage.getItem("token");
+// Obtiene los headers por defecto
+const getHeaders = () => {
   return {
     "Content-Type": "application/json",
-    ...(token ? { Authorization: `Bearer ${token}` } : {}),
   };
-}
+};
 
 // Manejo genérico de respuestas
 async function handleResponse<T>(res: Response): Promise<T> {
@@ -52,7 +50,8 @@ export const coloniesService = {
   getColonies: async (): Promise<Colonia[]> => {
     const res = await fetch(BASE_URL, {
       method: "GET",
-      headers: getAuthHeaders(),
+      headers: getHeaders(),
+      credentials: "include",
     });
     const backendData = await handleResponse<BackendColonia[]>(res);
     return backendData.map(mapColonia);
@@ -62,7 +61,8 @@ export const coloniesService = {
   getColonyById: async (id: number): Promise<Colonia> => {
     const res = await fetch(`${BASE_URL}/${id}`, {
       method: "GET",
-      headers: getAuthHeaders(),
+      headers: getHeaders(),
+      credentials: "include",
     });
     const backendData = await handleResponse<BackendColonia>(res);
     return mapColonia(backendData);
@@ -77,7 +77,8 @@ export const coloniesService = {
   }): Promise<{ mensaje: string; colonia: BackendColonia }> => {
     const res = await fetch(BASE_URL, {
       method: "POST",
-      headers: getAuthHeaders(),
+      headers: getHeaders(),
+      credentials: "include",
       body: JSON.stringify(colonia),
     });
     return handleResponse<{ mensaje: string; colonia: BackendColonia }>(res);
@@ -95,7 +96,8 @@ export const coloniesService = {
   ): Promise<{ mensaje: string; colonia: BackendColonia }> => {
     const res = await fetch(`${BASE_URL}/${id}`, {
       method: "PUT",
-      headers: getAuthHeaders(),
+      headers: getHeaders(),
+      credentials: "include",
       body: JSON.stringify(colonia),
     });
     return handleResponse<{ mensaje: string; colonia: BackendColonia }>(res);
@@ -105,7 +107,8 @@ export const coloniesService = {
   deleteColony: async (id: number): Promise<{ mensaje: string }> => {
     const res = await fetch(`${BASE_URL}/${id}`, {
       method: "DELETE",
-      headers: getAuthHeaders(),
+      headers: getHeaders(),
+      credentials: "include",
     });
     return handleResponse<{ mensaje: string }>(res);
   },
