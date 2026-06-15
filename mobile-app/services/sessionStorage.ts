@@ -41,12 +41,17 @@ export async function saveSession(
   userName: string,
   userEmail: string
 ): Promise<void> {
-  await Promise.all([
-    save(KEYS.TOKEN, token),
+  const saves = [
     save(KEYS.USER_ID, String(userId)),
     save(KEYS.USER_NAME, userName),
     save(KEYS.USER_EMAIL, userEmail),
-  ]);
+  ];
+  
+  if (Platform.OS !== "web") {
+    saves.push(save(KEYS.TOKEN, token));
+  }
+  
+  await Promise.all(saves);
 }
 
 // Recupera la sesión almacenada. 
@@ -57,12 +62,16 @@ export async function getSession(): Promise<{
   userName: string;
   userEmail: string;
 } | null> {
-  const [token, userId, userName, userEmail] = await Promise.all([
-    get(KEYS.TOKEN),
+  const [userId, userName, userEmail] = await Promise.all([
     get(KEYS.USER_ID),
     get(KEYS.USER_NAME),
     get(KEYS.USER_EMAIL),
   ]);
+
+  let token: string | null = "cookie-session-active";
+  if (Platform.OS !== "web") {
+    token = await get(KEYS.TOKEN);
+  }
 
   if (!token || !userId || !userName || !userEmail) return null;
 
@@ -72,10 +81,15 @@ export async function getSession(): Promise<{
 // Elimina la sesión guardada (logout local).
 
 export async function clearSession(): Promise<void> {
-  await Promise.all([
-    remove(KEYS.TOKEN),
+  const removals = [
     remove(KEYS.USER_ID),
     remove(KEYS.USER_NAME),
     remove(KEYS.USER_EMAIL),
-  ]);
+  ];
+  
+  if (Platform.OS !== "web") {
+    removals.push(remove(KEYS.TOKEN));
+  }
+  
+  await Promise.all(removals);
 }
