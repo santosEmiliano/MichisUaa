@@ -66,6 +66,15 @@ const login = async (req, res) => {
     // Reiniciar el contador de intentos fallidos al tener un login exitoso
     authLimiter.resetKey(req.ip);
 
+    const cookieOptions = {
+      httpOnly: true,
+      secure: process.env.NODE_ENV === 'production' || true, // en prod siempre true
+      sameSite: 'lax',
+    };
+
+    res.cookie('token', token, { ...cookieOptions, maxAge: 1 * 60 * 60 * 1000 }); // 1h
+    res.cookie('refreshToken', refreshToken, { ...cookieOptions, maxAge: 7 * 24 * 60 * 60 * 1000 }); // 7d
+
     return res
       .status(200)
       .json({ mensaje: "Login realizado correctamente", token, refreshToken, datos });
@@ -250,9 +259,14 @@ module.exports = {
   createUser,
   login,
   logout,
-  obtainUsers,
+  getUser,
   updateUser,
-  removeUser,
+  toggleUserStatus,
+  getAllUsers,
+  getAdmins,
+  requestPasswordReset,
+  resetPassword,
+  validateResetToken,
   getUserMedals,
   updatePushToken,
   refreshToken,
