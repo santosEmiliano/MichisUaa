@@ -9,6 +9,16 @@ import {
 import { MetricCard } from "../components/MetricCard";
 import { LoadingScreen } from "../components/LoadingScreen";
 import { alertService } from "../services/alertService";
+import { useAutoRefresh } from "../hooks/useAutoRefresh";
+
+const BAR_COLORS = [
+  "#E8893C",
+  "#3B82F6",
+  "#2B9E76",
+  "#E05252",
+  "#84A98C",
+  "#6366F1",
+];
 
 const Estadisticas = () => {
   // Información de estadísticas
@@ -25,14 +35,6 @@ const Estadisticas = () => {
   >([]);
 
   // Información de gráficas
-  const BAR_COLORS = [
-    "#E8893C",
-    "#3B82F6",
-    "#2B9E76",
-    "#E05252",
-    "#84A98C",
-    "#6366F1",
-  ];
   const [barData, setBarData] = useState<
     { colonia: string; total: number; color: string; width: string }[]
   >([]);
@@ -108,7 +110,7 @@ const Estadisticas = () => {
     };
   }, [barData]);
 
-  const fetchData = async () => {
+  const fetchData = useCallback(async () => {
     try {
       const token = localStorage.getItem("token") || "";
       const headers = { Authorization: `Bearer ${token}` };
@@ -194,17 +196,19 @@ const Estadisticas = () => {
         "Error de Carga",
       );
     } finally {
-      // Pequeño delay para que la transición no sea brusca
       setTimeout(() => setIsLoading(false), 600);
     }
-  };
-
-  useEffect(() => {
-    const timer = setTimeout(() => {
-      fetchData();
-    }, 0);
-    return () => clearTimeout(timer);
   }, []);
+
+  // Auto-polling cada 30s 
+  useAutoRefresh(fetchData, 30000);
+
+  // Refresh manual 
+  useEffect(() => {
+    const handleManualRefresh = () => fetchData();
+    window.addEventListener("manual-refresh", handleManualRefresh);
+    return () => window.removeEventListener("manual-refresh", handleManualRefresh);
+  }, [fetchData]);
 
   if (isLoading) {
     return <LoadingScreen message="Cargando Estadísticas" />;

@@ -1,5 +1,5 @@
 import React, { useState, useEffect, useCallback, useRef } from 'react';
-import { StyleSheet, View, Text, TouchableOpacity, ScrollView, SafeAreaView, Image, Alert, Modal, TextInput, ActivityIndicator, Platform, useWindowDimensions } from 'react-native';
+import { StyleSheet, View, Text, TouchableOpacity, ScrollView, SafeAreaView, Image, Alert, Modal, TextInput, ActivityIndicator, Platform, useWindowDimensions, Animated } from 'react-native';
 import { Ionicons } from '@expo/vector-icons';
 import Colors from '@/constants/Colors';
 import { router, useFocusEffect } from 'expo-router';
@@ -12,6 +12,8 @@ import { getPublicAnimals, PublicAnimal } from '@/services/animalsApi';
 import { createSighting } from '@/services/sightingsApi';
 import { useColorScheme } from '@/components/useColorScheme';
 import EmptyCatState from '@/components/EmptyCatState';
+import { useAutoRefresh } from '@/hooks/useAutoRefresh';
+import { useIsFocused } from '@react-navigation/native';
 
 export default function SightingScreen() {
   const colorScheme = useColorScheme() ?? 'light';
@@ -31,6 +33,9 @@ export default function SightingScreen() {
   const [loadingAnimals, setLoadingAnimals] = useState(true);
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [isDesktopWeb, setIsDesktopWeb] = useState(false);
+  const [isRefreshing, setIsRefreshing] = useState(false);
+  const refreshRotation = useRef(new Animated.Value(0)).current;
+  const isFocused = useIsFocused();
 
   useEffect(() => {
     if (Platform.OS === 'web' && typeof window !== 'undefined') {
@@ -78,13 +83,43 @@ export default function SightingScreen() {
     }
   };
 
+  // Carga la lista de gatos disponibles para seleccionar
+  const fetchAnimalsData = useCallback(async () => {
+    try {
+      const data = await getPublicAnimals();
+      setAnimals(data);
+    } catch (error) {
+      console.error('Error fetching animals', error);
+      alertService.error('Error', 'No pudimos cargar la lista de gatos. Verifica tu conexión.');
+    } finally {
+      setLoadingAnimals(false);
+    }
+  }, []);
+
+  // Auto-polling cada 30s. En nativo usa AppState, en web usa Visibility API.
+  // Solo se activa si esta pestaña está seleccionada (isFocused)
+  useAutoRefresh(fetchAnimalsData, 30000, isFocused);
+
+  // Refresh manual
+  const handleManualRefresh = useCallback(() => {
+    if (isRefreshing) return;
+    setIsRefreshing(true);
+    refreshRotation.setValue(0);
+    Animated.timing(refreshRotation, {
+      toValue: 1,
+      duration: 600,
+      useNativeDriver: true,
+    }).start(() => setIsRefreshing(false));
+    fetchAnimalsData();
+  }, [isRefreshing, fetchAnimalsData, refreshRotation]);
+
   useFocusEffect(
     useCallback(() => {
       const fetchLocation = async () => {
         let { status } = await Location.requestForegroundPermissionsAsync();
         if (status !== 'granted') {
           setLocationName('Permiso de GPS denegado');
-          alertService.warning("GPS requerido", "MichisUAA necesita tu ubicación para registrar el avistamiento. Por favor, habilita el acceso al GPS en la configuración de tu dispositivo.");
+          alertService.warning('GPS requerido', 'MichisUAA necesita tu ubicación para registrar el avistamiento. Por favor, habilita el acceso al GPS en la configuración de tu dispositivo.');
           return;
         }
 
@@ -97,24 +132,11 @@ export default function SightingScreen() {
           await performReverseGeocode(location.coords.latitude, location.coords.longitude);
         } catch (error) {
           setLocationName('Error al obtener ubicación');
-          alertService.error("Error de ubicación", "No pudimos obtener tu ubicación actual. Asegúrate de tener el GPS encendido e inténtalo de nuevo.");
-        }
-      };
-
-      const fetchAnimalsData = async () => {
-        try {
-          const data = await getPublicAnimals();
-          setAnimals(data);
-        } catch (error) {
-          console.error("Error fetching animals", error);
-          alertService.error("Error", "No pudimos cargar la lista de gatos. Verifica tu conexión.");
-        } finally {
-          setLoadingAnimals(false);
+          alertService.error('Error de ubicación', 'No pudimos obtener tu ubicación actual. Asegúrate de tener el GPS encendido e inténtalo de nuevo.');
         }
       };
 
       fetchLocation();
-      fetchAnimalsData();
     }, [])
   );
 
@@ -376,6 +398,18 @@ export default function SightingScreen() {
           value={searchQuery}
           onChangeText={setSearchQuery}
         />
+        <TouchableOpacity onPress={handleManualRefresh} style={{ paddingHorizontal: 8 }}>
+          <Animated.View style={{
+            transform: [{
+              rotate: refreshRotation.interpolate({
+                inputRange: [0, 1],
+                outputRange: ['0deg', '360deg'],
+              })
+            }]
+          }}>
+            <Ionicons name="refresh" size={20} color={isRefreshing ? colors.accentOrange : colors.textSecondary} />
+          </Animated.View>
+        </TouchableOpacity>
       </View>
 
       {loadingAnimals ? (
