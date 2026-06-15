@@ -6,6 +6,7 @@ const rateLimit = require('express-rate-limit');
 const helmet = require('helmet');
 const hpp = require('hpp');
 const morgan = require('morgan');
+const cookieParser = require('cookie-parser');
 const app = express();
 const port = process.env.PORT || 3000;
 
@@ -33,11 +34,13 @@ app.use(cors({
     } else {
       callback(new Error('No permitido por CORS'));
     }
-  }
+  },
+  credentials: true
 })); // Configuración estricta de CORS
 app.use(morgan('combined')); // Logging de peticiones
 app.use(express.json({ limit: '10kb' })); // Límite tamaño JSON
 app.use(express.urlencoded({ extended: true, limit: '10kb' })); // Límite tamaño URL-encoded
+app.use(cookieParser()); // Parseo de cookies
 app.use(hpp()); // Prevención de contaminación de parámetros
 app.set('trust proxy', 1);
 
