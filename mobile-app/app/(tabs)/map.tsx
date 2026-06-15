@@ -144,7 +144,6 @@ export default function MapScreen() {
   // Refresh manual 
   const handleManualRefresh = useCallback(() => {
     if (isRefreshing) return;
-    console.log("🖱️ [ManualRefresh MOBILE MAP] Botón presionado");
     setIsRefreshing(true);
     refreshRotation.setValue(0);
     Animated.timing(refreshRotation, {
