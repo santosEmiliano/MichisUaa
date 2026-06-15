@@ -16,14 +16,20 @@ export const apiFetch = async (
   const session = await getSession();
 
   try {
-    const response = await fetch(`${BASE_URL}${endpoint}`, {
+    const fetchOptions: RequestInit = {
       ...options,
       headers: {
         "Content-Type": "application/json",
-        ...(session?.token ? { Authorization: `Bearer ${session.token}` } : {}),
+        ...(session?.token && session.token !== "cookie-session-active" ? { Authorization: `Bearer ${session.token}` } : {}),
         ...options.headers,
       },
-    });
+    };
+
+    if (Platform.OS === "web") {
+      fetchOptions.credentials = "include";
+    }
+
+    const response = await fetch(`${BASE_URL}${endpoint}`, fetchOptions);
 
     if (response.status === 401) {
       if (!isNavigatingToLogin) {
