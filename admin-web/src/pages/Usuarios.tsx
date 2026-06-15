@@ -1,4 +1,4 @@
-import { useState, useEffect, useMemo } from "react";
+import { useState, useEffect, useMemo, useCallback } from "react";
 import { createPortal } from "react-dom";
 import Icons from "../components/Icons";
 import { DataTable, type ColumnDef } from "../components/DataTable";
@@ -8,6 +8,7 @@ import { PasswordConfirmModal } from "../components/PasswordConfirmModal";
 import { LoadingScreen } from "../components/LoadingScreen";
 import { userService } from "../services/userApi";
 import { alertService } from "../services/alertService";
+import { useAutoRefresh } from "../hooks/useAutoRefresh";
 
 
 type RolUser = User["rol"];
@@ -106,7 +107,7 @@ const UsuariosPage = () => {
     };
   }, []);
 
-  const fetchUsers = async () => {
+  const fetchUsers = useCallback(async () => {
     try {
       setLoading(true);
       const data = await userService.getUsers();
@@ -120,12 +121,17 @@ const UsuariosPage = () => {
     } finally {
       setLoading(false);
     }
-  };
-
-  useEffect(() => {
-    // eslint-disable-next-line react-hooks/set-state-in-effect
-    fetchUsers();
   }, []);
+
+  // Auto-polling cada 30s + Visibility API 
+  useAutoRefresh(fetchUsers, 30000);
+
+  // Refresh manual 
+  useEffect(() => {
+    const handleManualRefresh = () => fetchUsers();
+    window.addEventListener("manual-refresh", handleManualRefresh);
+    return () => window.removeEventListener("manual-refresh", handleManualRefresh);
+  }, [fetchUsers]);
 
   const executeDelete = async (user: User) => {
     try {

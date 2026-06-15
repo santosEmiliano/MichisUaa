@@ -7,6 +7,8 @@ import type { Avistamiento, BackendAvistamiento } from "../types/models";
 import { LoadingScreen } from "../components/LoadingScreen";
 import Icons from "../components/Icons";
 import { alertService } from "../services/alertService";
+import { useAutoRefresh } from "../hooks/useAutoRefresh";
+
 const getInitials = (name: string) => {
   if (name === "No Identificado") return "?";
   return name.substring(0, 2).charAt(0).toUpperCase() + name.substring(1, 2).toLowerCase();
@@ -114,9 +116,14 @@ const Dashboard = () => {
     }
   }, []);
 
+  // Auto-polling cada 30s + Visibility API 
+  useAutoRefresh(fetchDatos, 30000);
+
+  // Refresh manual 
   useEffect(() => {
-    // eslint-disable-next-line react-hooks/set-state-in-effect
-    fetchDatos();
+    const handleManualRefresh = () => fetchDatos();
+    window.addEventListener("manual-refresh", handleManualRefresh);
+    return () => window.removeEventListener("manual-refresh", handleManualRefresh);
   }, [fetchDatos]);
 
   const handleOpenModal = (row: Avistamiento) => {
