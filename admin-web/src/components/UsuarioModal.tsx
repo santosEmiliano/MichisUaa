@@ -433,8 +433,10 @@ export const UsuarioModal = ({ isOpen, onClose, userToEdit, onSuccess }: UserMod
         {/* Rol */}
         <div>
           <label className="block text-main font-bold mb-2">Rol</label>
-          <div className="grid grid-cols-2 gap-4">
-            {(["Administrador", "Simpatizante"] as const).map((r) => (
+          <div className={`grid ${isEditing ? 'grid-cols-2' : 'grid-cols-1'} gap-4`}>
+            {(["Administrador", "Simpatizante"] as const)
+              .filter(r => isEditing || r === "Simpatizante")
+              .map((r) => (
               <div
                 key={r}
                 onClick={() => setRole(r)}
