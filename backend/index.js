@@ -2,7 +2,6 @@ require('dotenv').config();
 const express = require('express');
 const path = require('path');
 const cors = require('cors'); 
-const rateLimit = require('express-rate-limit');
 const helmet = require('helmet');
 const hpp = require('hpp');
 const morgan = require('morgan');
@@ -16,11 +15,6 @@ const coloniesRoutes = require('./routes/colonies.routes');
 const sightingRoutes = require('./routes/sightings.routes');
 const stadisticsRoutes = require('./routes/stadistics.routes');
 const notificationsRoutes = require('./routes/notifications.routes');
-
-const limiter = rateLimit({
-  windowMs: 15 * 60 * 1000, // 15 minutos
-  max: 100 // límite de 100 peticiones
-});
 
 // Middlewares globales
 app.use(helmet({ crossOriginResourcePolicy: false })); // Cabeceras HTTP de seguridad
@@ -40,9 +34,6 @@ app.use(express.json({ limit: '10kb' })); // Límite tamaño JSON
 app.use(express.urlencoded({ extended: true, limit: '10kb' })); // Límite tamaño URL-encoded
 app.use(hpp()); // Prevención de contaminación de parámetros
 app.set('trust proxy', 1);
-
-// Limitador de tasa
-app.use('/api/', limiter);
 
 // Archivos estáticos - imágenes subidas localmente
 app.use("/api/images", express.static(path.join(__dirname, "images"))); 
