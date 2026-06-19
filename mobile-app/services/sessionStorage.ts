@@ -81,15 +81,10 @@ export async function getSession(): Promise<{
 // Elimina la sesión guardada (logout local).
 
 export async function clearSession(): Promise<void> {
-  const removals = [
+  await Promise.all([
+    remove(KEYS.TOKEN),
     remove(KEYS.USER_ID),
     remove(KEYS.USER_NAME),
     remove(KEYS.USER_EMAIL),
-  ];
-  
-  if (Platform.OS !== "web") {
-    removals.push(remove(KEYS.TOKEN));
-  }
-  
-  await Promise.all(removals);
+  ]);
 }
