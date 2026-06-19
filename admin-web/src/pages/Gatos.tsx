@@ -1,5 +1,6 @@
 import { useState, useEffect, useMemo, useCallback } from "react";
 import { createPortal } from "react-dom";
+import { useSearchParams, useNavigate } from "react-router-dom";
 import Icons from "../components/Icons";
 import { DataTable, type ColumnDef } from "../components/DataTable";
 import type { Cat } from "../types/models";
@@ -8,6 +9,7 @@ import { LoadingScreen } from "../components/LoadingScreen";
 import { alertService } from "../services/alertService";
 import { ImagePreviewModal } from "../components/ImagePreviewModal";
 import { useAutoRefresh } from "../hooks/useAutoRefresh";
+import BuscadorGatoPorId from "../components/BuscadorGatoPorId";
 
 type EstadoCat = Cat["estado"];
 
@@ -42,7 +44,10 @@ const esterilizadoBadge = {
   },
 };
 
-const getColumns = (onImageClick: (url: string) => void): ColumnDef<Cat>[] => [
+const getColumns = (
+  onImageClick: (url: string) => void,
+  onViewDetail: (id: number) => void,
+): ColumnDef<Cat>[] => [
   {
     header: "Foto",
     render: (cat) =>
@@ -68,7 +73,13 @@ const getColumns = (onImageClick: (url: string) => void): ColumnDef<Cat>[] => [
     searchKey: "nombre",
     render: (cat) => (
       <div>
-        <p className="font-bold text-main">{cat.nombre}</p>
+        <button
+          className="font-bold text-main hover:text-[#e8893c] transition-colors text-left"
+          onClick={() => onViewDetail(cat.id)}
+          title="Ver perfil completo"
+        >
+          {cat.nombre}
+        </button>
         <p className="text-xs text-secondary">
           {cat.genero} — {cat.edad}
         </p>
@@ -156,18 +167,45 @@ const GatosPage = () => {
   const [modalOpen, setModalOpen] = useState(false);
   const [catToEdit, setCatToEdit] = useState<Cat | null>(null);
   const [previewImage, setPreviewImage] = useState<string | null>(null);
+  const navigate = useNavigate();
+
+  // useSearchParams sincroniza los filtros activos con la URL
+  // Ejemplo: /gatos?estado=Desaparecido&colonia=Centro
+  const [searchParams, setSearchParams] = useSearchParams();
 
   const colonias = [...new Set(cats.map((c) => c.colonia))];
   const [rowsPerPage, setRowsPerPage] = useState(8);
   const [activeFilters, setActiveFilters] = useState<Record<string, string>>(
-    {},
+    () => {
+      // Inicializar filtros desde la URL al montar el componente
+      const initial: Record<string, string> = {};
+      const estado = searchParams.get("estado");
+      const colonia = searchParams.get("colonia");
+      if (estado) initial["Todos los estados"] = estado;
+      if (colonia) initial["Todas las colonias"] = colonia;
+      return initial;
+    },
   );
 
   const handleFilterChange = (label: string, value: string) => {
-    setActiveFilters((prev) => ({
-      ...prev,
-      [label]: value,
-    }));
+    setActiveFilters((prev) => {
+      const next = { ...prev, [label]: value };
+      // Reflejar el estado del filtro en la URL para URLs compartibles
+      setSearchParams(
+        (sp) => {
+          const p = new URLSearchParams(sp);
+          if (next["Todos los estados"])
+            p.set("estado", next["Todos los estados"]);
+          else p.delete("estado");
+          if (next["Todas las colonias"])
+            p.set("colonia", next["Todas las colonias"]);
+          else p.delete("colonia");
+          return p;
+        },
+        { replace: true },
+      );
+      return next;
+    });
   };
 
   const filteredCats = useMemo(() => {
@@ -373,12 +411,15 @@ const GatosPage = () => {
       {badgeTarget && createPortal(headerBadge, badgeTarget)}
       {actionsTarget && createPortal(headerAction, actionsTarget)}
 
+      {/* Formulario no controlado con useRef — busca un gato por su ID */}
+      <BuscadorGatoPorId />
+
       {loading ? (
         <LoadingScreen message="Cargando Gatos" />
       ) : (
         <DataTable
           data={filteredCats}
-          columns={getColumns(setPreviewImage)}
+          columns={getColumns(setPreviewImage, (id) => navigate(`/gatos/${id}`))}
           searchPlaceholder="Buscar por nombre o colonia..."
           rowsPerPage={rowsPerPage}
           onFilterChange={handleFilterChange}

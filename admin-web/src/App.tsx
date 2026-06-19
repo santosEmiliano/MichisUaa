@@ -1,17 +1,21 @@
-import { useState, useEffect } from "react";
+import { lazy, Suspense, useState, useEffect } from "react";
 import { Routes, Route, Navigate } from "react-router-dom";
-import AuthPage from "./pages/AuthPage";
-import MainLayout from "./layouts/MainLayout";
-import Dashboard from "./pages/Dashboard";
-import Gatos from "./pages/Gatos";
-import Usuarios from "./pages/Usuarios";
-import Colonias from "./pages/Colonias";
-import Avistamientos from "./pages/Avistamientos";
-import Estadisticas from "./pages/Estadisticas";
+import { LoadingScreen } from "./components/LoadingScreen";
 import { AlertsContainer } from "./components/Alerts/AlertsContainer";
-
 import { checkSession } from "./utils/auth";
 import { alertService } from "./services/alertService";
+
+// Lazy loading: los módulos se cargan solo cuando se navega a esa ruta
+const AuthPage = lazy(() => import("./pages/AuthPage"));
+const MainLayout = lazy(() => import("./layouts/MainLayout"));
+const Dashboard = lazy(() => import("./pages/Dashboard"));
+const Gatos = lazy(() => import("./pages/Gatos"));
+const Usuarios = lazy(() => import("./pages/Usuarios"));
+const Colonias = lazy(() => import("./pages/Colonias"));
+const Avistamientos = lazy(() => import("./pages/Avistamientos"));
+const Estadisticas = lazy(() => import("./pages/Estadisticas"));
+const GatoDetalle = lazy(() => import("./pages/GatoDetalle"));
+const NotFound = lazy(() => import("./pages/NotFound"));
 
 function App() {
   const [isAuthenticated, setIsAuthenticated] = useState(() => checkSession());
@@ -32,7 +36,7 @@ function App() {
       }
       return response;
     };
-    
+
     const handleLogoutEvent = () => setIsAuthenticated(false);
     window.addEventListener("auth:logout", handleLogoutEvent);
 
@@ -41,36 +45,42 @@ function App() {
       window.removeEventListener("auth:logout", handleLogoutEvent);
     };
   }, []);
+
   return (
     <>
       <AlertsContainer />
-      <Routes>
-        {/*Ruta pública */}
-        <Route
-          path="/login"
-          element={
-            !isAuthenticated ? (
-              <AuthPage onLogin={() => setIsAuthenticated(true)} />
-            ) : (
-              <Navigate to="/" />
-            )
-          }
-        />
-        <Route
-          path="/"
-          element={isAuthenticated ? <MainLayout /> : <Navigate to="/login" />}
-        >
-          {/* lo manda al dashboard*/}
-          <Route index element={<Dashboard />} />
-          {/* rutas del panel, FALTAN AGREGAR LAS PÁGINAS, aqui agregamos las rutas */}
-          <Route path="gatos" element={<Gatos />} />
-          <Route path="usuarios" element={<Usuarios />} />
-          <Route path="colonias" element={<Colonias />} />
-          <Route path="avistamientos" element={<Avistamientos />} />
-          <Route path="estadisticas" element={<Estadisticas />} />
-          <Route path="*" element={<Navigate to="/" />} />
-        </Route>
-      </Routes>
+      {/* Suspense muestra LoadingScreen mientras se descarga el chunk del módulo lazy */}
+      <Suspense fallback={<LoadingScreen message="Cargando..." />}>
+        <Routes>
+          {/* Ruta pública */}
+          <Route
+            path="/login"
+            element={
+              !isAuthenticated ? (
+                <AuthPage onLogin={() => setIsAuthenticated(true)} />
+              ) : (
+                <Navigate to="/" />
+              )
+            }
+          />
+          <Route
+            path="/"
+            element={isAuthenticated ? <MainLayout /> : <Navigate to="/login" />}
+          >
+            <Route index element={<Dashboard />} />
+            <Route path="gatos" element={<Gatos />} />
+            <Route path="gatos/:id" element={<GatoDetalle />} />
+            <Route path="usuarios" element={<Usuarios />} />
+            <Route path="colonias" element={<Colonias />} />
+            <Route path="avistamientos" element={<Avistamientos />} />
+            <Route path="estadisticas" element={<Estadisticas />} />
+            {/* Cualquier ruta desconocida dentro del panel muestra 404 */}
+            <Route path="*" element={<NotFound />} />
+          </Route>
+          {/* Ruta 404 global para usuarios no autenticados */}
+          <Route path="*" element={<NotFound />} />
+        </Routes>
+      </Suspense>
     </>
   );
 }
