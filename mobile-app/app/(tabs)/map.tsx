@@ -9,6 +9,7 @@ import { alertService } from '@/services/alertService';
 import { useColorScheme } from '@/components/useColorScheme';
 import { useAutoRefresh } from '@/hooks/useAutoRefresh';
 import { useIsFocused } from '@react-navigation/native';
+import Colors from '@/constants/Colors';
 
 // Coordenadas de la UAA
 const UAA_REGION = {
@@ -60,7 +61,7 @@ export default function MapScreen() {
   const entranceFadeAnim = useRef(new Animated.Value(0)).current;
   const entranceSlideTopAnim = useRef(new Animated.Value(-30)).current;
   const entranceSlideBottomAnim = useRef(new Animated.Value(30)).current;
-  
+
   // Estados para los animales
   const [animals, setAnimals] = useState<AnimalPublic[]>([]);
   const [isLoading, setIsLoading] = useState(true);
@@ -75,7 +76,7 @@ export default function MapScreen() {
     mapRef.current?.animateToRegion(UAA_REGION, 1000);
   };
 
-  const isFarFromUAA = 
+  const isFarFromUAA =
     Math.abs(mapRegion.latitude - UAA_REGION.latitude) > 0.005 ||
     Math.abs(mapRegion.longitude - UAA_REGION.longitude) > 0.005;
 
@@ -103,7 +104,7 @@ export default function MapScreen() {
       entranceFadeAnim.setValue(0);
       entranceSlideTopAnim.setValue(-30);
       entranceSlideBottomAnim.setValue(30);
-      
+
       Animated.parallel([
         Animated.timing(entranceFadeAnim, {
           toValue: 1,
@@ -191,12 +192,12 @@ export default function MapScreen() {
           const locKey = `${animal.coordenadas.latitud},${animal.coordenadas.longitud}`;
           const count = locationCounts[locKey] || 0;
           locationCounts[locKey] = count + 1;
-          
+
           if (count > 0) {
             // Reducimos el radio significativamente para evitar la ilusión de que se "mueven" al hacer zoom
-            const angle = (count * 137.5) * (Math.PI / 180); 
+            const angle = (count * 137.5) * (Math.PI / 180);
             const radius = 0.000015 * Math.sqrt(count); // Aprox 1.5 metros, muy sutil
-            
+
             jitteredCoords = {
               latitud: Number(animal.coordenadas.latitud) + Math.sin(angle) * radius,
               longitud: Number(animal.coordenadas.longitud) + Math.cos(angle) * radius,
@@ -263,7 +264,7 @@ export default function MapScreen() {
           if (!animal.coordenadas) return null;
 
           const statusColor = animal.estado === 'Registrado' ? '#4CAF50' : animal.estado === 'Desaparecido' ? '#F44336' : '#FF9800';
-          
+
           return (
             <Marker
               key={`animal-${animal.id ?? animal.originalIndex}-${activeFilter}`}
@@ -279,8 +280,8 @@ export default function MapScreen() {
             >
               <View style={{ width: 64, height: 64, justifyContent: 'center', alignItems: 'center' }}>
                 <AnimatedPin style={[
-                  styles.customMarker, 
-                  { 
+                  styles.customMarker,
+                  {
                     borderColor: statusColor,
                     backgroundColor: theme === 'dark' ? '#2A2A2A' : 'white'
                   }
@@ -319,7 +320,7 @@ export default function MapScreen() {
         Platform.OS === 'web' && { left: 0, right: 0, alignItems: 'center', top: 30 } as any
       ]}>
         <View style={[
-          styles.searchBox, 
+          styles.searchBox,
           { backgroundColor: theme === 'dark' ? 'rgba(30,30,30,0.85)' : 'rgba(255,255,255,0.9)', borderColor: colors.borderColor, borderWidth: theme === 'dark' ? 1 : 0 },
           Platform.OS === 'web' && { width: '90%', maxWidth: 600, paddingVertical: 14, borderRadius: 30, backdropFilter: 'blur(10px)', boxShadow: '0 8px 32px rgba(0,0,0,0.1)' } as any
         ]}>
@@ -349,7 +350,7 @@ export default function MapScreen() {
         </View>
       </Animated.View>
 
-      <Animated.View 
+      <Animated.View
         style={[
           styles.filtersContainer,
           {
@@ -360,15 +361,15 @@ export default function MapScreen() {
         ]}
         pointerEvents={showFilters ? "auto" : "none"}
       >
-        <ScrollView 
-          horizontal 
+        <ScrollView
+          horizontal
           style={Platform.OS === 'web' ? { maxWidth: '100%' } : undefined}
-          showsHorizontalScrollIndicator={false} 
-          contentContainerStyle={{ 
-            gap: 10, 
-            paddingHorizontal: 20, 
-            flexGrow: 1, 
-            justifyContent: 'flex-start' 
+          showsHorizontalScrollIndicator={false}
+          contentContainerStyle={{
+            gap: 10,
+            paddingHorizontal: 20,
+            flexGrow: 1,
+            justifyContent: 'flex-start'
           }}
         >
           {['Todos', 'Registrados', 'No Registrados', 'Desaparecidos'].map((filter) => (
@@ -427,14 +428,14 @@ export default function MapScreen() {
             opacity: entranceFadeAnim,
           }
         ]}>
-          <TouchableOpacity 
+          <TouchableOpacity
             style={[
-              styles.recenterButton, 
-              { 
+              styles.recenterButton,
+              {
                 backgroundColor: theme === 'dark' ? colors.bgPanel : 'rgba(255, 255, 255, 0.95)',
                 borderColor: theme === 'dark' ? colors.borderColor : '#eee'
               }
-            ]} 
+            ]}
             onPress={centerOnUAA}
           >
             <FontAwesome name="university" size={20} color={colors.accentOrange} />
