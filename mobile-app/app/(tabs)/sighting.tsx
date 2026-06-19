@@ -87,7 +87,7 @@ export default function SightingScreen() {
   const fetchAnimalsData = useCallback(async () => {
     try {
       const data = await getPublicAnimals();
-      setAnimals(data);
+      setAnimals(data.filter(a => a.tipo === 'animal'));
     } catch (error) {
       console.error('Error fetching animals', error);
       alertService.error('Error', 'No pudimos cargar la lista de gatos. Verifica tu conexión.');
