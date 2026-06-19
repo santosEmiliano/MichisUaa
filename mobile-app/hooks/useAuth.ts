@@ -4,6 +4,7 @@ import { getSession, clearSession } from '@/services/sessionStorage';
 import * as Notifications from 'expo-notifications';
 import { Platform } from 'react-native';
 import { apiFetch } from '@/services/api';
+import { handleLogout } from '@/services/authApi';
 import { alertService } from '@/services/alertService';
 import Constants, { ExecutionEnvironment } from 'expo-constants';
 
@@ -107,6 +108,7 @@ export function useAuth(): UseAuthReturn {
   // Hook que cierra la sesión y redirige al login
   const logout = useCallback(async () => {
     try {
+      await handleLogout();
       await clearSession();
       setSession(null);
       router.replace('/login');

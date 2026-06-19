@@ -51,12 +51,12 @@ const loginValidator = [
 const updateUserValidator = [
     param('id').isInt().withMessage('ID de usuario inválido').toInt(),
     body('nombre')
-        .optional()
+        .optional({ checkFalsy: true })
         .trim()
         .isLength({ max: 90 }).withMessage('El nombre no puede exceder 90 caracteres')
         .customSanitizer(stripHtml),
     body('email')
-        .optional()
+        .optional({ checkFalsy: true })
         .trim()
         .isEmail().withMessage('Formato de email inválido')
         .custom(value => {
@@ -68,7 +68,7 @@ const updateUserValidator = [
         .isLength({ max: 80 }).withMessage('El email no puede exceder 80 caracteres')
         .normalizeEmail(),
     body('rol')
-        .optional()
+        .optional({ checkFalsy: true })
         .trim()
         .isIn(['Administrador', 'Simpatizante']).withMessage('Rol inválido')
         .customSanitizer(stripHtml)

@@ -78,26 +78,26 @@ async function main() {
   const hashPassword = await bcrypt.hash("1234", saltos);
 
   const usersData = [
-    { nombre: "Admin MichisUAA", email: "admin@michis.uaa.mx", admin: true },
-    { nombre: "Emiliano Santos", email: "esantos@michis.uaa.mx", admin: true },
+    { nombre: "Admin MichisUAA", email: "admin@edu.uaa.mx", admin: true },
+    { nombre: "Emiliano Santos", email: "esantos@edu.uaa.mx", admin: true },
     {
       nombre: "Mario Rodriguez",
-      email: "mrodriguez@michis.uaa.mx",
+      email: "mrodriguez@edu.uaa.mx",
       admin: true,
     },
-    { nombre: "Héctor Dueñas", email: "hduenas@michis.uaa.mx", admin: false },
+    { nombre: "Héctor Dueñas", email: "hduenas@edu.uaa.mx", admin: false },
     {
       nombre: "Juan Hernandez",
-      email: "jhernandez@michis.uaa.mx",
+      email: "jhernandez@edu.uaa.mx",
       admin: false,
     },
-    { nombre: "Javier Narvaez", email: "jnarvaez@michis.uaa.mx", admin: false },
-    { nombre: "Brenda Osorio", email: "bosorio@michis.uaa.mx", admin: false },
-    { nombre: "Ana Gomez", email: "agomez@michis.uaa.mx", admin: false },
-    { nombre: "Carlos Lopez", email: "clopez@michis.uaa.mx", admin: false },
+    { nombre: "Javier Narvaez", email: "jnarvaez@edu.uaa.mx", admin: false },
+    { nombre: "Brenda Osorio", email: "bosorio@edu.uaa.mx", admin: false },
+    { nombre: "Ana Gomez", email: "agomez@edu.uaa.mx", admin: false },
+    { nombre: "Carlos Lopez", email: "clopez@edu.uaa.mx", admin: false },
     {
       nombre: "Laura Martinez",
-      email: "lmartinez@michis.uaa.mx",
+      email: "lmartinez@edu.uaa.mx",
       admin: false,
     },
   ];

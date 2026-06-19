@@ -23,7 +23,7 @@ const sightingValidator = [
 const verifySightingValidator = [
     param('id').isInt().withMessage('ID de avistamiento inválido').toInt(),
     body('animalId')
-        .notEmpty().withMessage('ID de animal es requerido para verificar')
+        .optional({ checkFalsy: true })
         .isInt().withMessage('ID de animal debe ser un entero').toInt()
 ];
 

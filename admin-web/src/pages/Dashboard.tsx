@@ -45,15 +45,14 @@ const Dashboard = () => {
   const fetchDatos = useCallback(async () => {
     try {
       setLoading(true);
-      const token = localStorage.getItem("token") || "";
-      const headers = { Authorization: `Bearer ${token}` };
+      const fetchOpts = { credentials: "include" as RequestCredentials };
 
       const [resAvistamientos, resTotalCats, resEsterilizados, resDesapariciones, resColonias] = await Promise.all([
-        fetch(`${API_URL}/avistamientos`, { headers }),
-        fetch(`${API_URL}/stadistics/totalCats`, { headers }),
-        fetch(`${API_URL}/stadistics/sterilizedCount`, { headers }),
-        fetch(`${API_URL}/stadistics/missingCats`, { headers }),
-        fetch(`${API_URL}/colonies`, { headers }),
+        fetch(`${API_URL}/avistamientos`, fetchOpts),
+        fetch(`${API_URL}/stadistics/totalCats`, fetchOpts),
+        fetch(`${API_URL}/stadistics/sterilizedCount`, fetchOpts),
+        fetch(`${API_URL}/stadistics/missingCats`, fetchOpts),
+        fetch(`${API_URL}/colonies`, fetchOpts),
       ]);
 
       if (resAvistamientos.ok) {

@@ -66,14 +66,20 @@ export const createSighting = async (data: SightingData) => {
   }
 
   try {
-    const response = await fetch(`${BASE_URL}/avistamientos`, {
+    const fetchOptions: RequestInit = {
       method: 'POST',
       headers: {
-        Authorization: `Bearer ${session.token}`,
+        ...(session?.token && session.token !== "cookie-session-active" ? { Authorization: `Bearer ${session.token}` } : {}),
         // fetch se encarga de setear el Content-Type multipart/form-data con el boundary correcto
       },
       body: formData,
-    });
+    };
+
+    if (Platform.OS === 'web') {
+      fetchOptions.credentials = 'include';
+    }
+
+    const response = await fetch(`${BASE_URL}/avistamientos`, fetchOptions);
 
     if (response.status === 401) {
       if (!isNavigatingToLogin) {

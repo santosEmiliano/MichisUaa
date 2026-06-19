@@ -28,7 +28,7 @@ const validate = require("../middleware/validate");
  *             properties:
  *               email:
  *                 type: string
- *                 example: admin@michis.uaa.mx
+ *                 example: admin@edu.uaa.mx
  *               password:
  *                 type: string
  *                 example: password123
@@ -81,7 +81,7 @@ router.get(
  *                 example: Juan Pérez
  *               email:
  *                 type: string
- *                 example: juan@michis.uaa.mx
+ *                 example: juan@edu.uaa.mx
  *               password:
  *                 type: string
  *               rol:

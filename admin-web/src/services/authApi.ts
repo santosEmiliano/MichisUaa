@@ -24,6 +24,7 @@ export const authService = {
     const res = await fetch(`${BASE_URL}/user/register`, {
       method: "POST",
       headers: { "Content-Type": "application/json" },
+      credentials: "include",
       body: JSON.stringify({ nombre, email, password, admin }),
     });
     return handleResponse<CreateUserResponse>(res);
@@ -36,6 +37,7 @@ export const authService = {
     const res = await fetch(`${BASE_URL}/user/login`, {
       method: "POST",
       headers: { "Content-Type": "application/json" },
+      credentials: "include",
       body: JSON.stringify({ email, password }),
     });
     return handleResponse<LoginResponse>(res);
@@ -44,12 +46,12 @@ export const authService = {
   /**
    * POST /user/logout
   */
-  logout: async (token: string): Promise<void> => {
+  logout: async (): Promise<void> => {
     await fetch(`${BASE_URL}/user/logout`, {
       method: "POST",
+      credentials: "include",
       headers: {
         "Content-Type": "application/json",
-        Authorization: `Bearer ${token}`,
       },
     });
   },

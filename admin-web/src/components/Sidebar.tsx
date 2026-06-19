@@ -39,7 +39,6 @@ const navGroups = [
 ];
 
 import { getUserName, logoutHelper } from "../utils/auth";
-import { authService } from "../services/authApi";
 import { alertService } from "../services/alertService";
 
 
@@ -58,23 +57,10 @@ const Sidebar: React.FC<SidebarProps> = ({ isOpen, toggleSidebar }) => {
     if (!confirm) return;
 
     setLoggingOut(true);
-    const token = localStorage.getItem("token");
-    if (token) {
-      try {
-        await authService.logout(token);
-      } catch (err) {
-        console.error("Error cerrando sesión en el servidor:", err);
-        alertService.error(
-          "Hubo un problema al cerrar tu sesión en el servidor: " + 
-          (err instanceof Error ? err.message : err),
-          "Error de Sesión"
-        );
-      }
-    }
+    await logoutHelper();
     // Pequeño delay para que se vea la animación
     await new Promise((r) => setTimeout(r, 600));
     alertService.success("Has cerrado sesión exitosamente.", "¡Hasta pronto!");
-    logoutHelper();
   };
 
   return (
