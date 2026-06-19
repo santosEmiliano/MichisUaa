@@ -367,7 +367,7 @@ export default function SightingScreen() {
         styles.animalCard,
         selectedAnimalId === animal.id && styles.animalCardSelected
       ]}
-      onPress={() => setSelectedAnimalId(animal.id === selectedAnimalId ? null : animal.id)}
+      onPress={() => setSelectedAnimalId(animal.id === selectedAnimalId ? null : animal.id as number)}
     >
       {animal.foto_url ? (
         <Image source={{ uri: animal.foto_url }} style={styles.animalPhoto} />
