@@ -39,7 +39,6 @@ const navGroups = [
 ];
 
 import { getUserName, logoutHelper } from "../utils/auth";
-import { authService } from "../services/authApi";
 import { alertService } from "../services/alertService";
 
 
