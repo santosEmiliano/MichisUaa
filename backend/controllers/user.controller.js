@@ -259,7 +259,6 @@ module.exports = {
   createUser,
   login,
   logout,
-  getUser,
   updateUser,
   toggleUserStatus,
   getAllUsers,
