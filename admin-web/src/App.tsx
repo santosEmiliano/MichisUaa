@@ -26,8 +26,9 @@ function App() {
       const response = await originalFetch(...args);
       // Si el token es inválido, expiró o no hay permisos
       if (response.status === 401 || response.status === 403) {
-        localStorage.removeItem("token");
         localStorage.removeItem("userId");
+        localStorage.removeItem("userName");
+        localStorage.removeItem("isAdmin");
         setIsAuthenticated(false);
         alertService.warning(
           "Tu sesión ha expirado o no tienes los permisos necesarios. Por favor, inicia sesión de nuevo.",

@@ -6,20 +6,24 @@ const JWT_SECRET = process.env.JWT_SECRET;
 
 const verifyToken = async (req, res, next) => {
   try {
-    const authHeader = req.headers.authorization;
-    if (!authHeader) {
-      return res.status(401).json({
-        success: false,
-        message: "Token no proporcionado.",
-      });
-    }
+    let token = null;
 
-    const token = authHeader.split(" ")[1];
+    // Leer el token desde la cookie
+    if (req.cookies && req.cookies.token) {
+      token = req.cookies.token;
+    }
+    // Si no hay cookie, intentar leer desde el Header
+    else {
+      const authHeader = req.headers.authorization;
+      if (authHeader && authHeader.startsWith("Bearer ")) {
+        token = authHeader.split(" ")[1];
+      }
+    }
 
     if (!token) {
       return res.status(401).json({
         success: false,
-        message: "Formato inválido.",
+        message: "Token no proporcionado o formato inválido.",
       });
     }
 

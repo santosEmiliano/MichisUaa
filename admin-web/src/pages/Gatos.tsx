@@ -252,10 +252,9 @@ const GatosPage = () => {
     if (!confirm) return;
 
     try {
-      const token = localStorage.getItem("token") || "";
       const res = await fetch(`/michisuaa/api/animal/${cat.id}`, {
         method: "DELETE",
-        headers: { Authorization: `Bearer ${token}` },
+        credentials: "include",
       });
 
       if (!res.ok) {
@@ -309,11 +308,8 @@ const GatosPage = () => {
   // Wrap en useCallback para que useAutoRefresh tenga una referencia estable
   const fetchCats = useCallback(async () => {
     try {
-      const token = localStorage.getItem("token") || "";
       const res = await fetch("/michisuaa/api/animal/", {
-        headers: {
-          Authorization: `Bearer ${token}`,
-        },
+        credentials: "include",
       });
 
       if (!res.ok) throw new Error("Error al obtener los animales");
