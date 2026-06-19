@@ -1,8 +1,9 @@
 import { BASE_URL } from "./api";
+import { Platform } from "react-native";
 
 const handleLogin = async (email: string, password: string) => {
   try {
-    const response = await fetch(`${BASE_URL}/user/login`, {
+    const fetchOptions: RequestInit = {
       method: "POST",
       headers: {
         "Content-Type": "application/json",
@@ -11,7 +12,12 @@ const handleLogin = async (email: string, password: string) => {
         email,
         password,
       }),
-    });
+    };
+    if (Platform.OS === "web") {
+      fetchOptions.credentials = "include";
+    }
+
+    const response = await fetch(`${BASE_URL}/user/login`, fetchOptions);
 
     const data = await response.json();
 
@@ -30,7 +36,7 @@ const handleLogin = async (email: string, password: string) => {
 
 const handleRegister = async (userName: string, userEmail: string, password: string) => {
   try {
-    const response = await fetch(`${BASE_URL}/user/register`, {
+    const fetchOptions: RequestInit = {
       method: "POST",
       headers: {
         "Content-Type": "application/json",
@@ -40,7 +46,12 @@ const handleRegister = async (userName: string, userEmail: string, password: str
         email: userEmail,
         password: password,
       }),
-    });
+    };
+    if (Platform.OS === "web") {
+      fetchOptions.credentials = "include";
+    }
+
+    const response = await fetch(`${BASE_URL}/user/register`, fetchOptions);
 
     const data = await response.json();
 
@@ -57,7 +68,24 @@ const handleRegister = async (userName: string, userEmail: string, password: str
   }
 };
 
+const handleLogout = async () => {
+  if (Platform.OS === "web") {
+    try {
+      await fetch(`${BASE_URL}/user/logout`, {
+        method: "POST",
+        credentials: "include",
+        headers: {
+          "Content-Type": "application/json",
+        },
+      });
+    } catch (error) {
+      console.error("Error al cerrar sesión en el servidor:", error);
+    }
+  }
+};
+
 export {
   handleLogin,
   handleRegister,
+  handleLogout,
 };

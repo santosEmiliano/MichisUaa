@@ -112,8 +112,7 @@ const Estadisticas = () => {
 
   const fetchData = useCallback(async () => {
     try {
-      const token = localStorage.getItem("token") || "";
-      const headers = { Authorization: `Bearer ${token}` };
+      const fetchOpts = { credentials: "include" as RequestCredentials };
 
       const [
         resTotalCats,
@@ -125,14 +124,14 @@ const Estadisticas = () => {
         resColoniesSummary,
         resSterilizedState,
       ] = await Promise.all([
-        fetch("/michisuaa/api/stadistics/totalCats", { headers }),
-        fetch("/michisuaa/api/stadistics/sterilizedCount", { headers }),
-        fetch("/michisuaa/api/stadistics/missingCats", { headers }),
-        fetch("/michisuaa/api/stadistics/sightingsLastWeek", { headers }),
-        fetch("/michisuaa/api/stadistics/signingsPerColony", { headers }),
-        fetch("/michisuaa/api/stadistics/sighingsTendency", { headers }),
-        fetch("/michisuaa/api/stadistics/coloniesSummary", { headers }),
-        fetch("/michisuaa/api/stadistics/sterilizedState", { headers }),
+        fetch("/michisuaa/api/stadistics/totalCats", fetchOpts),
+        fetch("/michisuaa/api/stadistics/sterilizedCount", fetchOpts),
+        fetch("/michisuaa/api/stadistics/missingCats", fetchOpts),
+        fetch("/michisuaa/api/stadistics/sightingsLastWeek", fetchOpts),
+        fetch("/michisuaa/api/stadistics/signingsPerColony", fetchOpts),
+        fetch("/michisuaa/api/stadistics/sighingsTendency", fetchOpts),
+        fetch("/michisuaa/api/stadistics/coloniesSummary", fetchOpts),
+        fetch("/michisuaa/api/stadistics/sterilizedState", fetchOpts),
       ]);
 
       if (resTotalCats.ok) {

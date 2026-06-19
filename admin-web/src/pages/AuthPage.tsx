@@ -82,7 +82,6 @@ const AuthPage = ({ onLogin }: AuthPageProps) => {
         return;
       }
 
-      localStorage.setItem("token", data.token);
       localStorage.setItem("userId", String(data.datos.id));
       localStorage.setItem("userName", data.datos.nombre);
       localStorage.setItem("isAdmin", String(data.datos.admin));

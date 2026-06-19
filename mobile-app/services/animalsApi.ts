@@ -1,7 +1,8 @@
 import { apiFetch } from './api';
 
 export interface PublicAnimal {
-  id: number;
+  id: number | string;
+  tipo?: string;
   nombre: string;
   foto_url?: string;
 }
