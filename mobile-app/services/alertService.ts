@@ -8,6 +8,7 @@ export interface AlertOptions {
   onCancel?: () => void;
   confirmText?: string;
   cancelText?: string;
+  priority?: 'normal' | 'high';
 }
 
 export interface AlertData extends AlertOptions {
@@ -38,8 +39,8 @@ class AlertService {
     this.emit({ type: 'success', title, message });
   }
 
-  error(title: string, message: string) {
-    this.emit({ type: 'error', title, message });
+  error(title: string, message: string, priority: 'normal' | 'high' = 'normal') {
+    this.emit({ type: 'error', title, message, priority });
   }
 
   warning(title: string, message: string) {

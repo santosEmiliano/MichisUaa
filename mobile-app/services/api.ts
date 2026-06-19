@@ -29,7 +29,7 @@ export const apiFetch = async (
       if (!isNavigatingToLogin) {
         isNavigatingToLogin = true;
         await clearSession();
-        alertService.error("Sesión expirada", "Tu sesión ha expirado por seguridad. Por favor, inicia sesión de nuevo.");
+        alertService.error("Sesión expirada", "Tu sesión ha expirado por seguridad. Por favor, inicia sesión de nuevo.", "high");
         router.replace("/login");
 
         setTimeout(() => {

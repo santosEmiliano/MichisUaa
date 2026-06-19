@@ -12,7 +12,15 @@ export default function AlertsContainer() {
 
   useEffect(() => {
     const unsubscribe = alertService.subscribe((newAlert) => {
-      setAlerts((prev) => [...prev, newAlert]);
+      setAlerts((prev) => {
+        if (newAlert.priority === 'high') {
+          return [newAlert];
+        }
+        if (prev.some(a => a.priority === 'high')) {
+          return prev;
+        }
+        return [...prev, newAlert];
+      });
     });
     return () => unsubscribe();
   }, []);
