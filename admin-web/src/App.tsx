@@ -1,4 +1,4 @@
-import { lazy, Suspense, useState, useEffect } from "react";
+import { lazy, Suspense, useState, useEffect, useRef } from "react";
 import { Routes, Route, Navigate } from "react-router-dom";
 import { LoadingScreen } from "./components/LoadingScreen";
 import { AlertsContainer } from "./components/Alerts/AlertsContainer";
@@ -19,6 +19,8 @@ const NotFound = lazy(() => import("./pages/NotFound"));
 
 function App() {
   const [isAuthenticated, setIsAuthenticated] = useState(() => checkSession());
+  // Evita que N requests fallidos en paralelo apilen N alertas idénticas
+  const sessionExpiredAlertShown = useRef(false);
 
   useEffect(() => {
     const originalFetch = window.fetch;
@@ -30,10 +32,13 @@ function App() {
         localStorage.removeItem("userName");
         localStorage.removeItem("isAdmin");
         setIsAuthenticated(false);
-        alertService.warning(
-          "Tu sesión ha expirado o no tienes los permisos necesarios. Por favor, inicia sesión de nuevo.",
-          "Sesión Expirada"
-        );
+        if (!sessionExpiredAlertShown.current) {
+          sessionExpiredAlertShown.current = true;
+          alertService.warning(
+            "Tu sesión ha expirado o no tienes los permisos necesarios. Por favor, inicia sesión de nuevo.",
+            "Sesión Expirada"
+          );
+        }
       }
       return response;
     };
@@ -46,6 +51,13 @@ function App() {
       window.removeEventListener("auth:logout", handleLogoutEvent);
     };
   }, []);
+
+  // Al volver a autenticarse, la próxima expiración de sesión debe poder avisar de nuevo
+  useEffect(() => {
+    if (isAuthenticated) {
+      sessionExpiredAlertShown.current = false;
+    }
+  }, [isAuthenticated]);
 
   return (
     <>
