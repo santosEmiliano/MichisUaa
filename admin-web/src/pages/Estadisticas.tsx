@@ -1,10 +1,12 @@
-import { useState, useEffect, useRef, useCallback } from "react";
+import { useState, useEffect, useCallback } from "react";
 import {
   PieChart,
   Pie,
   Cell,
   AreaChart,
   Area,
+  XAxis,
+  ResponsiveContainer,
 } from "recharts";
 import { MetricCard } from "../components/MetricCard";
 import { LoadingScreen } from "../components/LoadingScreen";
@@ -58,30 +60,6 @@ const Estadisticas = () => {
 
   const [animatedBarWidths, setAnimatedBarWidths] = useState<string[]>([]);
   const [isLoading, setIsLoading] = useState(true);
-
-  // Track AreaChart container size
-  const areaContainerRef = useRef<HTMLDivElement>(null);
-  const [areaSize, setAreaSize] = useState({ width: 0, height: 0 });
-
-  const updateAreaSize = useCallback(() => {
-    if (areaContainerRef.current) {
-      const { width, height } = areaContainerRef.current.getBoundingClientRect();
-      if (width > 0 && height > 0) {
-        setAreaSize({ width: Math.floor(width), height: Math.floor(height) });
-      }
-    }
-  }, []);
-
-  useEffect(() => {
-    if (isLoading) return;
-    // Measure after layout settles
-    const timer = setTimeout(updateAreaSize, 50);
-    window.addEventListener("resize", updateAreaSize);
-    return () => {
-      clearTimeout(timer);
-      window.removeEventListener("resize", updateAreaSize);
-    };
-  }, [isLoading, updateAreaSize]);
 
   useEffect(() => {
     if (barData.length === 0) return;
@@ -342,13 +320,11 @@ const Estadisticas = () => {
             <span className="text-secondary text-sm">Por semana</span>
           </div>
 
-          <div ref={areaContainerRef} className="flex-1 min-h-[200px] w-full mt-4 relative">
-            {areaSize.width > 0 && areaSize.height > 0 && (
+          <div className="w-full h-64 sm:h-72 mt-4 text-secondary">
+            <ResponsiveContainer width="100%" height="100%">
               <AreaChart
-                width={areaSize.width}
-                height={areaSize.height}
                 data={sighingsTendencyData}
-                margin={{ top: 5, right: 10, left: 10, bottom: 20 }}
+                margin={{ top: 5, right: 10, left: 10, bottom: 5 }}
               >
                 <defs>
                   <linearGradient id="colorValue" x1="0" y1="0" x2="0" y2="1">
@@ -356,6 +332,13 @@ const Estadisticas = () => {
                     <stop offset="95%" stopColor="#E8893C" stopOpacity={0} />
                   </linearGradient>
                 </defs>
+                <XAxis
+                  dataKey="name"
+                  axisLine={false}
+                  tickLine={false}
+                  interval="preserveStartEnd"
+                  tick={{ fill: "currentColor", fontSize: 10 }}
+                />
                 <Area
                   type="monotone"
                   dataKey="value"
@@ -366,19 +349,7 @@ const Estadisticas = () => {
                   dot={false}
                 />
               </AreaChart>
-            )}
-
-            <div className="absolute bottom-0 left-0 right-0 flex justify-between px-4">
-              {sighingsTendencyData.map((_, i) => (
-                <div
-                  key={i}
-                  className="text-[10px] text-secondary flex flex-col items-center"
-                >
-                  <span>Sem</span>
-                  <span>{i + 1}</span>
-                </div>
-              ))}
-            </div>
+            </ResponsiveContainer>
           </div>
         </div>
 
