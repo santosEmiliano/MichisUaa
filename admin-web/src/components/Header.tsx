@@ -268,7 +268,9 @@ const Header = ({ toggleSidebar }: { toggleSidebar?: () => void }) => {
   );
 
   const isDashboard = location.pathname === "/";
-  const currentTitle = routeTitles[location.pathname] || "Panel";
+  const currentTitle =
+    routeTitles[location.pathname] ??
+    (location.pathname.startsWith("/gatos/") ? "Gatos" : "Panel");
   const unreadCount = notifications.filter((n) => n.unread).length;
 
   return (
