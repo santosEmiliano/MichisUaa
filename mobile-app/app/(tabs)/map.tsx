@@ -79,9 +79,9 @@ export default function MapScreen() {
   const zoomIn = () => mapRef.current?.zoomIn?.();
   const zoomOut = () => mapRef.current?.zoomOut?.();
 
-  // En navegadores móviles el pinch no controla el zoom del mapa (pigeon-maps),
+  // En navegadores móviles el pinch no controla el zoom del mapa,
   // sino el zoom de la página completa. Mientras esta pantalla está enfocada,
-  // se bloquea el pinch-zoom del navegador y se ofrecen botones de zoom en su lugar.
+  // se bloquea el pinch-zoom del navegador, ponemos botones en su lugar
   const [isTouchWeb, setIsTouchWeb] = useState(false);
 
   useEffect(() => {
@@ -461,7 +461,7 @@ export default function MapScreen() {
             ]}
             onPress={zoomIn}
           >
-            <FontAwesome name="plus" size={18} color={colors.accentOrange} />
+            <FontAwesome name="search-plus" size={18} color={colors.accentOrange} />
           </TouchableOpacity>
           <TouchableOpacity
             style={[
@@ -473,7 +473,7 @@ export default function MapScreen() {
             ]}
             onPress={zoomOut}
           >
-            <FontAwesome name="minus" size={18} color={colors.accentOrange} />
+            <FontAwesome name="search-minus" size={18} color={colors.accentOrange} />
           </TouchableOpacity>
         </View>
       )}
