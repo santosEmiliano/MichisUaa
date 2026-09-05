@@ -1,5 +1,5 @@
 import React, { useState, useEffect, useMemo, useRef, useCallback } from 'react';
-import { StyleSheet, View, Text, TextInput, TouchableOpacity, Alert, Image, Animated, ScrollView, Platform, useWindowDimensions } from 'react-native';
+import { StyleSheet, View, Text, TextInput, TouchableOpacity, Image, Animated, ScrollView, Platform, useWindowDimensions } from 'react-native';
 import { useFocusEffect } from 'expo-router';
 import * as Location from 'expo-location';
 import { MapClustering as MapView, Marker, Callout } from '@/components/Map';
@@ -10,13 +10,79 @@ import { useColorScheme } from '@/components/useColorScheme';
 import { useAutoRefresh } from '@/hooks/useAutoRefresh';
 import { useIsFocused } from '@react-navigation/native';
 import Colors from '@/constants/Colors';
+import {
+  UAA_REGION,
+  MIN_ZOOM_LEVEL,
+  MAX_ZOOM_LEVEL,
+  ZOOM_LEVEL_STEP,
+  RECENTER_DISTANCE_THRESHOLD,
+  RECENTER_ZOOM_TOLERANCE,
+  regionAfterZoom,
+  zoomLevelForRegion,
+  canZoom,
+  MapRegion,
+} from '@/constants/mapConfig';
 
-// Coordenadas de la UAA
-const UAA_REGION = {
-  latitude: 21.9135,
-  longitude: -102.3164,
-  latitudeDelta: 0.015,
-  longitudeDelta: 0.015,
+// Los controles van siempre encima de las teselas del mapa, no del fondo de la
+// app, así que conservan el mismo contraste en tema claro y oscuro.
+const MAP_CONTROL_SURFACE = '#FFFFFF';
+const MAP_CONTROL_OUTLINE = '#1A1A1A';
+
+type MapControlButtonProps = {
+  icon: React.ComponentProps<typeof FontAwesome>['name'];
+  label: string;
+  onPress: () => void;
+  size: number;
+  accentColor: string;
+  disabled?: boolean;
+};
+
+/**
+ * Botón redondo de control del mapa.
+ * En reposo: relleno blanco con contorno e ícono negros.
+ * Presionado: relleno naranja con ícono blanco.
+ */
+const MapControlButton = ({
+  icon,
+  label,
+  onPress,
+  size,
+  accentColor,
+  disabled = false,
+}: MapControlButtonProps) => {
+  const [isPressed, setIsPressed] = useState(false);
+  const isActive = isPressed && !disabled;
+
+  return (
+    <TouchableOpacity
+      accessibilityRole="button"
+      accessibilityLabel={label}
+      accessibilityState={{ disabled }}
+      // El feedback lo da el cambio de color, no la opacidad por defecto.
+      activeOpacity={1}
+      disabled={disabled}
+      onPress={onPress}
+      onPressIn={() => setIsPressed(true)}
+      onPressOut={() => setIsPressed(false)}
+      style={[
+        styles.mapControlButton,
+        {
+          width: size,
+          height: size,
+          borderRadius: size / 2,
+          backgroundColor: isActive ? accentColor : MAP_CONTROL_SURFACE,
+          borderColor: isActive ? accentColor : MAP_CONTROL_OUTLINE,
+          opacity: disabled ? 0.4 : 1,
+        },
+      ]}
+    >
+      <FontAwesome
+        name={icon}
+        size={Math.round(size * 0.45)}
+        color={isActive ? MAP_CONTROL_SURFACE : MAP_CONTROL_OUTLINE}
+      />
+    </TouchableOpacity>
+  );
 };
 
 const AnimatedPin = ({ children, style }: any) => {
@@ -40,7 +106,6 @@ const AnimatedPin = ({ children, style }: any) => {
 };
 
 export default function MapScreen() {
-  const [location, setLocation] = useState<Location.LocationObject | null>(null);
   const [searchText, setSearchText] = useState('');
   const [activeFilter, setActiveFilter] = useState('Todos');
   const [showFilters, setShowFilters] = useState(true);
@@ -50,8 +115,12 @@ export default function MapScreen() {
 
   const theme = useColorScheme() ?? 'light';
   const colors = Colors[theme];
-  const { width } = useWindowDimensions();
+  // El mapa ocupa toda la pantalla (sin header, con la tab bar encima), así que
+  // las medidas de la ventana son las del contenedor del mapa. Se necesitan para
+  // traducir entre región y nivel de zoom.
+  const { width, height } = useWindowDimensions();
   const isSmallScreen = width < 768;
+  const controlSize = isSmallScreen ? 44 : 38;
 
   // Valores animados de Filtros
   const slideAnim = useRef(new Animated.Value(-20)).current;
@@ -68,33 +137,87 @@ export default function MapScreen() {
   // Fix Android: tracksViewChanges=false antes del primer layout deja marcadores en blanco
   const [markersReady, setMarkersReady] = useState(false);
 
-  const [mapRegion, setMapRegion] = useState(UAA_REGION);
+  const [mapRegion, setMapRegion] = useState<MapRegion>(UAA_REGION);
 
   const mapRef = useRef<any>(null);
 
-  const centerOnUAA = () => {
-    mapRef.current?.animateToRegion(UAA_REGION, 1000);
-  };
+  // `mapRegion` solo se actualiza cuando el mapa termina de moverse, así que dos
+  // toques rápidos en +/- leerían el mismo valor viejo y el zoom se saltaría un
+  // paso. Este ref guarda el destino de forma síncrona y se reconcilia cuando el
+  // mapa avisa que ya llegó.
+  const targetRegionRef = useRef<MapRegion>(UAA_REGION);
 
+  // Nivel de zoom que el dispositivo aplica realmente al encuadrar el campus.
+  // El mapa ajusta la región que le pedimos a la proporción de la pantalla, así
+  // que este valor se mide en vez de asumirse.
+  const campusZoomRef = useRef<number | null>(null);
+  const measureCampusRef = useRef(true);
+
+  const applyRegion = useCallback((region: MapRegion, duration = 300) => {
+    targetRegionRef.current = region;
+    setMapRegion(region);
+    mapRef.current?.animateToRegion(region, duration);
+  }, []);
+
+  const handleRegionChangeComplete = useCallback(
+    (region: MapRegion) => {
+      if (measureCampusRef.current && region?.latitudeDelta) {
+        measureCampusRef.current = false;
+        campusZoomRef.current = zoomLevelForRegion(region, width, height);
+      }
+      targetRegionRef.current = region;
+      setMapRegion(region);
+    },
+    [width, height]
+  );
+
+  const zoomBy = useCallback(
+    (levels: number) =>
+      applyRegion(regionAfterZoom(targetRegionRef.current, levels, width, height), 250),
+    [applyRegion, width, height]
+  );
+
+  const zoomIn = useCallback(() => zoomBy(ZOOM_LEVEL_STEP), [zoomBy]);
+  const zoomOut = useCallback(() => zoomBy(-ZOOM_LEVEL_STEP), [zoomBy]);
+
+  // Vuelve al encuadre de campus completo: centra en la UAA y ajusta el zoom
+  // para que se vea la universidad entera con sus avistamientos.
+  const centerOnUAA = useCallback(() => {
+    measureCampusRef.current = true;
+    applyRegion(UAA_REGION, 600);
+  }, [applyRegion]);
+
+  const canZoomIn = canZoom(mapRegion, ZOOM_LEVEL_STEP, width, height);
+  const canZoomOut = canZoom(mapRegion, -ZOOM_LEVEL_STEP, width, height);
+
+  // El botón de recentrar aparece si el usuario se alejó del campus o si cambió
+  // el zoom lo suficiente como para perder el encuadre de campus completo.
+  // Mientras no hayamos medido a qué nivel encuadra el campus este dispositivo,
+  // asumimos que el encuadre es el correcto: si no, al tocar "centrar" el botón
+  // parpadearía entre lo que pedimos y lo que el mapa termina aplicando.
+  const zoomOffset =
+    campusZoomRef.current === null
+      ? 0
+      : zoomLevelForRegion(mapRegion, width, height) - campusZoomRef.current;
   const isFarFromUAA =
-    Math.abs(mapRegion.latitude - UAA_REGION.latitude) > 0.005 ||
-    Math.abs(mapRegion.longitude - UAA_REGION.longitude) > 0.005;
+    Math.abs(mapRegion.latitude - UAA_REGION.latitude) > RECENTER_DISTANCE_THRESHOLD ||
+    Math.abs(mapRegion.longitude - UAA_REGION.longitude) > RECENTER_DISTANCE_THRESHOLD ||
+    Math.abs(zoomOffset) > RECENTER_ZOOM_TOLERANCE;
 
+  // Solo pedimos el permiso: `showsUserLocation` necesita que esté concedido
+  // para pintar el punto azul, pero la posición en sí la resuelve el mapa. Antes
+  // se llamaba además a getCurrentPositionAsync para guardarla en un estado que
+  // nunca se leía, gastando batería sin motivo.
   useEffect(() => {
     (async () => {
       try {
-        let { status } = await Location.requestForegroundPermissionsAsync();
+        const { status } = await Location.requestForegroundPermissionsAsync();
         if (status !== 'granted') {
           console.warn('Permiso de ubicación denegado.');
           alertService.warning("GPS requerido", "El mapa necesita tu ubicación. Por favor, habilita el acceso en la configuración.");
-          return;
         }
-
-        let currentLocation = await Location.getCurrentPositionAsync({});
-        setLocation(currentLocation);
       } catch (error) {
-        console.warn("No se pudo obtener la ubicación:", error);
-        alertService.error("Error de ubicación", "No pudimos obtener tu ubicación actual.");
+        console.warn("No se pudo solicitar el permiso de ubicación:", error);
       }
     })();
   }, []);
@@ -125,14 +248,23 @@ export default function MapScreen() {
     }, [])
   );
 
+  // El polling corre cada 30 s; sin esta bandera, un backend caído dispara una
+  // alerta cada medio minuto para siempre. Se avisa una vez por caída y se
+  // rearma cuando el servidor vuelve a responder.
+  const hasReportedErrorRef = useRef(false);
+
   // Carga los avistamientos del mapa
   const fetchAnimals = useCallback(async () => {
     try {
       setIsLoading(true);
       const data = await getPublicAnimals();
       setAnimals(data);
+      hasReportedErrorRef.current = false;
     } catch (error) {
-      alertService.error('Error', 'No se pudieron cargar los avistamientos de los michis.');
+      if (!hasReportedErrorRef.current) {
+        hasReportedErrorRef.current = true;
+        alertService.error('Error', 'No se pudieron cargar los avistamientos de los michis.');
+      }
     } finally {
       setIsLoading(false);
     }
@@ -142,9 +274,12 @@ export default function MapScreen() {
   // Solo se activa si esta pestaña está seleccionada (isFocused)
   useAutoRefresh(fetchAnimals, 30000, isFocused);
 
-  // Refresh manual 
+  // Refresh manual
   const handleManualRefresh = useCallback(() => {
     if (isRefreshing) return;
+    // El usuario pidió el reintento explícitamente: si vuelve a fallar, sí
+    // queremos avisarle aunque ya hubiéramos reportado la caída.
+    hasReportedErrorRef.current = false;
     setIsRefreshing(true);
     refreshRotation.setValue(0);
     Animated.timing(refreshRotation, {
@@ -154,15 +289,6 @@ export default function MapScreen() {
     }).start(() => setIsRefreshing(false));
     fetchAnimals();
   }, [isRefreshing, fetchAnimals, refreshRotation]);
-
-  // Una vez cargados los animales, damos tiempo al mapa para
-  // los marcadores antes de congelar el tracking
-  useEffect(() => {
-    if (!isLoading && animals.length > 0) {
-      const t = setTimeout(() => setMarkersReady(true), 500);
-      return () => clearTimeout(t);
-    }
-  }, [isLoading, animals]);
 
   // Efecto para animar los filtros
   useEffect(() => {
@@ -226,6 +352,23 @@ export default function MapScreen() {
       });
   }, [animals, searchText, activeFilter]);
 
+  // Firma del conjunto de marcadores. Cambia solo si aparecen o desaparecen
+  // marcadores, no en cada poll que devuelve exactamente lo mismo.
+  const markersSignature = useMemo(
+    () => filteredAnimals.map((animal) => animal.id ?? animal.originalIndex).join('|'),
+    [filteredAnimals]
+  );
+
+  // Damos una ventana de tracking cada vez que cambia el conjunto de marcadores.
+  // Con tracksViewChanges={false} desde el primer frame, Android pinta los pines
+  // en blanco, así que hay que rearmarlo cuando entran marcadores nuevos (cambio
+  // de filtro o avistamientos recién llegados por el polling).
+  useEffect(() => {
+    setMarkersReady(false);
+    const t = setTimeout(() => setMarkersReady(true), 500);
+    return () => clearTimeout(t);
+  }, [markersSignature]);
+
   // Renderizado
   const renderCluster = (cluster: any) => {
     const { id, geometry, onPress, properties } = cluster;
@@ -233,7 +376,7 @@ export default function MapScreen() {
 
     return (
       <Marker
-        key={`cluster-${id}-${activeFilter}`}
+        key={`cluster-${id}`}
         coordinate={{
           longitude: geometry.coordinates[0],
           latitude: geometry.coordinates[1],
@@ -254,8 +397,9 @@ export default function MapScreen() {
         provider="google"
         style={styles.map}
         initialRegion={UAA_REGION}
-        minZoomLevel={14}
-        onRegionChangeComplete={(region) => setMapRegion(region)}
+        minZoomLevel={MIN_ZOOM_LEVEL}
+        maxZoomLevel={MAX_ZOOM_LEVEL}
+        onRegionChangeComplete={handleRegionChangeComplete}
         renderCluster={renderCluster}
         showsUserLocation={true}
         clusterColor="#F28C38"
@@ -267,18 +411,18 @@ export default function MapScreen() {
 
           return (
             <Marker
-              key={`animal-${animal.id ?? animal.originalIndex}-${activeFilter}`}
+              key={`animal-${animal.id ?? animal.originalIndex}`}
               coordinate={{
                 latitude: Number(animal.coordenadas.latitud),
                 longitude: Number(animal.coordenadas.longitud),
               }}
               tracksViewChanges={!markersReady}
+              // El ancla inferior-centro deja la punta del pin sobre la
+              // coordenada. Antes se sumaba además centerOffset, que solo aplica
+              // en iOS, así que el pin caía en un punto distinto por plataforma.
               anchor={{ x: 0.5, y: 1 }}
-              centerOffset={{ x: 0, y: -30 }}
-              // @ts-ignore
-              webOffset={[32, 63]}
             >
-              <View style={{ width: 64, height: 64, justifyContent: 'center', alignItems: 'center' }}>
+              <View style={styles.markerWrapper}>
                 <AnimatedPin style={[
                   styles.customMarker,
                   {
@@ -421,27 +565,39 @@ export default function MapScreen() {
         </View>
       </Animated.View>
 
-      {isFarFromUAA && (
-        <Animated.View style={[
-          styles.recenterContainer,
-          {
-            opacity: entranceFadeAnim,
-          }
-        ]}>
-          <TouchableOpacity
-            style={[
-              styles.recenterButton,
-              {
-                backgroundColor: theme === 'dark' ? colors.bgPanel : 'rgba(255, 255, 255, 0.95)',
-                borderColor: theme === 'dark' ? colors.borderColor : '#eee'
-              }
-            ]}
+      <Animated.View
+        style={[
+          styles.mapControlsContainer,
+          { opacity: entranceFadeAnim },
+          !isSmallScreen && ({ bottom: 130, right: 30 } as any),
+        ]}
+      >
+        <MapControlButton
+          icon="search-plus"
+          label="Acercar el mapa"
+          onPress={zoomIn}
+          disabled={!canZoomIn}
+          size={controlSize}
+          accentColor={colors.accentOrange}
+        />
+        <MapControlButton
+          icon="search-minus"
+          label="Alejar el mapa"
+          onPress={zoomOut}
+          disabled={!canZoomOut}
+          size={controlSize}
+          accentColor={colors.accentOrange}
+        />
+        {isFarFromUAA && (
+          <MapControlButton
+            icon="university"
+            label="Centrar en la UAA"
             onPress={centerOnUAA}
-          >
-            <FontAwesome name="university" size={20} color={colors.accentOrange} />
-          </TouchableOpacity>
-        </Animated.View>
-      )}
+            size={controlSize}
+            accentColor={colors.accentOrange}
+          />
+        )}
+      </Animated.View>
     </View>
   );
 }
@@ -543,6 +699,15 @@ const styles = StyleSheet.create({
     color: '#333',
     fontWeight: '500',
   },
+  // El pin de 44x44 rotado -45° saca su punta ~9px por debajo de su caja, así que
+  // centrado dentro de este contenedor de 64x64 la punta queda justo en el borde
+  // inferior, que es donde el Marker ancla con anchor={{ x: 0.5, y: 1 }}.
+  markerWrapper: {
+    width: 64,
+    height: 64,
+    justifyContent: 'center',
+    alignItems: 'center',
+  },
   customMarker: {
     width: 44,
     height: 44,
@@ -618,25 +783,22 @@ const styles = StyleSheet.create({
     fontWeight: 'bold',
     fontSize: 14,
   },
-  recenterContainer: {
+  mapControlsContainer: {
     position: 'absolute',
     bottom: 110,
     right: 20,
     zIndex: 1,
+    alignItems: 'center',
+    gap: 10,
   },
-  recenterButton: {
-    backgroundColor: 'rgba(255, 255, 255, 0.95)',
-    width: 50,
-    height: 50,
-    borderRadius: 25,
+  mapControlButton: {
     justifyContent: 'center',
     alignItems: 'center',
+    borderWidth: 2,
     shadowColor: '#000',
     shadowOffset: { width: 0, height: 2 },
     shadowOpacity: 0.3,
     shadowRadius: 4,
     elevation: 6,
-    borderWidth: 1,
-    borderColor: '#eee',
   },
 });
