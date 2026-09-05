@@ -233,6 +233,39 @@ export default function MapScreen() {
     campusZoomRef.current === null
       ? 0
       : zoomLevelForRegion(mapRegion, width, height) - campusZoomRef.current;
+
+  // En navegadores móviles el pinch no controla el zoom del mapa, sino el zoom
+  // de la página completa. Mientras esta pantalla está enfocada se bloquea el
+  // pinch-zoom del navegador, y los botones de zoom lo sustituyen.
+  const [isTouchWeb, setIsTouchWeb] = useState(false);
+
+  useEffect(() => {
+    if (Platform.OS !== 'web' || typeof window === 'undefined') return;
+    setIsTouchWeb(window.matchMedia('(pointer: coarse)').matches);
+  }, []);
+
+  // useFocusEffect (no useEffect) para que el bloqueo de pinch-zoom se aplique
+  // y se revierta exactamente al entrar/salir de esta pantalla — las pestañas
+  // de React Navigation no se desmontan al perder el foco, así que un useEffect
+  // normal solo limpiaría al desmontar la app entera, dejando el resto de la
+  // app (perfil, avistamiento, formularios) sin pinch-zoom.
+  useFocusEffect(
+    useCallback(() => {
+      if (!isTouchWeb || typeof document === 'undefined') return;
+
+      const meta = document.querySelector('meta[name="viewport"]');
+      const previousContent = meta?.getAttribute('content') ?? null;
+      meta?.setAttribute(
+        'content',
+        'width=device-width, initial-scale=1, maximum-scale=1, user-scalable=no, shrink-to-fit=no'
+      );
+
+      return () => {
+        if (previousContent !== null) meta?.setAttribute('content', previousContent);
+      };
+    }, [isTouchWeb])
+  );
+
   const isFarFromUAA =
     Math.abs(mapRegion.latitude - UAA_REGION.latitude) > RECENTER_DISTANCE_THRESHOLD ||
     Math.abs(mapRegion.longitude - UAA_REGION.longitude) > RECENTER_DISTANCE_THRESHOLD ||
@@ -251,6 +284,11 @@ export default function MapScreen() {
   // se llamaba además a getCurrentPositionAsync para guardarla en un estado que
   // nunca se leía, gastando batería sin motivo.
   useEffect(() => {
+    // En web, Map.web.tsx no dibuja la ubicación del usuario (a diferencia de
+    // showsUserLocation en nativo), así que pedir el permiso aquí solo
+    // molestaría con un prompt sin ningún beneficio.
+    if (Platform.OS === 'web') return;
+
     (async () => {
       try {
         const { status } = await Location.requestForegroundPermissionsAsync();
@@ -303,6 +341,8 @@ export default function MapScreen() {
       setAnimals(data);
       hasReportedErrorRef.current = false;
     } catch (error) {
+      // El log sale siempre; la alerta, solo la primera vez de cada caída.
+      console.error('Error fetching animals:', error);
       if (!hasReportedErrorRef.current) {
         hasReportedErrorRef.current = true;
         alertService.error('Error', 'No se pudieron cargar los avistamientos de los michis.');

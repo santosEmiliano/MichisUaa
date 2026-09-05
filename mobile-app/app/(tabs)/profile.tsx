@@ -48,8 +48,8 @@ export default function ProfileScreen() {
   const colors = Colors[colorScheme];
   const insets = useSafeAreaInsets();
 
-  const [userName, setUserName] = useState<string>('Ana García');
-  const [userEmail, setUserEmail] = useState<string>('usuario@edu.uaa.mx');
+  const [userName, setUserName] = useState<string>('');
+  const [userEmail, setUserEmail] = useState<string>('');
   const [loading, setLoading] = useState<boolean>(true);
   const [activeTab, setActiveTab] = useState<string>('Logros');
   const [sightingsCount, setSightingsCount] = useState<number>(0);

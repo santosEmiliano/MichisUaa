@@ -78,6 +78,8 @@ export const MapView = React.forwardRef((props: any, ref: any) => {
     }
   }, [props.region?.latitude, props.region?.longitude]);
 
+  // Limpia el debounce pendiente al desmontar para no llamar a
+  // onRegionChangeComplete sobre un componente ya desmontado.
   useEffect(() => () => clearTimeout(timeoutRef.current), []);
 
   React.useImperativeHandle(ref, () => ({
@@ -92,6 +94,8 @@ export const MapView = React.forwardRef((props: any, ref: any) => {
         return;
       }
 
+      // Todavía sin medida del contenedor: zoom relativo al delta real actual.
+      // Cada vez que el área visible se divide a la mitad se sube un nivel.
       const zoomDelta = Math.log2(latDeltaRef.current / region.latitudeDelta);
       setInternalZoom((current) => clamp(current + zoomDelta, minZoom, maxZoom));
     },
@@ -232,6 +236,10 @@ export const Marker = (props: any) => {
     <Overlay
       anchor={[coordinate.latitude, coordinate.longitude]}
       offset={[0, 0]}
+      // pigeon-maps posiciona cada Overlay con transform, lo que crea su propio
+      // stacking context: el zIndex del Callout no compite contra otros marcadores,
+      // hay que elevar el Overlay completo del marcador con la tarjeta abierta.
+      style={renderCallout ? { zIndex: 1000 } : undefined}
     >
       <div
         // @ts-ignore
