@@ -23,6 +23,10 @@ import {
   MapRegion,
 } from '@/constants/mapConfig';
 
+/** Separación entre controles del mapa. Se usa en el estilo y en el cálculo de
+ * la posición del botón de centrar, así que vive en una sola constante. */
+const MAP_CONTROL_GAP = 10;
+
 /** Colores de los controles del mapa, resueltos según el tema activo. */
 type MapControlPalette = {
   surface: string;
@@ -126,6 +130,14 @@ export default function MapScreen() {
   const isSmallScreen = width < 768;
   const controlSize = isSmallScreen ? 44 : 38;
 
+  // La pila de zoom queda anclada a una posición fija y el botón de centrar vive
+  // en su propio contenedor, justo encima. Así, cuando el de centrar aparece o
+  // desaparece, los botones de zoom no se mueven ni un píxel: el usuario les
+  // agarra la posición y deja de tener que buscarlos.
+  const controlRight = isSmallScreen ? 20 : 30;
+  const zoomStackBottom = isSmallScreen ? 110 : 130;
+  const recenterBottom = zoomStackBottom + controlSize * 2 + MAP_CONTROL_GAP * 2;
+
   // Mismos colores que los chips de filtro y los íconos de la barra de búsqueda:
   // superficie clara/oscura según el tema con la lupa en gris, y al presionar
   // naranja con el ícono en blanco, igual que un filtro activo.
@@ -143,6 +155,10 @@ export default function MapScreen() {
   // Valores animados de Filtros
   const slideAnim = useRef(new Animated.Value(-20)).current;
   const opacityAnim = useRef(new Animated.Value(0)).current;
+
+  // Aparición del botón de centrar. Se mantiene siempre montado y solo se anima
+  // su opacidad y escala: así no entra ni sale del layout y nada más se recorre.
+  const recenterAnim = useRef(new Animated.Value(0)).current;
 
   // Valores animados de Entrada
   const entranceFadeAnim = useRef(new Animated.Value(0)).current;
@@ -221,6 +237,14 @@ export default function MapScreen() {
     Math.abs(mapRegion.latitude - UAA_REGION.latitude) > RECENTER_DISTANCE_THRESHOLD ||
     Math.abs(mapRegion.longitude - UAA_REGION.longitude) > RECENTER_DISTANCE_THRESHOLD ||
     Math.abs(zoomOffset) > RECENTER_ZOOM_TOLERANCE;
+
+  useEffect(() => {
+    Animated.timing(recenterAnim, {
+      toValue: isFarFromUAA ? 1 : 0,
+      duration: 200,
+      useNativeDriver: true,
+    }).start();
+  }, [isFarFromUAA, recenterAnim]);
 
   // Solo pedimos el permiso: `showsUserLocation` necesita que esté concedido
   // para pintar el punto azul, pero la posición en sí la resuelve el mapa. Antes
@@ -583,11 +607,12 @@ export default function MapScreen() {
         </View>
       </Animated.View>
 
+      {/* Pila de zoom: posición fija, no depende de si el botón de centrar está
+          visible. Nunca se mueve. */}
       <Animated.View
         style={[
           styles.mapControlsContainer,
-          { opacity: entranceFadeAnim },
-          !isSmallScreen && ({ bottom: 130, right: 30 } as any),
+          { bottom: zoomStackBottom, right: controlRight, opacity: entranceFadeAnim },
         ]}
       >
         <MapControlButton
@@ -606,15 +631,32 @@ export default function MapScreen() {
           size={controlSize}
           palette={controlPalette}
         />
-        {isFarFromUAA && (
-          <MapControlButton
-            icon="university"
-            label="Centrar en la UAA"
-            onPress={centerOnUAA}
-            size={controlSize}
-            palette={controlPalette}
-          />
-        )}
+      </Animated.View>
+
+      {/* Centrar en la UAA: contenedor propio encima de la pila de zoom. Se queda
+          siempre montado y solo se desvanece, para que aparecer o desaparecer no
+          empuje nada. */}
+      <Animated.View
+        pointerEvents={isFarFromUAA ? 'auto' : 'none'}
+        style={[
+          styles.mapControlsContainer,
+          {
+            bottom: recenterBottom,
+            right: controlRight,
+            opacity: recenterAnim,
+            transform: [
+              { scale: recenterAnim.interpolate({ inputRange: [0, 1], outputRange: [0.8, 1] }) },
+            ],
+          },
+        ]}
+      >
+        <MapControlButton
+          icon="university"
+          label="Centrar en la UAA"
+          onPress={centerOnUAA}
+          size={controlSize}
+          palette={controlPalette}
+        />
       </Animated.View>
     </View>
   );
@@ -801,13 +843,13 @@ const styles = StyleSheet.create({
     fontWeight: 'bold',
     fontSize: 14,
   },
+  // `bottom` y `right` los pone cada contenedor, porque la pila de zoom y el
+  // botón de centrar se anclan por separado.
   mapControlsContainer: {
     position: 'absolute',
-    bottom: 110,
-    right: 20,
     zIndex: 1,
     alignItems: 'center',
-    gap: 10,
+    gap: MAP_CONTROL_GAP,
   },
   mapControlButton: {
     justifyContent: 'center',
