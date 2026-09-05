@@ -46,7 +46,12 @@ const readSightingsById = async (req, res) => {
 
 const registerSighting = async (req, res) => {
   try {
-    const { usuarioId, longitud, latitud } = req.body;
+    const { longitud, latitud } = req.body;
+
+    // El autor sale del token verificado, no del cuerpo: si se tomara del
+    // cuerpo, cualquier usuario autenticado podria registrar avistamientos
+    // (y ganar medallas) a nombre de otra cuenta.
+    const usuarioId = req.userId;
 
     // Validacion para que no haya ausencia de datos
     if (!usuarioId || !longitud || !latitud) {
@@ -54,6 +59,8 @@ const registerSighting = async (req, res) => {
         mensaje: "Es necesario usuario, longitud y latitud",
       });
     }
+
+    req.body.usuarioId = usuarioId;
 
     if (req.file) {
       req.body.foto_url = `${API_URL}/api/images/sightings/${req.file.filename}`;

@@ -248,8 +248,12 @@ export default function SightingScreen() {
       setDescription('');
       setSelectedAnimalId(null);
 
-    } catch (error) {
-      alertService.error('Error', 'Hubo un problema al enviar el reporte. Por favor, intenta de nuevo.');
+    } catch (error: any) {
+      // Con la sesión vencida ya se avisó ("Sesión expirada") y se navegó al
+      // login; una segunda alerta genérica encima solo confunde.
+      if (error?.message !== 'Unauthorized') {
+        alertService.error('Error', 'Hubo un problema al enviar el reporte. Por favor, intenta de nuevo.');
+      }
     } finally {
       setIsSubmitting(false);
     }

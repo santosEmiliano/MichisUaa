@@ -4,6 +4,25 @@ const { authLimiter } = require("../middleware/rateLimiter");
 
 const bcrypt = require("bcryptjs");
 
+// Emite las cookies de sesion. La usan login y createUser: en web el cliente no
+// guarda el token (confia en la cookie httpOnly), asi que si el registro no las
+// emite, el usuario queda "logueado" sin credencial y todo responde 401.
+const emitirCookiesDeSesion = (res, token, refreshToken) => {
+  const cookieOptions = {
+    httpOnly: true,
+    secure: process.env.NODE_ENV === 'production' || true, // en prod siempre true
+    sameSite: 'lax',
+  };
+
+  res.cookie('token', token, { ...cookieOptions, maxAge: 1 * 60 * 60 * 1000 }); // 1h
+
+  // Al refrescar solo se renueva el token de acceso: la cookie de refresh
+  // conserva su vencimiento original de 7 dias.
+  if (refreshToken) {
+    res.cookie('refreshToken', refreshToken, { ...cookieOptions, maxAge: 7 * 24 * 60 * 60 * 1000 }); // 7d
+  }
+};
+
 const createUser = async (req, res) => {
   try {
     const { nombre, email, password } = req.body;
@@ -27,6 +46,8 @@ const createUser = async (req, res) => {
 
     const { token, refreshToken } = tokenfunctions.generateTokens(userId, admin);
     await userModel.modifyUser(userId, { refreshToken });
+
+    emitirCookiesDeSesion(res, token, refreshToken);
 
     return res
       .status(200)
@@ -66,14 +87,7 @@ const login = async (req, res) => {
     // Reiniciar el contador de intentos fallidos al tener un login exitoso
     authLimiter.resetKey(req.ip);
 
-    const cookieOptions = {
-      httpOnly: true,
-      secure: process.env.NODE_ENV === 'production' || true, // en prod siempre true
-      sameSite: 'lax',
-    };
-
-    res.cookie('token', token, { ...cookieOptions, maxAge: 1 * 60 * 60 * 1000 }); // 1h
-    res.cookie('refreshToken', refreshToken, { ...cookieOptions, maxAge: 7 * 24 * 60 * 60 * 1000 }); // 7d
+    emitirCookiesDeSesion(res, token, refreshToken);
 
     return res
       .status(200)
@@ -204,14 +218,15 @@ const getUserMedals = async (req, res) => {
 
 const updatePushToken = async (req, res) => {
   try {
-    const { token } = req.body;
+    // El campo es "pushToken", igual que en pushTokenValidator y en la doc Swagger.
+    const { pushToken } = req.body;
     const idUsuario = req.userId;
 
-    if (!token) {
+    if (!pushToken) {
       return res.status(400).json({ mensaje: "Token no proporcionado" });
     }
 
-    const updated = await userModel.modifyUser(idUsuario, { pushToken: token });
+    const updated = await userModel.modifyUser(idUsuario, { pushToken });
 
     if (!updated) {
       return res
@@ -230,28 +245,39 @@ const jwt = require("jsonwebtoken");
 
 const refreshToken = async (req, res) => {
   try {
-    const { token } = req.body;
+    // En web el refresh token viaja en una cookie httpOnly, que el JS del
+    // navegador no puede leer ni reenviar en el cuerpo. En nativo si se manda
+    // en el cuerpo, porque ahi no hay cookies.
+    const token = (req.cookies && req.cookies.refreshToken) || (req.body && req.body.token);
     if (!token) return res.status(401).json({ mensaje: "Refresh Token no proporcionado" });
 
     const jwtSecretRefresh = process.env.JWT_REFRESH || process.env.JWT_SECRET;
-    
-    jwt.verify(token, jwtSecretRefresh, async (err, user) => {
-      if (err) return res.status(403).json({ mensaje: "Refresh Token inválido o expirado" });
 
-      const dbUser = await userModel.searchByRefreshToken(token);
-      if (!dbUser) return res.status(403).json({ mensaje: "Refresh Token no reconocido en la base de datos" });
+    // Se usa la forma sincrona dentro del try: con callback, un error lanzado
+    // dentro del mismo escapaba del try/catch como unhandled rejection.
+    let payload;
+    try {
+      payload = jwt.verify(token, jwtSecretRefresh);
+    } catch (err) {
+      return res.status(403).json({ mensaje: "Refresh Token inválido o expirado" });
+    }
 
-      // Generar nuevo access token
-      const newToken = jwt.sign(
-        { id: user.id, admin: user.admin },
-        process.env.JWT_SECRET,
-        { expiresIn: "1h" }
-      );
+    const dbUser = await userModel.searchByRefreshToken(token);
+    if (!dbUser) return res.status(403).json({ mensaje: "Refresh Token no reconocido en la base de datos" });
 
-      res.json({ token: newToken });
-    });
+    const newToken = jwt.sign(
+      { id: payload.id, admin: payload.admin },
+      process.env.JWT_SECRET,
+      { expiresIn: "1h" }
+    );
+
+    // Renovar la cookie de acceso; la de refresh conserva su vencimiento.
+    emitirCookiesDeSesion(res, newToken);
+
+    return res.json({ token: newToken });
   } catch (error) {
-    res.status(500).json({ mensaje: "Error al refrescar el token" });
+    console.error("Error al refrescar el token:", error);
+    return res.status(500).json({ mensaje: "Error al refrescar el token" });
   }
 };
 

@@ -143,6 +143,38 @@ router.get(
 
 /**
  * @swagger
+ * /api/user/push-token:
+ *   put:
+ *     summary: Registrar o actualizar el token push de Expo (Notificaciones Móviles)
+ *     tags: [Usuarios]
+ *     security:
+ *       - bearerAuth: []
+ *     requestBody:
+ *       required: true
+ *       content:
+ *         application/json:
+ *           schema:
+ *             type: object
+ *             properties:
+ *               pushToken:
+ *                 type: string
+ *                 example: ExponentPushToken[xxxxxxxxxxxxxxxxxxxxxx]
+ *     responses:
+ *       200:
+ *         description: Push token actualizado exitosamente
+ */
+// Debe declararse ANTES de "/:id": Express resuelve en orden y "/:id"
+// capturaria "push-token" como si fuera un ID de usuario.
+router.put(
+  "/push-token",
+  token.verifyToken,
+  pushTokenValidator,
+  validate,
+  userFunctions.updatePushToken
+);
+
+/**
+ * @swagger
  * /api/user/{id}:
  *   put:
  *     summary: Actualizar la información de un usuario (Solo Admin)
@@ -209,36 +241,6 @@ router.delete(
   deleteUserValidator,
   validate,
   userFunctions.removeUser
-);
-
-/**
- * @swagger
- * /api/user/push-token:
- *   put:
- *     summary: Registrar o actualizar el token push de Expo (Notificaciones Móviles)
- *     tags: [Usuarios]
- *     security:
- *       - bearerAuth: []
- *     requestBody:
- *       required: true
- *       content:
- *         application/json:
- *           schema:
- *             type: object
- *             properties:
- *               pushToken:
- *                 type: string
- *                 example: ExponentPushToken[xxxxxxxxxxxxxxxxxxxxxx]
- *     responses:
- *       200:
- *         description: Push token actualizado exitosamente
- */
-router.put(
-  "/push-token",
-  token.verifyToken,
-  pushTokenValidator,
-  validate,
-  userFunctions.updatePushToken
 );
 
 /**

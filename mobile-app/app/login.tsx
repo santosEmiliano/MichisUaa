@@ -65,7 +65,7 @@ export default function LoginScreen() {
       const result = await handleLogin(email.trim(), password);
 
       // Guardar sesión de forma segura (SecureStore en móvil, localStorage en web)
-      await saveSession(result.token, result.datos.id, result.datos.nombre, email.trim());
+      await saveSession(result.token, result.datos.id, result.datos.nombre, email.trim(), result.refreshToken);
 
       // Registrar token push después de un inicio de sesión exitoso
       registrarPushToken().catch(err => console.error("Error al registrar push token:", err));

@@ -1,12 +1,13 @@
 import React from 'react';
 import FontAwesome from '@expo/vector-icons/FontAwesome';
-import { Link, Tabs } from 'expo-router';
+import { Link, Tabs, Redirect } from 'expo-router';
 import { Pressable, Platform } from 'react-native';
 
 import Colors from '@/constants/Colors';
 import { useColorScheme } from '@/components/useColorScheme';
 import { useClientOnlyValue } from '@/components/useClientOnlyValue';
 import WebNavigationBar from '@/components/WebNavigationBar';
+import { useAuth } from '@/hooks/useAuth';
 
 // You can explore the built-in icon families and icons on the web at https://icons.expo.fyi/
 function TabBarIcon(props: {
@@ -18,15 +19,24 @@ function TabBarIcon(props: {
 
 export default function TabLayout() {
   const colorScheme = useColorScheme();
+  const { isLoading, isAuthenticated } = useAuth();
+  // Se llama antes de cualquier return anticipado: los hooks tienen que
+  // ejecutarse siempre en el mismo orden en cada render.
+  // Disable the static render of the header on web
+  // to prevent a hydration error in React Navigation v6.
+  const headerShown = useClientOnlyValue(false, true);
+
+  // Sin este guard, abrir o recargar /mobile/map directo montaba las pestañas
+  // sin sesión: la pantalla lanzaba su fetch, recibía 401 y rebotaba al login.
+  if (isLoading) return null;
+  if (!isAuthenticated) return <Redirect href="/login" />;
 
   return (
     <Tabs
       tabBar={(props) => <WebNavigationBar {...props} />}
       screenOptions={{
         tabBarActiveTintColor: Colors[colorScheme ?? 'light'].tint,
-        // Disable the static render of the header on web
-        // to prevent a hydration error in React Navigation v6.
-        headerShown: useClientOnlyValue(false, true),
+        headerShown,
       }}>
       <Tabs.Screen
         name="index"

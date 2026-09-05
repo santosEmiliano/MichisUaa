@@ -1,10 +1,7 @@
-import { BASE_URL } from './api';
-import { getSession, clearSession } from './sessionStorage';
-import { router } from 'expo-router';
+import { BASE_URL, refrescarSesion, manejarSesionExpirada } from './api';
+import { getSession, COOKIE_SESSION } from './sessionStorage';
 import { alertService } from '@/services/alertService';
 import { Platform } from 'react-native';
-
-let isNavigatingToLogin = false;
 
 interface SightingData {
   latitud: number;
@@ -65,11 +62,15 @@ export const createSighting = async (data: SightingData) => {
     } as any);
   }
 
-  try {
+  // Se lee la sesión en cada intento para que el reintento posterior a una
+  // renovación salga ya con el token nuevo.
+  const enviar = async (): Promise<Response> => {
+    const actual = await getSession();
+
     const fetchOptions: RequestInit = {
       method: 'POST',
       headers: {
-        ...(session?.token && session.token !== "cookie-session-active" ? { Authorization: `Bearer ${session.token}` } : {}),
+        ...(actual?.token && actual.token !== COOKIE_SESSION ? { Authorization: `Bearer ${actual.token}` } : {}),
         // fetch se encarga de setear el Content-Type multipart/form-data con el boundary correcto
       },
       body: formData,
@@ -79,20 +80,25 @@ export const createSighting = async (data: SightingData) => {
       fetchOptions.credentials = 'include';
     }
 
-    const response = await fetch(`${BASE_URL}/avistamientos`, fetchOptions);
+    return fetch(`${BASE_URL}/avistamientos`, fetchOptions);
+  };
+
+  try {
+    let response = await enviar();
 
     if (response.status === 401) {
-      if (!isNavigatingToLogin) {
-        isNavigatingToLogin = true;
-        await clearSession();
-        alertService.error("Sesión expirada", "Tu sesión ha expirado por seguridad. Por favor, inicia sesión de nuevo.");
-        router.replace("/login");
-
-        setTimeout(() => {
-          isNavigatingToLogin = false;
-        }, 2000);
+      // Renovar y reintentar antes de rendirse: si el token vence mientras el
+      // usuario llena el formulario, tirar la sesión aquí le hace perder la
+      // foto y el reporte completo.
+      const renovado = await refrescarSesion();
+      if (renovado) {
+        response = await enviar();
       }
-      throw new Error('Unauthorized');
+
+      if (response.status === 401) {
+        await manejarSesionExpirada();
+        throw new Error('Unauthorized');
+      }
     }
 
     if (!response.ok) {

@@ -58,7 +58,11 @@ const handleRegister = async (userName: string, userEmail: string, password: str
     if (response.ok && data.token) {
       return data;
     } else {
-      throw new Error(data.mensaje || data.message || "Error al registrarse");
+      // El backend responde 400 con errores: [{ msg, path }] cuando falla la validacion.
+      const detalle = Array.isArray(data.errores)
+        ? data.errores.map((e: { msg: string }) => e.msg).join("\n")
+        : null;
+      throw new Error(detalle || data.mensaje || data.message || "Error al registrarse");
     }
   } catch (error) {
     if (error instanceof Error) {

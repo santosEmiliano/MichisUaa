@@ -70,11 +70,17 @@ export const registrarPushToken = async () => {
       console.warn('No se encontró el projectId de EAS.');
     }
     const token = await Notifications.getExpoPushTokenAsync({ projectId });
-    // Mandas el token al backend para guardarlo
-    await apiFetch('/user/push-token', {
+    // Mandas el token al backend para guardarlo. El campo debe llamarse
+    // "pushToken": es el que espera pushTokenValidator en el backend.
+    const res = await apiFetch('/user/push-token', {
       method: 'PUT',
-      body: JSON.stringify({ token: token.data }),
+      body: JSON.stringify({ pushToken: token.data }),
     });
+    // apiFetch no lanza en respuestas 4xx/5xx, asi que un fallo aqui pasaria
+    // desapercibido y las notificaciones quedarian silenciosamente rotas.
+    if (!res.ok) {
+      console.error(`Error al registrar push token: HTTP ${res.status}`);
+    }
   } catch (error) {
     console.error('Error al registrar push token:', error);
   }

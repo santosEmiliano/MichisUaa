@@ -32,9 +32,11 @@ export default function WebRegisterForm({ onBackToLogin }: Props) {
   const [focusedInput, setFocusedInput] = useState<string | null>(null);
 
   const nombreState: FieldState = nombre.length === 0 ? 'idle' : nombre.trim().split(' ').length >= 2 ? 'valid' : 'invalid';
-  const correoRegex = /^[a-zA-Z0-9._%+-]+@(edu\.uaa\.mx|uaa\.mx)$/;
+  const correoRegex = /^[a-zA-Z0-9._%+-]+@edu\.uaa\.mx$/;
   const correoState: FieldState = correo.length === 0 ? 'idle' : correoRegex.test(correo) ? 'valid' : 'invalid';
-  const passwordState: FieldState = password.length === 0 ? 'idle' : password.length >= 5 ? 'valid' : 'invalid';
+  // Debe coincidir con registerValidator del backend: minimo 6, sin espacios, 1 mayuscula y 1 numero.
+  const passwordRegex = /^(?=.*[A-Z])(?=.*\d)[^\s]{6,150}$/;
+  const passwordState: FieldState = password.length === 0 ? 'idle' : passwordRegex.test(password) ? 'valid' : 'invalid';
   const confirmPasswordState: FieldState = confirmPassword.length === 0 ? 'idle' : confirmPassword === password ? 'valid' : 'invalid';
 
   const getBorderColor = (state: FieldState, isFocused: boolean) => {
@@ -64,7 +66,7 @@ export default function WebRegisterForm({ onBackToLogin }: Props) {
     setLoading(true);
     try {
       const result = await handleRegister(nombre.trim(), correo.trim(), password);
-      await saveSession(result.token, result.userId, result.nombre, correo.trim());
+      await saveSession(result.token, result.userId, result.nombre, correo.trim(), result.refreshToken);
       registrarPushToken().catch(err => console.error("Error al registrar push token:", err));
       alertService.success("¡Cuenta Creada!", "Te has registrado exitosamente. ¡Bienvenido a MichisUAA!");
       router.replace('/(tabs)');
@@ -163,7 +165,7 @@ export default function WebRegisterForm({ onBackToLogin }: Props) {
               <View style={styles.hint}>
                 <Ionicons name={correoState === 'valid' ? 'checkmark' : 'close'} size={13} color={getHintColor(correoState)} />
                 <Text style={[styles.hintText, { color: getHintColor(correoState) }]}>
-                  {correoState === 'valid' ? 'Correo disponible' : 'Debe ser un correo @edu.uaa.mx o @uaa.mx'}
+                  {correoState === 'valid' ? 'Correo disponible' : 'Debe ser un correo institucional @edu.uaa.mx'}
                 </Text>
               </View>
             )}
@@ -178,7 +180,7 @@ export default function WebRegisterForm({ onBackToLogin }: Props) {
                 onChangeText={setPassword}
                 onFocus={() => setFocusedInput('password')}
                 onBlur={() => setFocusedInput(null)}
-                placeholder="Mínimo 5 caracteres"
+                placeholder="Mínimo 6 caracteres, mayúsculas y números"
                 placeholderTextColor={colors.textSecondary}
                 secureTextEntry={!showPassword}
                 autoCapitalize="none"
@@ -192,7 +194,7 @@ export default function WebRegisterForm({ onBackToLogin }: Props) {
               <View style={styles.hint}>
                 <Ionicons name={passwordState === 'valid' ? 'checkmark' : 'close'} size={13} color={getHintColor(passwordState)} />
                 <Text style={[styles.hintText, { color: getHintColor(passwordState) }]}>
-                  {passwordState === 'valid' ? 'Mínimo 5 caracteres' : 'La contraseña es muy corta'}
+                  {passwordState === 'valid' ? 'Contraseña segura' : 'Mín. 6 letras, 1 mayúscula, 1 número, sin espacios'}
                 </Text>
               </View>
             )}
