@@ -76,6 +76,34 @@ export default function MapScreen() {
     mapRef.current?.animateToRegion(UAA_REGION, 1000);
   };
 
+  const zoomIn = () => mapRef.current?.zoomIn?.();
+  const zoomOut = () => mapRef.current?.zoomOut?.();
+
+  // En navegadores móviles el pinch no controla el zoom del mapa (pigeon-maps),
+  // sino el zoom de la página completa. Mientras esta pantalla está enfocada,
+  // se bloquea el pinch-zoom del navegador y se ofrecen botones de zoom en su lugar.
+  const [isTouchWeb, setIsTouchWeb] = useState(false);
+
+  useEffect(() => {
+    if (Platform.OS !== 'web' || typeof window === 'undefined') return;
+    setIsTouchWeb(window.matchMedia('(pointer: coarse)').matches);
+  }, []);
+
+  useEffect(() => {
+    if (!isTouchWeb || typeof document === 'undefined') return;
+
+    const meta = document.querySelector('meta[name="viewport"]');
+    const previousContent = meta?.getAttribute('content') ?? null;
+    meta?.setAttribute(
+      'content',
+      'width=device-width, initial-scale=1, maximum-scale=1, user-scalable=no, shrink-to-fit=no'
+    );
+
+    return () => {
+      if (previousContent !== null) meta?.setAttribute('content', previousContent);
+    };
+  }, [isTouchWeb]);
+
   const isFarFromUAA =
     Math.abs(mapRegion.latitude - UAA_REGION.latitude) > 0.005 ||
     Math.abs(mapRegion.longitude - UAA_REGION.longitude) > 0.005;
@@ -421,6 +449,35 @@ export default function MapScreen() {
         </View>
       </Animated.View>
 
+      {isTouchWeb && (
+        <View style={styles.zoomContainer}>
+          <TouchableOpacity
+            style={[
+              styles.zoomButton,
+              {
+                backgroundColor: theme === 'dark' ? colors.bgPanel : 'rgba(255, 255, 255, 0.95)',
+                borderColor: theme === 'dark' ? colors.borderColor : '#eee'
+              }
+            ]}
+            onPress={zoomIn}
+          >
+            <FontAwesome name="plus" size={18} color={colors.accentOrange} />
+          </TouchableOpacity>
+          <TouchableOpacity
+            style={[
+              styles.zoomButton,
+              {
+                backgroundColor: theme === 'dark' ? colors.bgPanel : 'rgba(255, 255, 255, 0.95)',
+                borderColor: theme === 'dark' ? colors.borderColor : '#eee'
+              }
+            ]}
+            onPress={zoomOut}
+          >
+            <FontAwesome name="minus" size={18} color={colors.accentOrange} />
+          </TouchableOpacity>
+        </View>
+      )}
+
       {isFarFromUAA && (
         <Animated.View style={[
           styles.recenterContainer,
@@ -638,5 +695,25 @@ const styles = StyleSheet.create({
     elevation: 6,
     borderWidth: 1,
     borderColor: '#eee',
+  },
+  zoomContainer: {
+    position: 'absolute',
+    bottom: 180,
+    right: 20,
+    zIndex: 1,
+    gap: 10,
+  },
+  zoomButton: {
+    width: 44,
+    height: 44,
+    borderRadius: 22,
+    justifyContent: 'center',
+    alignItems: 'center',
+    shadowColor: '#000',
+    shadowOffset: { width: 0, height: 2 },
+    shadowOpacity: 0.3,
+    shadowRadius: 4,
+    elevation: 6,
+    borderWidth: 1,
   },
 });

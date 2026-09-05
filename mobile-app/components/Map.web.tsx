@@ -30,6 +30,9 @@ export const MapView = React.forwardRef((props: any, ref: any) => {
     }
   }, [props.region?.latitude, props.region?.longitude]);
 
+  const MIN_ZOOM = 14;
+  const MAX_ZOOM = 18;
+
   React.useImperativeHandle(ref, () => ({
     animateToRegion: (region: any, duration?: number) => {
       const newCenter: [number, number] = [region.latitude, region.longitude];
@@ -38,7 +41,13 @@ export const MapView = React.forwardRef((props: any, ref: any) => {
       if (props.onRegionChangeComplete) {
         props.onRegionChangeComplete(region);
       }
-    }
+    },
+    zoomIn: () => {
+      setInternalZoom((z) => Math.min(z + 1, MAX_ZOOM));
+    },
+    zoomOut: () => {
+      setInternalZoom((z) => Math.max(z - 1, MIN_ZOOM));
+    },
   }));
 
   const handleBoundsChanged = ({ center, zoom }: any) => {
@@ -64,10 +73,11 @@ export const MapView = React.forwardRef((props: any, ref: any) => {
 
   return (
     <View style={[{flex: 1, backgroundColor: '#f0f0f0'}, props.style]}>
-      <Map 
-        center={internalCenter} 
+      <Map
+        center={internalCenter}
         zoom={internalZoom}
-        minZoom={14}
+        minZoom={MIN_ZOOM}
+        maxZoom={MAX_ZOOM}
         onBoundsChanged={handleBoundsChanged}
         mouseEvents={allowInteraction}
         touchEvents={allowInteraction}
