@@ -76,11 +76,51 @@ export default function MapScreen() {
     mapRef.current?.animateToRegion(UAA_REGION, 1000);
   };
 
+  const zoomIn = () => mapRef.current?.zoomIn?.();
+  const zoomOut = () => mapRef.current?.zoomOut?.();
+
+  // En navegadores móviles el pinch no controla el zoom del mapa,
+  // sino el zoom de la página completa. Mientras esta pantalla está enfocada,
+  // se bloquea el pinch-zoom del navegador, ponemos botones en su lugar
+  const [isTouchWeb, setIsTouchWeb] = useState(false);
+
+  useEffect(() => {
+    if (Platform.OS !== 'web' || typeof window === 'undefined') return;
+    setIsTouchWeb(window.matchMedia('(pointer: coarse)').matches);
+  }, []);
+
+  // useFocusEffect (no useEffect) para que el bloqueo de pinch-zoom se aplique
+  // y se revierta exactamente al entrar/salir de esta pantalla — las pestañas
+  // de React Navigation no se desmontan al perder el foco, así que un useEffect
+  // normal solo limpiaría al desmontar la app entera, dejando el resto de la
+  // app (perfil, avistamiento, formularios) sin pinch-zoom.
+  useFocusEffect(
+    useCallback(() => {
+      if (!isTouchWeb || typeof document === 'undefined') return;
+
+      const meta = document.querySelector('meta[name="viewport"]');
+      const previousContent = meta?.getAttribute('content') ?? null;
+      meta?.setAttribute(
+        'content',
+        'width=device-width, initial-scale=1, maximum-scale=1, user-scalable=no, shrink-to-fit=no'
+      );
+
+      return () => {
+        if (previousContent !== null) meta?.setAttribute('content', previousContent);
+      };
+    }, [isTouchWeb])
+  );
+
   const isFarFromUAA =
     Math.abs(mapRegion.latitude - UAA_REGION.latitude) > 0.005 ||
     Math.abs(mapRegion.longitude - UAA_REGION.longitude) > 0.005;
 
   useEffect(() => {
+    // En web, Map.web.tsx no dibuja la ubicación del usuario (a diferencia de
+    // showsUserLocation en nativo), así que pedir el permiso aquí solo
+    // molestaría con un prompt sin ningún beneficio.
+    if (Platform.OS === 'web') return;
+
     (async () => {
       try {
         let { status } = await Location.requestForegroundPermissionsAsync();
@@ -132,6 +172,7 @@ export default function MapScreen() {
       const data = await getPublicAnimals();
       setAnimals(data);
     } catch (error) {
+      console.error('Error fetching animals:', error);
       alertService.error('Error', 'No se pudieron cargar los avistamientos de los michis.');
     } finally {
       setIsLoading(false);
@@ -275,8 +316,6 @@ export default function MapScreen() {
               tracksViewChanges={!markersReady}
               anchor={{ x: 0.5, y: 1 }}
               centerOffset={{ x: 0, y: -30 }}
-              // @ts-ignore
-              webOffset={[32, 63]}
             >
               <View style={{ width: 64, height: 64, justifyContent: 'center', alignItems: 'center' }}>
                 <AnimatedPin style={[
@@ -420,6 +459,35 @@ export default function MapScreen() {
           <Text style={[styles.legendText, { color: colors.textMain }, Platform.OS === 'web' && { fontSize: isSmallScreen ? 13 : 16, fontWeight: '600' } as any]}>Desaparecido</Text>
         </View>
       </Animated.View>
+
+      {isTouchWeb && (
+        <View style={styles.zoomContainer}>
+          <TouchableOpacity
+            style={[
+              styles.zoomButton,
+              {
+                backgroundColor: theme === 'dark' ? colors.bgPanel : 'rgba(255, 255, 255, 0.95)',
+                borderColor: theme === 'dark' ? colors.borderColor : '#eee'
+              }
+            ]}
+            onPress={zoomIn}
+          >
+            <FontAwesome name="search-plus" size={18} color={colors.accentOrange} />
+          </TouchableOpacity>
+          <TouchableOpacity
+            style={[
+              styles.zoomButton,
+              {
+                backgroundColor: theme === 'dark' ? colors.bgPanel : 'rgba(255, 255, 255, 0.95)',
+                borderColor: theme === 'dark' ? colors.borderColor : '#eee'
+              }
+            ]}
+            onPress={zoomOut}
+          >
+            <FontAwesome name="search-minus" size={18} color={colors.accentOrange} />
+          </TouchableOpacity>
+        </View>
+      )}
 
       {isFarFromUAA && (
         <Animated.View style={[
@@ -638,5 +706,25 @@ const styles = StyleSheet.create({
     elevation: 6,
     borderWidth: 1,
     borderColor: '#eee',
+  },
+  zoomContainer: {
+    position: 'absolute',
+    bottom: 180,
+    right: 20,
+    zIndex: 1,
+    gap: 10,
+  },
+  zoomButton: {
+    width: 44,
+    height: 44,
+    borderRadius: 22,
+    justifyContent: 'center',
+    alignItems: 'center',
+    shadowColor: '#000',
+    shadowOffset: { width: 0, height: 2 },
+    shadowOpacity: 0.3,
+    shadowRadius: 4,
+    elevation: 6,
+    borderWidth: 1,
   },
 });
