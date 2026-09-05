@@ -174,7 +174,12 @@ export const Marker = (props: any) => {
   const [renderCallout, setRenderCallout] = useState(false);
   const animValue = useRef(new Animated.Value(0)).current;
 
-  const { coordinate, onPress, children } = props;
+  // `left` y `top` NO son props muertas: pigeon-maps calcula la posicion en
+  // pixeles de cada hijo directo del <Map> a partir de su `anchor` y se la pasa
+  // por cloneElement. Como el Overlay real es nieto y no hijo, nunca las recibe
+  // por su cuenta: hay que reenviarselas. Sin ellas su transform queda invalido,
+  // todos los marcadores se apilan en el origen del mapa y salen de la pantalla.
+  const { coordinate, onPress, children, left, top } = props;
 
   const toggleCallout = (e: any) => {
     if (e.stopPropagation) e.stopPropagation();
@@ -236,6 +241,8 @@ export const Marker = (props: any) => {
     <Overlay
       anchor={[coordinate.latitude, coordinate.longitude]}
       offset={[0, 0]}
+      left={left}
+      top={top}
       // pigeon-maps posiciona cada Overlay con transform, lo que crea su propio
       // stacking context: el zIndex del Callout no compite contra otros marcadores,
       // hay que elevar el Overlay completo del marcador con la tarjeta abierta.
