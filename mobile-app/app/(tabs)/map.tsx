@@ -89,26 +89,38 @@ export default function MapScreen() {
     setIsTouchWeb(window.matchMedia('(pointer: coarse)').matches);
   }, []);
 
-  useEffect(() => {
-    if (!isTouchWeb || typeof document === 'undefined') return;
+  // useFocusEffect (no useEffect) para que el bloqueo de pinch-zoom se aplique
+  // y se revierta exactamente al entrar/salir de esta pantalla — las pestañas
+  // de React Navigation no se desmontan al perder el foco, así que un useEffect
+  // normal solo limpiaría al desmontar la app entera, dejando el resto de la
+  // app (perfil, avistamiento, formularios) sin pinch-zoom.
+  useFocusEffect(
+    useCallback(() => {
+      if (!isTouchWeb || typeof document === 'undefined') return;
 
-    const meta = document.querySelector('meta[name="viewport"]');
-    const previousContent = meta?.getAttribute('content') ?? null;
-    meta?.setAttribute(
-      'content',
-      'width=device-width, initial-scale=1, maximum-scale=1, user-scalable=no, shrink-to-fit=no'
-    );
+      const meta = document.querySelector('meta[name="viewport"]');
+      const previousContent = meta?.getAttribute('content') ?? null;
+      meta?.setAttribute(
+        'content',
+        'width=device-width, initial-scale=1, maximum-scale=1, user-scalable=no, shrink-to-fit=no'
+      );
 
-    return () => {
-      if (previousContent !== null) meta?.setAttribute('content', previousContent);
-    };
-  }, [isTouchWeb]);
+      return () => {
+        if (previousContent !== null) meta?.setAttribute('content', previousContent);
+      };
+    }, [isTouchWeb])
+  );
 
   const isFarFromUAA =
     Math.abs(mapRegion.latitude - UAA_REGION.latitude) > 0.005 ||
     Math.abs(mapRegion.longitude - UAA_REGION.longitude) > 0.005;
 
   useEffect(() => {
+    // En web, Map.web.tsx no dibuja la ubicación del usuario (a diferencia de
+    // showsUserLocation en nativo), así que pedir el permiso aquí solo
+    // molestaría con un prompt sin ningún beneficio.
+    if (Platform.OS === 'web') return;
+
     (async () => {
       try {
         let { status } = await Location.requestForegroundPermissionsAsync();
@@ -160,6 +172,7 @@ export default function MapScreen() {
       const data = await getPublicAnimals();
       setAnimals(data);
     } catch (error) {
+      console.error('Error fetching animals:', error);
       alertService.error('Error', 'No se pudieron cargar los avistamientos de los michis.');
     } finally {
       setIsLoading(false);
@@ -303,8 +316,6 @@ export default function MapScreen() {
               tracksViewChanges={!markersReady}
               anchor={{ x: 0.5, y: 1 }}
               centerOffset={{ x: 0, y: -30 }}
-              // @ts-ignore
-              webOffset={[32, 63]}
             >
               <View style={{ width: 64, height: 64, justifyContent: 'center', alignItems: 'center' }}>
                 <AnimatedPin style={[
