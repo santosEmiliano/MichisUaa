@@ -2,27 +2,75 @@ import React, { useState, useEffect, useRef } from 'react';
 import { View, Animated } from 'react-native';
 // @ts-ignore
 import { Map, Overlay } from 'pigeon-maps';
+import {
+  MIN_ZOOM_LEVEL,
+  MAX_ZOOM_LEVEL,
+  UAA_REGION,
+  clamp,
+  zoomLevelForRegion,
+} from '@/constants/mapConfig';
+
+// El zoom se calcula con la misma proyección Mercator que usa la pantalla del
+// mapa, para que web y nativo encuadren igual.
 
 export const MapView = React.forwardRef((props: any, ref: any) => {
-  const initialCenter = props.region 
-    ? [props.region.latitude, props.region.longitude]
-    : props.initialRegion 
-    ? [props.initialRegion.latitude, props.initialRegion.longitude] 
-    : [21.9135, -102.3164];
+  const minZoom = props.minZoomLevel ?? MIN_ZOOM_LEVEL;
+  const maxZoom = props.maxZoomLevel ?? MAX_ZOOM_LEVEL;
 
-  const latDeltaToZoom = (latDelta: number): number => {
-    return Math.round(Math.log2(0.15 / latDelta)) + 11;
+  const initialCenter = props.region
+    ? [props.region.latitude, props.region.longitude]
+    : props.initialRegion
+    ? [props.initialRegion.latitude, props.initialRegion.longitude]
+    : [UAA_REGION.latitude, UAA_REGION.longitude];
+
+  const initialLatDelta =
+    props.initialRegion?.latitudeDelta ??
+    props.region?.latitudeDelta ??
+    UAA_REGION.latitudeDelta;
+
+  const initialRegion = props.initialRegion ?? props.region ?? UAA_REGION;
+
+  const [internalCenter, setInternalCenter] = useState<[number, number]>(initialCenter as [number, number]);
+  // El mapa ocupa prácticamente toda la ventana, así que sus medidas son una
+  // buena estimación para el primer pintado.
+  const [internalZoom, setInternalZoom] = useState<number>(() => {
+    if (typeof window !== 'undefined' && window.innerWidth && window.innerHeight) {
+      return clamp(
+        zoomLevelForRegion(initialRegion, window.innerWidth, window.innerHeight),
+        minZoom,
+        maxZoom
+      );
+    }
+    return minZoom;
+  });
+  const timeoutRef = useRef<any>(null);
+
+  // Último `latitudeDelta` real reportado por pigeon-maps. Sirve de respaldo
+  // para calcular el zoom de forma relativa si todavía no medimos el contenedor.
+  const latDeltaRef = useRef<number>(initialLatDelta);
+
+  // Tamaño real del contenedor, necesario para traducir una región a un nivel de zoom
+  const viewportRef = useRef({ width: 0, height: 0 });
+  const hasFittedInitialRef = useRef(false);
+
+  const fitRegion = (region: any) => {
+    const { width, height } = viewportRef.current;
+    if (width > 0 && height > 0) {
+      return clamp(zoomLevelForRegion(region, width, height), minZoom, maxZoom);
+    }
+    return null;
   };
 
-  const initialZoom = props.initialRegion?.latitudeDelta
-    ? latDeltaToZoom(props.initialRegion.latitudeDelta)
-    : props.region?.latitudeDelta
-    ? latDeltaToZoom(props.region.latitudeDelta)
-    : 14;
-    
-  const [internalCenter, setInternalCenter] = useState<[number, number]>(initialCenter as [number, number]);
-  const [internalZoom, setInternalZoom] = useState<number>(initialZoom);
-  const timeoutRef = useRef<any>(null);
+  const handleLayout = (event: any) => {
+    const { width, height } = event.nativeEvent.layout;
+    viewportRef.current = { width, height };
+
+    if (!hasFittedInitialRef.current && width > 0 && height > 0) {
+      hasFittedInitialRef.current = true;
+      const zoom = fitRegion(initialRegion);
+      if (zoom !== null) setInternalZoom(zoom);
+    }
+  };
 
   useEffect(() => {
     if (props.region) {
@@ -30,26 +78,47 @@ export const MapView = React.forwardRef((props: any, ref: any) => {
     }
   }, [props.region?.latitude, props.region?.longitude]);
 
+  // Limpia el debounce pendiente al desmontar para no llamar a
+  // onRegionChangeComplete sobre un componente ya desmontado.
+  useEffect(() => () => clearTimeout(timeoutRef.current), []);
+
   React.useImperativeHandle(ref, () => ({
-    animateToRegion: (region: any, duration?: number) => {
-      const newCenter: [number, number] = [region.latitude, region.longitude];
-      setInternalCenter(newCenter);
-      setInternalZoom(region.latitudeDelta ? latDeltaToZoom(region.latitudeDelta) : initialZoom);
-      if (props.onRegionChangeComplete) {
-        props.onRegionChangeComplete(region);
+    animateToRegion: (region: any) => {
+      setInternalCenter([region.latitude, region.longitude]);
+
+      if (!region.latitudeDelta || !region.longitudeDelta) return;
+
+      const fitted = fitRegion(region);
+      if (fitted !== null) {
+        setInternalZoom(fitted);
+        return;
       }
-    }
+
+      // Todavía sin medida del contenedor: zoom relativo al delta real actual.
+      // Cada vez que el área visible se divide a la mitad se sube un nivel.
+      const zoomDelta = Math.log2(latDeltaRef.current / region.latitudeDelta);
+      setInternalZoom((current) => clamp(current + zoomDelta, minZoom, maxZoom));
+    },
   }));
 
-  const handleBoundsChanged = ({ center, zoom }: any) => {
+  const handleBoundsChanged = ({ center, zoom, bounds }: any) => {
     setInternalCenter(center);
     setInternalZoom(zoom);
-    
+
+    const latitudeDelta = bounds
+      ? Math.abs(bounds.ne[0] - bounds.sw[0])
+      : latDeltaRef.current;
+    const longitudeDelta = bounds
+      ? Math.abs(bounds.ne[1] - bounds.sw[1])
+      : latitudeDelta;
+
+    latDeltaRef.current = latitudeDelta;
+
     const regionObj = {
       latitude: center[0],
       longitude: center[1],
-      latitudeDelta: 0.015,
-      longitudeDelta: 0.015,
+      latitudeDelta,
+      longitudeDelta,
     };
 
     if (props.onRegionChangeComplete) {
@@ -63,11 +132,12 @@ export const MapView = React.forwardRef((props: any, ref: any) => {
   const allowInteraction = props.scrollEnabled !== false && props.zoomEnabled !== false;
 
   return (
-    <View style={[{flex: 1, backgroundColor: '#f0f0f0'}, props.style]}>
-      <Map 
-        center={internalCenter} 
+    <View style={[{ flex: 1, backgroundColor: '#f0f0f0' }, props.style]} onLayout={handleLayout}>
+      <Map
+        center={internalCenter}
         zoom={internalZoom}
-        minZoom={14}
+        minZoom={minZoom}
+        maxZoom={maxZoom}
         onBoundsChanged={handleBoundsChanged}
         mouseEvents={allowInteraction}
         touchEvents={allowInteraction}
@@ -103,21 +173,19 @@ export const Marker = (props: any) => {
   const [showCallout, setShowCallout] = useState(false);
   const [renderCallout, setRenderCallout] = useState(false);
   const animValue = useRef(new Animated.Value(0)).current;
-  
-  const { coordinate, onPress, children, left, top, webOffset } = props;
-  
-  if (!coordinate) return null;
-  
+
+  const { coordinate, onPress, children } = props;
+
   const toggleCallout = (e: any) => {
     if (e.stopPropagation) e.stopPropagation();
     const willShow = !showCallout;
-    
+
     if (willShow && typeof window !== 'undefined') {
       window.dispatchEvent(new CustomEvent('close-callouts', { detail: coordinate }));
     }
-    
+
     setShowCallout(willShow);
-    
+
     if (willShow) {
       setRenderCallout(true);
       Animated.spring(animValue, {
@@ -135,7 +203,7 @@ export const Marker = (props: any) => {
         setRenderCallout(false);
       });
     }
-    
+
     if (onPress) onPress(e);
   };
 
@@ -158,22 +226,26 @@ export const Marker = (props: any) => {
     }
   }, [coordinate, showCallout, animValue]);
 
+  if (!coordinate) return null;
+
   const childrenArray = React.Children.toArray(children);
   const callouts = childrenArray.filter((c: any) => c.type === Callout);
   const nonCallouts = childrenArray.filter((c: any) => c.type !== Callout);
 
   return (
-    <Overlay 
-      anchor={[coordinate.latitude, coordinate.longitude]} 
+    <Overlay
+      anchor={[coordinate.latitude, coordinate.longitude]}
       offset={[0, 0]}
-      left={left}
-      top={top}
+      // pigeon-maps posiciona cada Overlay con transform, lo que crea su propio
+      // stacking context: el zIndex del Callout no compite contra otros marcadores,
+      // hay que elevar el Overlay completo del marcador con la tarjeta abierta.
+      style={renderCallout ? { zIndex: 1000 } : undefined}
     >
       <div
         // @ts-ignore
         onClick={toggleCallout}
-        style={{ 
-          cursor: 'pointer', 
+        style={{
+          cursor: 'pointer',
           position: 'absolute',
           transform: 'translate(-50%, -100%)',
           display: 'flex',
@@ -182,14 +254,14 @@ export const Marker = (props: any) => {
         }}
       >
         {renderCallout && (
-          <Animated.View style={{ 
-            opacity: animValue, 
+          <Animated.View style={{
+            opacity: animValue,
             transform: [
               { scale: animValue.interpolate({ inputRange: [0, 1], outputRange: [0.8, 1] }) },
               { translateY: animValue.interpolate({ inputRange: [0, 1], outputRange: [10, 0] }) }
             ],
-            position: 'absolute', 
-            bottom: '110%', 
+            position: 'absolute',
+            bottom: '110%',
             zIndex: 1000,
             minWidth: 160,
           }}>
