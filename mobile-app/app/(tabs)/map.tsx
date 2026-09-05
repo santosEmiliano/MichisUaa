@@ -23,31 +23,35 @@ import {
   MapRegion,
 } from '@/constants/mapConfig';
 
-// Los controles van siempre encima de las teselas del mapa, no del fondo de la
-// app, así que conservan el mismo contraste en tema claro y oscuro.
-const MAP_CONTROL_SURFACE = '#FFFFFF';
-const MAP_CONTROL_OUTLINE = '#1A1A1A';
+/** Colores de los controles del mapa, resueltos según el tema activo. */
+type MapControlPalette = {
+  surface: string;
+  border: string;
+  icon: string;
+  pressedSurface: string;
+  pressedIcon: string;
+};
 
 type MapControlButtonProps = {
   icon: React.ComponentProps<typeof FontAwesome>['name'];
   label: string;
   onPress: () => void;
   size: number;
-  accentColor: string;
+  palette: MapControlPalette;
   disabled?: boolean;
 };
 
 /**
  * Botón redondo de control del mapa.
- * En reposo: relleno blanco con contorno e ícono negros.
- * Presionado: relleno naranja con ícono blanco.
+ * En reposo: superficie del tema con la lupa en gris, como los chips de filtro.
+ * Presionado: relleno naranja con ícono blanco, como un filtro activo.
  */
 const MapControlButton = ({
   icon,
   label,
   onPress,
   size,
-  accentColor,
+  palette,
   disabled = false,
 }: MapControlButtonProps) => {
   const [isPressed, setIsPressed] = useState(false);
@@ -70,8 +74,8 @@ const MapControlButton = ({
           width: size,
           height: size,
           borderRadius: size / 2,
-          backgroundColor: isActive ? accentColor : MAP_CONTROL_SURFACE,
-          borderColor: isActive ? accentColor : MAP_CONTROL_OUTLINE,
+          backgroundColor: isActive ? palette.pressedSurface : palette.surface,
+          borderColor: isActive ? palette.pressedSurface : palette.border,
           opacity: disabled ? 0.4 : 1,
         },
       ]}
@@ -79,7 +83,7 @@ const MapControlButton = ({
       <FontAwesome
         name={icon}
         size={Math.round(size * 0.45)}
-        color={isActive ? MAP_CONTROL_SURFACE : MAP_CONTROL_OUTLINE}
+        color={isActive ? palette.pressedIcon : palette.icon}
       />
     </TouchableOpacity>
   );
@@ -121,6 +125,20 @@ export default function MapScreen() {
   const { width, height } = useWindowDimensions();
   const isSmallScreen = width < 768;
   const controlSize = isSmallScreen ? 44 : 38;
+
+  // Mismos colores que los chips de filtro y los íconos de la barra de búsqueda:
+  // superficie clara/oscura según el tema con la lupa en gris, y al presionar
+  // naranja con el ícono en blanco, igual que un filtro activo.
+  const controlPalette: MapControlPalette = useMemo(
+    () => ({
+      surface: theme === 'dark' ? colors.bgCard : 'rgba(255, 255, 255, 0.9)',
+      border: colors.borderColor,
+      icon: theme === 'dark' ? colors.textSecondary : '#555',
+      pressedSurface: colors.accentOrange,
+      pressedIcon: colors.textWhite,
+    }),
+    [theme, colors]
+  );
 
   // Valores animados de Filtros
   const slideAnim = useRef(new Animated.Value(-20)).current;
@@ -578,7 +596,7 @@ export default function MapScreen() {
           onPress={zoomIn}
           disabled={!canZoomIn}
           size={controlSize}
-          accentColor={colors.accentOrange}
+          palette={controlPalette}
         />
         <MapControlButton
           icon="search-minus"
@@ -586,7 +604,7 @@ export default function MapScreen() {
           onPress={zoomOut}
           disabled={!canZoomOut}
           size={controlSize}
-          accentColor={colors.accentOrange}
+          palette={controlPalette}
         />
         {isFarFromUAA && (
           <MapControlButton
@@ -594,7 +612,7 @@ export default function MapScreen() {
             label="Centrar en la UAA"
             onPress={centerOnUAA}
             size={controlSize}
-            accentColor={colors.accentOrange}
+            palette={controlPalette}
           />
         )}
       </Animated.View>
@@ -794,7 +812,9 @@ const styles = StyleSheet.create({
   mapControlButton: {
     justifyContent: 'center',
     alignItems: 'center',
-    borderWidth: 2,
+    // Borde de 1px, como el que tenía el botón de centrar: aquí es un contorno
+    // sutil que separa del mapa, no un trazo marcado.
+    borderWidth: 1,
     shadowColor: '#000',
     shadowOffset: { width: 0, height: 2 },
     shadowOpacity: 0.3,
