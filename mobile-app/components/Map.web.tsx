@@ -173,11 +173,15 @@ export const Marker = (props: any) => {
   const nonCallouts = childrenArray.filter((c: any) => c.type !== Callout);
 
   return (
-    <Overlay 
-      anchor={[coordinate.latitude, coordinate.longitude]} 
+    <Overlay
+      anchor={[coordinate.latitude, coordinate.longitude]}
       offset={[0, 0]}
       left={left}
       top={top}
+      // pigeon-maps posiciona cada Overlay con transform, lo que crea su propio
+      // stacking context: el zIndex del Callout no compite contra otros marcadores,
+      // hay que elevar el Overlay completo del marcador con la tarjeta abierta.
+      style={renderCallout ? { zIndex: 1000 } : undefined}
     >
       <div
         // @ts-ignore
